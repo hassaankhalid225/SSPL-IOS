@@ -1,0 +1,28 @@
+package com.sspl.theme
+
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.ui.graphics.Color
+
+/**
+ * Created by M Imran
+ * Senior Software Engineer at
+ * BhimSoft on 02/01/2025.
+ * se.muhammadimran@gmail.com
+ */
+val primary = Color(0xFF1581DE)
+val secondary = Color(0xFF056EC7)
+val tertiary = Color(0xFF319BF6)
+val windowBackGround = Color(0xFFF3F3F3)
+val textColor = Color(0xFF1E1E1E)
+val lightScheme = lightColorScheme(
+    primary = primary,
+    primaryContainer = primary,
+    onPrimaryContainer = Color.White,
+    onPrimary = textColor,
+    secondary = secondary,
+    onSecondary =  Color.White,
+    tertiary = tertiary,
+    onTertiary =  Color.White,
+    background = primary,
+    onBackground = Color.Black,
+)

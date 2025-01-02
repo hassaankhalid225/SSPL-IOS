@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<resources>
+    <string name="app_name">SSPL</string>
+
+    <string name="home">Home</string>
+    <string name="favourite">Favourite</string>
+    <string name="profile">Profile</string>
+    <string name="forum">Forum</string>
+
+
+    <string name="back">Back</string>
+    <string name="login">Login</string>
+    <string name="log_in">Log In</string>
+    <string name="welcome_back_to_app">Welcome back to SSPL!</string>
+    <string name="enter_your_phone_number">Enter your phone number</string>
+    <string name="one_time_password">One Time Password</string>
+    <string name="please_verify_your_phone_number">Please verify your phone number</string>
+    <string name="with_otp_sent_to">with OTP we sent to </string>
+    <string name="still_waiting_for_your_otp">Still waiting for your OTP?</string>
+    <string name="resend_it_now">Resend It Now</string>
+</resources>

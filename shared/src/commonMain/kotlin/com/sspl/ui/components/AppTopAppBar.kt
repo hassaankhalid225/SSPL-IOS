@@ -1,0 +1,115 @@
+package com.sspl.ui.components
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.sharp.ArrowBack
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.sharp.Face
+import androidx.compose.material.icons.sharp.MoreVert
+import androidx.compose.material.icons.sharp.Person
+import androidx.compose.material.icons.sharp.ShoppingCart
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.sspl.Screen
+import org.jetbrains.compose.resources.stringResource
+
+/**
+ * Created by M Imran
+ * Senior Software Engineer at
+ * BhimSoft on 13/08/2024.
+ * se.muhammadimran@gmail.com
+ */
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MyTopAppBar(
+    currentScreen: Screen,
+    canNavigateBack: Boolean,
+    navigateUp: () -> Unit,
+    onHamburgClicked: () -> Unit = {},
+    onCartClicked: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
+    TopAppBar(
+        modifier = modifier
+            .clip(
+                shape = RoundedCornerShape(
+                    0.dp,
+                    0.dp,
+                    12.dp,
+                    12.dp
+                )
+            ),
+        windowInsets = WindowInsets(top = 0.dp),
+        title = {
+            if (canNavigateBack) {
+                currentScreen.title?.let {
+                    Text(
+                        text = stringResource(it),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            } else {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "Umar Awais",
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        ),
+        actions = {
+            IconButton(onClick = onCartClicked) {
+                Icon(
+                    imageVector = Icons.Sharp.MoreVert,
+                    contentDescription = null
+                )
+            }
+        },
+        navigationIcon = {
+            if (canNavigateBack) {
+                IconButton(onClick = navigateUp) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Sharp.ArrowBack,
+                        contentDescription = null
+                    )
+                }
+            } else {
+                IconButton(onClick = onHamburgClicked) {
+                    Icon(
+                        imageVector = Icons.Sharp.Person,
+                        contentDescription = null
+                    )
+                }
+            }
+        }
+    )
+}
