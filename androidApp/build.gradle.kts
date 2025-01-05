@@ -5,6 +5,8 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics)
 }
 
 val keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -18,8 +20,8 @@ android {
         applicationId = "com.sspl.android"
         minSdk = 23
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.0.2"
     }
     signingConfigs {
         create("release") {
@@ -70,4 +72,8 @@ dependencies {
     implementation(libs.koin.core)
     implementation(project.dependencies.platform(libs.koin.bom))
     implementation(libs.koin.android)
+
+    implementation(project.dependencies.platform(libs.firebase.bom)) // Use the latest version
+    implementation(libs.firebase.analytics.ktx)
+    implementation(libs.firebase.crashlytics)
 }
