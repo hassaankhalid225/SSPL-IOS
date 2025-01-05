@@ -1,5 +1,15 @@
 package com.sspl
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -22,14 +32,16 @@ import com.sspl.ui.components.MyTopAppBar
  */
 
 @Composable
-fun MainScreen() {
+fun MainScreen(paddingValues: PaddingValues) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
 
     val currentScreen = screenByRoute(backStackEntry?.destination?.route) ?: Screen.HomeScreen
     val navItems = navItems()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().padding(paddingValues),
         containerColor = windowBackGround,
         topBar = {
             MyTopAppBar(
@@ -39,10 +51,23 @@ fun MainScreen() {
             )
         },
         bottomBar = {
-            AppBottomBar(
-                bottomNavItems = navItems,
-                navController = navController
-            )
+            AnimatedVisibility(
+                navItems.any { it.screen.route == navBackStackEntry?.destination?.route },
+                enter = slideInVertically(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioLowBouncy,
+                        stiffness = Spring.StiffnessLow
+                    ),
+                    initialOffsetY = { it }) + fadeIn(),
+                exit = slideOutVertically(
+                    animationSpec = tween(durationMillis = 300, easing = LinearEasing),
+                    targetOffsetY = { it }) + fadeOut()
+            ) {
+                AppBottomBar(
+                    bottomNavItems = navItems,
+                    navController = navController
+                )
+            }
         }
     ) {
         NavHost(

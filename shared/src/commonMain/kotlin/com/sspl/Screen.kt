@@ -6,17 +6,20 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import com.sspl.ui.conferencescreen.ConferenceDetailScreen
 import com.sspl.ui.ForumScreen
 import com.sspl.ui.HomeScreen
 import com.sspl.ui.ProfileScreen
+import com.sspl.ui.conferencescreen.ConferenceScreen
 import com.sspl.utils.IconResource
 import org.jetbrains.compose.resources.StringResource
-import org.jetbrains.compose.resources.vectorResource
 import sspl.shared.generated.resources.Res
 import sspl.shared.generated.resources.home
 import sspl.shared.generated.resources.profile
 import sspl.shared.generated.resources.forum
 import sspl.shared.generated.resources.ic_forum
+import sspl.shared.generated.resources.conference
+import sspl.shared.generated.resources.conference_detail
 
 /**
  * Created by M Imran
@@ -55,6 +58,16 @@ sealed class Screen(
         route = "ForumScreen",
         icon = IconResource.fromDrawableResource(drawable = Res.drawable.ic_forum)
     )
+
+    data object ConferenceScreen : Screen(
+        title = Res.string.conference,
+        route = "ConferenceDetailScreen",
+    )
+
+    data object ConferenceDetailScreen : Screen(
+        title = Res.string.conference_detail,
+        route = "ConferenceDetailScreen",
+    )
 }
 
 fun screenByRoute(route: String?): Screen? =
@@ -75,6 +88,14 @@ fun otherScreens(): List<NavItem> = listOf(
     NavItem(
         screen = Screen.ProfileScreen,
         component = { ProfileScreen(navController = it) }
+    ),
+    NavItem(
+        screen = Screen.ConferenceScreen,
+        component = { ConferenceScreen(navController = it) }
+    ),
+    NavItem(
+        screen = Screen.ConferenceDetailScreen,
+        component = { ConferenceDetailScreen(navController = it) }
     ),
 
     )

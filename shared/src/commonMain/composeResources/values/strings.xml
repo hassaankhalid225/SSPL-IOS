@@ -6,6 +6,8 @@
     <string name="favourite">Favourite</string>
     <string name="profile">Profile</string>
     <string name="forum">Forum</string>
+    <string name="conference">Conference</string>"
+    <string name="conference_detail">Conference Detail</string>"
 
 
     <string name="back">Back</string>

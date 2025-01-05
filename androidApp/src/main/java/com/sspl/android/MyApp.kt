@@ -1,6 +1,7 @@
 package com.sspl.android
 
 import android.app.Application
+import com.sspl.di.appModules
 
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -19,7 +20,7 @@ class MyApp : Application() {
         startKoin {
             androidContext(this@MyApp)
             androidLogger()
-
+            modules(appModules)
         }
     }
 }

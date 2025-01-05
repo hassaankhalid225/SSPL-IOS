@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -32,34 +33,42 @@ kotlin {
     sourceSets {
         androidMain.dependencies {
         }
-        commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
-            //
+        val commonMain by getting {
+            resources.srcDirs("src/commonMain/resources")
+            dependencies {
+                implementation(compose.runtime)
+                implementation(compose.foundation)
+                implementation(compose.material3)
+                implementation(compose.ui)
+                implementation(compose.components.resources)
+                implementation(compose.components.uiToolingPreview)
+                //
 
-            //Navigation
-            implementation(libs.navigation.compose)
-            //Koin
-            implementation(project.dependencies.platform(libs.koin.bom))
-            implementation(libs.koin.core)
-            implementation(libs.koin.compose)
-            implementation(libs.koin.composeVM)
-            implementation(libs.koin.test)
+                //Navigation
+                implementation(libs.navigation.compose)
+                //Koin
+                implementation(project.dependencies.platform(libs.koin.bom))
+                implementation(libs.koin.core)
+                implementation(libs.koin.compose)
+                implementation(libs.koin.composeVM)
+                implementation(libs.koin.test)
 
-            //Retrofit + OkHttp
+                //Retrofit + OkHttp
 //            implementation(libs.retrofit)
 //            implementation(project.dependencies.platform(libs.okhttp.bom))
 //            implementation(libs.okhttp)
 //            implementation(libs.logging.interceptor)
-            implementation(libs.kotlinx.serialization.json)
 //            implementation(libs.retrofit2.kotlinx.serialization.converter)
-            //Coil
-            implementation(libs.coil.compose)
-            implementation(libs.coil.compose.core)
+                implementation(libs.kotlinx.serialization.json)
+                //Coil
+                implementation(libs.coil.compose)
+                implementation(libs.coil.compose.core)
+
+                implementation(libs.kotlinx.datetime)
+//                implementation(libs.kotlinx.datetime.i18n)
+//                implementation(libs.annotations.common)
+//                implementation(libs.androidx.core.i18n)
+//                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
 
 
 //            implementation(compose.components.resources)
@@ -71,7 +80,8 @@ kotlin {
 //            implementation(libs.libphonenumber)
 
 
-            //implementation(libs.compose.ui.tooling)
+                //implementation(libs.compose.ui.tooling)
+            }
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -82,6 +92,12 @@ kotlin {
 android {
     namespace = "com.sspl"
     compileSdk = 35
+
+//    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
+//    sourceSets["main"].res.srcDirs("src/androidMain/res")
+
+    //sourceSets["main"].resources.srcDirs("src/commonMain/resources")
+
     defaultConfig {
         minSdk = 23
     }
@@ -92,3 +108,8 @@ android {
 }
 dependencies {
 }
+//compose.resources {
+//    publicResClass = true
+//    packageOfResClass = "com.ekriana.app.resources"
+//    generateResClass = always
+//}

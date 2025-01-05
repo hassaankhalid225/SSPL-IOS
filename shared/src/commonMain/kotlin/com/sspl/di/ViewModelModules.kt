@@ -1,5 +1,8 @@
 package com.sspl.di
 
+import com.sspl.ui.conferencescreen.ConferenceViewModel
+import org.koin.core.module.dsl.singleOf
+
 import org.koin.dsl.module
 
 /**
@@ -19,7 +22,7 @@ import org.koin.dsl.module
  */
 
 internal val viewModelModules = module {
-//    viewModelOf(::AuthenticationViewModel)
+    singleOf(::ConferenceViewModel)
 //    singleOf(::HomeScreenViewModel)
 //    viewModelOf(::PlayerScreenViewModel)
 //    viewModelOf(::SearchScreenViewModel)

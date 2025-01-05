@@ -5,3 +5,5 @@ interface Platform {
 }
 
 expect fun getPlatform(): Platform
+
+expect fun formatDateTime(dateTime: String, inFormat: String, outFormat: String): String

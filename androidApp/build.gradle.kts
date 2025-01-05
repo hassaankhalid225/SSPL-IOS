@@ -1,8 +1,15 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.compose.compiler)
 }
+
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 
 android {
     namespace = "com.sspl.android"
@@ -14,6 +21,20 @@ android {
         versionCode = 1
         versionName = "1.0"
     }
+    signingConfigs {
+        create("release") {
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
+            storeFile = file(keystoreProperties["storeFile"] as String)
+            storePassword = keystoreProperties["storePassword"] as String
+        }
+        create("stageRelease") {
+            storeFile = file("../keystore/stagerelease.keystore")
+            storePassword = "stagerelease"
+            keyAlias = "stagerelease"
+            keyPassword = "stagerelease"
+        }
+    }
     buildFeatures {
         compose = true
     }
@@ -24,6 +45,11 @@ android {
     }
     buildTypes {
         getByName("release") {
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = false
+        }
+        getByName("debug") {
+            signingConfig = signingConfigs.getByName("stageRelease")
             isMinifyEnabled = false
         }
     }

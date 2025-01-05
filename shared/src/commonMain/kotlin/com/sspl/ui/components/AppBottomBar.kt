@@ -30,7 +30,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun AppBottomBar(bottomNavItems: List<NavItem>, navController: NavHostController) {
     BottomAppBar(
-        windowInsets = WindowInsets(bottom = 0.dp),
+        windowInsets = WindowInsets(bottom = 0.dp, top = 0.dp),
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp)),
         containerColor = MaterialTheme.colorScheme.primaryContainer
@@ -42,6 +42,7 @@ fun AppBottomBar(bottomNavItems: List<NavItem>, navController: NavHostController
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     unselectedIconColor = MaterialTheme.colorScheme.outlineVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.outlineVariant,
                     selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     indicatorColor = Color.Transparent
                 ),
@@ -63,7 +64,7 @@ fun AppBottomBar(bottomNavItems: List<NavItem>, navController: NavHostController
                 },
                 label = {
                     navItem.screen.title?.let {
-                        Text(
+                        AppTextLabel(
                             text = stringResource(it),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = if (navBackStackEntry?.destination?.route == navItem.screen.route) FontWeight.Medium else FontWeight.Normal

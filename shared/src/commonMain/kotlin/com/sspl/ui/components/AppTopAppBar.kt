@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.sharp.Face
 import androidx.compose.material.icons.sharp.MoreVert
 import androidx.compose.material.icons.sharp.Person
+import androidx.compose.material.icons.sharp.Search
 import androidx.compose.material.icons.sharp.ShoppingCart
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -65,18 +66,20 @@ fun MyTopAppBar(
         title = {
             if (canNavigateBack) {
                 currentScreen.title?.let {
-                    Text(
+                    AppTextSubTitle(
                         text = stringResource(it),
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontSize = 16.sp
                     )
                 }
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
+                    AppTextSubTitle(
                         text = "Umar Awais",
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        fontSize = 16.sp
                     )
                 }
             }
@@ -89,7 +92,7 @@ fun MyTopAppBar(
         actions = {
             IconButton(onClick = onCartClicked) {
                 Icon(
-                    imageVector = Icons.Sharp.MoreVert,
+                    imageVector = Icons.Sharp.Search,
                     contentDescription = null
                 )
             }

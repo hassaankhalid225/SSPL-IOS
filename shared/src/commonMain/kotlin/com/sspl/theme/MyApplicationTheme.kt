@@ -34,13 +34,16 @@ fun MyApplicationTheme(
 //            tertiary = Color(0xFF3700B3)
 //        )
 //    }
+    val fontFamily = AppFontFamily()
     val typography = Typography(
         bodyMedium = TextStyle(
-            fontFamily = FontFamily.Default,
+            fontFamily = fontFamily,
             fontWeight = FontWeight.Normal,
             fontSize = 16.sp
         )
     )
+//    val typography = AppTypography()
+//    val typography = typography(AppFontFamily())
     val shapes = Shapes(
         small = RoundedCornerShape(4.dp),
         medium = RoundedCornerShape(4.dp),

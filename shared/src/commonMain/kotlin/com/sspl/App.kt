@@ -8,9 +8,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import com.sspl.theme.MyApplicationTheme
-import com.sspl.theme.windowBackGround
 import org.koin.compose.KoinContext
 
 /**
@@ -28,9 +26,9 @@ fun App() {
                 modifier = Modifier.fillMaxSize(),
                 containerColor = MaterialTheme.colorScheme.primary
             ) {
-                Surface(modifier = Modifier.padding(it)) {
-                    MainScreen()
-                }
+//                Surface(modifier = Modifier.padding(it)) {
+                    MainScreen(it)
+//                }
             }
         }
     }
