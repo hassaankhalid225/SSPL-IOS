@@ -1,22 +1,22 @@
 package com.sspl.theme
 
 import androidx.compose.runtime.Composable
-import sspl.shared.generated.resources.Res
+import com.sspl.resources.Res
 
 import org.jetbrains.compose.resources.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import sspl.shared.generated.resources.poppins_black
-import sspl.shared.generated.resources.poppins_bold
-import sspl.shared.generated.resources.poppins_extra_bold
-import sspl.shared.generated.resources.poppins_extra_light
-import sspl.shared.generated.resources.poppins_italic
-import sspl.shared.generated.resources.poppins_light
-import sspl.shared.generated.resources.poppins_medium
-import sspl.shared.generated.resources.poppins_regular
-import sspl.shared.generated.resources.poppins_semi_bold
-import sspl.shared.generated.resources.poppins_thin
+import com.sspl.resources.poppins_black
+import com.sspl.resources.poppins_bold
+import com.sspl.resources.poppins_extra_bold
+import com.sspl.resources.poppins_extra_light
+import com.sspl.resources.poppins_italic
+import com.sspl.resources.poppins_light
+import com.sspl.resources.poppins_medium
+import com.sspl.resources.poppins_regular
+import com.sspl.resources.poppins_semi_bold
+import com.sspl.resources.poppins_thin
 
 
 /**

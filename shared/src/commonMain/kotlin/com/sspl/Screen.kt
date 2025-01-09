@@ -13,13 +13,15 @@ import com.sspl.ui.ProfileScreen
 import com.sspl.ui.conferencescreen.ConferenceScreen
 import com.sspl.utils.IconResource
 import org.jetbrains.compose.resources.StringResource
-import sspl.shared.generated.resources.Res
-import sspl.shared.generated.resources.home
-import sspl.shared.generated.resources.profile
-import sspl.shared.generated.resources.forum
-import sspl.shared.generated.resources.ic_forum
-import sspl.shared.generated.resources.conference
-import sspl.shared.generated.resources.conference_detail
+import com.sspl.resources.Res
+import com.sspl.resources.home
+import com.sspl.resources.profile
+import com.sspl.resources.forum
+import com.sspl.resources.ic_forum
+import com.sspl.resources.conference
+import com.sspl.resources.conference_detail
+import com.sspl.resources.log_in
+import com.sspl.resources.sign_up
 
 /**
  * Created by M Imran
@@ -67,6 +69,16 @@ sealed class Screen(
     data object ConferenceDetailScreen : Screen(
         title = Res.string.conference_detail,
         route = "ConferenceDetailScreen",
+    )
+
+    data object SignInScreen : Screen(
+        title = Res.string.log_in,
+        route = "SignInScreen",
+    )
+
+    data object SignUpScreen : Screen(
+        title = Res.string.sign_up,
+        route = "SignUpScreen",
     )
 }
 

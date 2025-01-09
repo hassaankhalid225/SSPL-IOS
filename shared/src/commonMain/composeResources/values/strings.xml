@@ -8,11 +8,11 @@
     <string name="forum">Forum</string>
     <string name="conference">Conference</string>"
     <string name="conference_detail">Conference Detail</string>"
-
+    <string name="sign_up">Sign Up</string>"
+    <string name="log_in">Log In</string>
 
     <string name="back">Back</string>
     <string name="login">Login</string>
-    <string name="log_in">Log In</string>
     <string name="welcome_back_to_app">Welcome back to SSPL!</string>
     <string name="enter_your_phone_number">Enter your phone number</string>
     <string name="one_time_password">One Time Password</string>

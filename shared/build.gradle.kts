@@ -108,8 +108,8 @@ android {
 }
 dependencies {
 }
-//compose.resources {
-//    publicResClass = true
-//    packageOfResClass = "com.ekriana.app.resources"
-//    generateResClass = always
-//}
+compose.resources {
+    publicResClass = true
+    packageOfResClass = "com.sspl.resources"
+    generateResClass = always
+}
