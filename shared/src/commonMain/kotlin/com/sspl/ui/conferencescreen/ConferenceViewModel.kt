@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import sspl.shared.generated.resources.Res
+import com.sspl.resources.Res
 
 /**
  * Created by M Imran

@@ -66,10 +66,12 @@ sealed class Screen(
         route = "ConferenceDetailScreen",
     )
 
+
     data object ConferenceDetailScreen : Screen(
         title = Res.string.conference_detail,
         route = "ConferenceDetailScreen",
     )
+
 
     data object SignInScreen : Screen(
         title = Res.string.log_in,
@@ -108,6 +110,5 @@ fun otherScreens(): List<NavItem> = listOf(
     NavItem(
         screen = Screen.ConferenceDetailScreen,
         component = { ConferenceDetailScreen(navController = it) }
-    ),
-
     )
+)

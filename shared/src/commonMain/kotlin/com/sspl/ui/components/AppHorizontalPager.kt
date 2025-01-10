@@ -50,7 +50,11 @@ fun <T> AppHorizontalPager(
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = horizontalPadding),
+            contentPadding = PaddingValues(
+                start = horizontalPadding,
+                end = horizontalPadding,
+                top = horizontalPadding
+            ),
             pageSpacing = itemSpacing
         ) { page ->
             content(

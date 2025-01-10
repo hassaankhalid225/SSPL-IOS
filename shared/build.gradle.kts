@@ -32,6 +32,10 @@ kotlin {
 
     sourceSets {
         androidMain.dependencies {
+            implementation(libs.ktor.client.okhttp)
+        }
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
         }
         val commonMain by getting {
             resources.srcDirs("src/commonMain/resources")
@@ -52,6 +56,11 @@ kotlin {
                 implementation(libs.koin.compose)
                 implementation(libs.koin.composeVM)
                 implementation(libs.koin.test)
+
+                //Ktor
+                implementation(libs.ktor.client.core)
+                implementation(libs.ktor.client.logging)
+                implementation(libs.kotlinx.coroutines.core)
 
                 //Retrofit + OkHttp
 //            implementation(libs.retrofit)
@@ -107,6 +116,7 @@ android {
     }
 }
 dependencies {
+    implementation(libs.kotlinx.coroutines.android)
 }
 compose.resources {
     publicResClass = true

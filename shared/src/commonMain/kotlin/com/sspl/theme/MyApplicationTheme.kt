@@ -35,14 +35,14 @@ fun MyApplicationTheme(
 //        )
 //    }
     val fontFamily = AppFontFamily()
-    val typography = Typography(
-        bodyMedium = TextStyle(
-            fontFamily = fontFamily,
-            fontWeight = FontWeight.Normal,
-            fontSize = 16.sp
-        )
-    )
-//    val typography = AppTypography()
+//    val typography = Typography(
+//        bodyMedium = TextStyle(
+//            fontFamily = fontFamily,
+//            fontWeight = FontWeight.Normal,
+//            fontSize = 16.sp
+//        )
+//    )
+    val typography = AppTypography()
 //    val typography = typography(AppFontFamily())
     val shapes = Shapes(
         small = RoundedCornerShape(4.dp),
