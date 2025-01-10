@@ -36,6 +36,7 @@ kotlin {
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
+            //implementation("io.github.aakira:napier:1.4.1")
         }
         val commonMain by getting {
             resources.srcDirs("src/commonMain/resources")
@@ -59,9 +60,16 @@ kotlin {
 
                 //Ktor
                 implementation(libs.ktor.client.core)
+                implementation(libs.ktor.serialization.kotlinx.json)
                 implementation(libs.ktor.client.logging)
                 implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.ktor.client.content.negotiation)
+                implementation(libs.napier)
 
+                // Settings
+                implementation(libs.multiplatform.settings)
+                implementation(libs.multiplatform.settings.no.arg)
+                //implementation(libs.multiplatform.settings.encryption)
                 //Retrofit + OkHttp
 //            implementation(libs.retrofit)
 //            implementation(project.dependencies.platform(libs.okhttp.bom))

@@ -1,6 +1,21 @@
 package com.sspl.di
 
 
+import com.sspl.platform.getClient
+
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.DEFAULT
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.http.URLProtocol
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.json.Json
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 /**
@@ -13,13 +28,11 @@ import org.koin.dsl.module
 internal val networkModules = module {
 //    singleOf(::provideLoggingInterceptor)
 //    singleOf(::provideCacheInterceptor)
-//    singleOf(::provideHttpClient)
+    singleOf(::provideHttpClient)
 //    singleOf(::provideRetrofit)
 //    singleOf(::provideService)
 }
 
-private const val BASE_URL = "https://ps1.redtelo.net"
-const val PATH_TO_APPEND = "/api"
 var cacheSize: Long = 5 * 1024 * 1024 // 5MB
 
 //private fun provideLoggingInterceptor() = HttpLoggingInterceptor().apply {
@@ -36,21 +49,7 @@ var cacheSize: Long = 5 * 1024 * 1024 // 5MB
 //        .build()
 //}
 //
-//private fun provideHttpClient(
-//    context: Context,
-//    loggingInterceptor: HttpLoggingInterceptor,
-//    cacheInterceptor: Interceptor
-//): OkHttpClient {
-//
-//    return OkHttpClient
-//        .Builder()
-//        .cache(Cache(context.cacheDir, cacheSize))
-//        .readTimeout(60, TimeUnit.SECONDS)
-//        .connectTimeout(60, TimeUnit.SECONDS)
-//        .addInterceptor(loggingInterceptor)
-//        .addNetworkInterceptor(cacheInterceptor)
-//        .build()
-//}
+private fun provideHttpClient(): HttpClient = getClient()
 //
 //
 //private fun provideRetrofit(

@@ -1,6 +1,5 @@
 package com.sspl.ui.conferencescreen
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -33,7 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.core.models.Conference
-import com.sspl.formatDateTime
+import com.sspl.platform.formatDateTime
 import com.sspl.theme.boxColor
 import com.sspl.theme.columnColor
 import com.sspl.theme.dividerColor
@@ -41,7 +40,6 @@ import com.sspl.theme.orange
 import com.sspl.ui.components.AppTextBody
 import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.AppTextSubTitle
-import com.sspl.utils.formatStringToDate
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.koin.compose.viewmodel.koinViewModel

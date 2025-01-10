@@ -35,14 +35,14 @@ fun MyApplicationTheme(
 //        )
 //    }
     val fontFamily = AppFontFamily()
-//    val typography = Typography(
-//        bodyMedium = TextStyle(
-//            fontFamily = fontFamily,
-//            fontWeight = FontWeight.Normal,
-//            fontSize = 16.sp
-//        )
-//    )
-    val typography = AppTypography()
+    val typography1 = Typography(
+        bodyMedium = TextStyle(
+            fontFamily = fontFamily,
+            fontWeight = FontWeight.Normal,
+            fontSize = 16.sp
+        )
+    )
+    val typography2 = AppTypography()
 //    val typography = typography(AppFontFamily())
     val shapes = Shapes(
         small = RoundedCornerShape(4.dp),
@@ -51,7 +51,8 @@ fun MyApplicationTheme(
     )
     MaterialTheme(
         colorScheme = colors,
-        typography = typography,
+//        typography = typography1,
+        typography = typography2,
         shapes = shapes,
         content = content
     )

@@ -1,5 +1,7 @@
 package com.sspl.di
 
+import com.sspl.session.UserSession
+import com.sspl.storage.LocalStorage
 import org.koin.dsl.module
 
 /**
@@ -10,6 +12,6 @@ import org.koin.dsl.module
  */
 
 internal val storageModules = module {
-//    single { LocalStorage(get()) }
-//    single { UserSession(get(),get()) }
+    single { LocalStorage() }
+    single { UserSession(get()) }
 }

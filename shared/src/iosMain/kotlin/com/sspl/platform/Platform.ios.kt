@@ -1,34 +1,51 @@
-package com.sspl
+package com.sspl.platform
 
 
+import com.sspl.core.getBaseClient
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.darwin.Darwin
 import platform.Foundation.*
-import kotlinx.cinterop.BetaInteropApi
-import kotlinx.cinterop.ExperimentalForeignApi
-
-import kotlinx.cinterop.alloc
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.ptr
-import kotlinx.cinterop.pointed
-import kotlinx.cinterop.ObjCObjectVar
-import kotlinx.cinterop.value
 
 
-import platform.Foundation.NSBundle
-import platform.Foundation.NSError
-import platform.Foundation.NSString
-import platform.Foundation.NSStringEncodingVar
-import platform.Foundation.NSUTF8StringEncoding
-import platform.Foundation.stringWithContentsOfFile
 import platform.UIKit.UIDevice
-import platform.darwin.NSObject
-import platform.darwin.NSObjectMeta
 
 class IOSPlatform : Platform {
     override val name: String =
         UIDevice.currentDevice.systemName() + " " + UIDevice.currentDevice.systemVersion
 }
 
-actual fun getPlatform(): Platform = IOSPlatform()
+actual fun getClient(): HttpClient {
+    return getBaseClient(Darwin) {
+        engine {
+            configureRequest {
+                setAllowsCellularAccess(true)
+            }
+        }
+    }
+//    return HttpClient(Darwin) {
+//        install(ContentNegotiation) {
+//            json(Json {
+//                encodeDefaults = true
+//                isLenient = true
+//                coerceInputValues = true
+//                ignoreUnknownKeys = true
+//            })
+//        }
+//        install(Logging) {
+//            logger = object : Logger {
+//                override fun log(message: String) {
+//                    Napier.d("HTTP Client", null, message)
+//                }
+//            }
+//            level = LogLevel.ALL
+//        }
+//        engine {
+//            configureRequest {
+//                setAllowsCellularAccess(true)
+//            }
+//        }
+//    }.also { Napier.base(DebugAntilog()) }
+}
 
 //@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 //internal actual class SharedFileReader {

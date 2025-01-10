@@ -1,7 +1,7 @@
 package com.sspl.core.models.usecases
 
 import com.sspl.core.models.Post
-import com.sspl.core.models.data.PostsRepository
+import com.sspl.core.repositories.PostsRepository
 import kotlinx.coroutines.flow.Flow
 
 class GetPostsUseCase(

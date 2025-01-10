@@ -1,4 +1,4 @@
-package com.sspl.core.models.data
+package com.sspl.core.repositories
 
 import com.sspl.core.models.Post
 import kotlinx.coroutines.flow.Flow
