@@ -1,5 +1,5 @@
 [versions]
-agp = "8.8.0-rc02"
+agp = "8.7.3"
 annotationsCommon = "23.0.0"
 firebaseBom = "33.7.0"
 kotlin = "2.0.20"
@@ -19,7 +19,7 @@ coreSplash = "1.0.1"
 coreI18n = "1.0.0-alpha01"
 playServices = "4.4.2"
 firebaseCrashlytics = "3.0.2"
-
+ktor = "3.0.0-wasm2"
 [libraries]
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-analytics-ktx = { module = "com.google.firebase:firebase-analytics-ktx" }
@@ -50,7 +50,9 @@ koin-android = { module = "io.insert-koin:koin-android" }
 #Coil
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil3" }
 coil-compose-core = { module = "io.coil-kt.coil3:coil-compose-core", version.ref = "coil3" }
-coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil3" }
+coil-network-ktor = { module = "io.coil-kt.coil3:coil-network-ktor", version.ref = "coil3" }
+coil-mp = { module = "io.coil-kt.coil3:coil", version.ref = "coil3" }
+ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
 
 #Retrofit + OkHttp
 okhttp-bom = { module = "com.squareup.okhttp3:okhttp-bom", version.ref = "okhttpBom" }

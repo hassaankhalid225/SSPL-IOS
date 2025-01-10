@@ -44,6 +44,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.sspl.Screen
+import com.sspl.resources.Res
+import com.sspl.resources.ad_sspl
 import com.sspl.theme.boxColor
 import com.sspl.theme.columnColor
 import com.sspl.theme.dividerColor
@@ -55,8 +57,7 @@ import com.sspl.ui.components.BetterModalBottomSheet
 import com.sspl.ui.conferencescreen.ConferenceScreen
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
-import sspl.shared.generated.resources.Res
-import sspl.shared.generated.resources.ad_sspl
+
 
 /**
  * Created by M Imran
