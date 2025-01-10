@@ -6,22 +6,24 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import com.sspl.resources.Res
+import com.sspl.resources.conference
+import com.sspl.resources.conference_detail
+import com.sspl.resources.forum
+import com.sspl.resources.home
+import com.sspl.resources.ic_forum
+import com.sspl.resources.log_in
+import com.sspl.resources.profile
+import com.sspl.resources.sign_up
 import com.sspl.ui.conferencescreen.ConferenceDetailScreen
 import com.sspl.ui.ForumScreen
 import com.sspl.ui.HomeScreen
 import com.sspl.ui.ProfileScreen
 import com.sspl.ui.conferencescreen.ConferenceScreen
+import com.sspl.ui.postscreen.PostScreen
 import com.sspl.utils.IconResource
 import org.jetbrains.compose.resources.StringResource
-import com.sspl.resources.Res
-import com.sspl.resources.home
-import com.sspl.resources.profile
-import com.sspl.resources.forum
-import com.sspl.resources.ic_forum
-import com.sspl.resources.conference
-import com.sspl.resources.conference_detail
-import com.sspl.resources.log_in
-import com.sspl.resources.sign_up
+
 
 /**
  * Created by M Imran
@@ -94,7 +96,7 @@ fun navItems(): List<NavItem> = listOf(
     ),
     NavItem(
         screen = Screen.ForumScreen,
-        component = { ForumScreen(navController = it) }
+        component = { PostScreen(/*navController = it*/) }
     )
 )
 

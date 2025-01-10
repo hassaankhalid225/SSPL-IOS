@@ -23,7 +23,14 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.sspl.resources.Res
 import com.sspl.resources.ad_sspl
-import com.sspl.ui.components.AppHorizontalPager
+import com.sspl.Screen
+import com.sspl.theme.boxColor
+import com.sspl.theme.columnColor
+import com.sspl.theme.dividerColor
+import com.sspl.theme.orange
+import com.sspl.ui.components.AppTextBody
+import com.sspl.ui.components.AppTextLabel
+import com.sspl.ui.components.AppTextSubTitle
 import com.sspl.ui.components.BetterModalBottomSheet
 import com.sspl.ui.conferencescreen.ConferenceScreen
 import kotlinx.coroutines.launch

@@ -1,5 +1,6 @@
 package com.sspl.di
 
+import com.sspl.core.models.usecases.GetPostsUseCase
 import org.koin.dsl.module
 
 /**
@@ -14,4 +15,6 @@ internal val useCaseModules = module {
 //    single { CheckIsAuthenticated(get()) }
 //    single { GetLiveStream(get(), get()) }
 //    single { GetLiveStreamCategories(get(), get()) }
+    single { GetPostsUseCase(get()) }
+
 }

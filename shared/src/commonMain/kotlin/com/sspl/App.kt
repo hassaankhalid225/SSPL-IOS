@@ -8,6 +8,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import coil3.ImageLoader
+import coil3.PlatformContext
+import coil3.compose.setSingletonImageLoaderFactory
 import com.sspl.theme.MyApplicationTheme
 import org.koin.compose.KoinContext
 
@@ -21,6 +24,9 @@ import org.koin.compose.KoinContext
 @Composable
 fun App() {
     KoinContext {
+        setSingletonImageLoaderFactory { context ->
+            getAsyncImageLoader(context)
+        }
         MyApplicationTheme {
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
@@ -34,3 +40,5 @@ fun App() {
     }
 
 }
+fun getAsyncImageLoader(context: PlatformContext)=
+    ImageLoader.Builder(context).build()
