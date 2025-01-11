@@ -46,6 +46,7 @@ fun MainScreen(paddingValues: PaddingValues) {
         topBar = {
             MyTopAppBar(
                 currentScreen = currentScreen,
+                onHamburgClicked = { navController.navigate(route = Screen.SignInScreen.route) },
                 canNavigateBack = navController.previousBackStackEntry != null,
                 navigateUp = { navController.navigateUp() },
             )
