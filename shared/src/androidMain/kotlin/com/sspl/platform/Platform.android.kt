@@ -1,6 +1,7 @@
 package com.sspl.platform
 
 import com.sspl.core.getBaseClient
+import com.sspl.storage.Storage
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import java.text.SimpleDateFormat
@@ -35,4 +36,8 @@ actual fun formatDateTime(dateTime: String, inFormat: String, outFormat: String)
         e.printStackTrace()
         ""
     }
+}
+
+actual fun getStorage(): Storage {
+    TODO("Not yet implemented")
 }

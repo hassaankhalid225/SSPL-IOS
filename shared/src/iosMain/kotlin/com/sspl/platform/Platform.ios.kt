@@ -1,7 +1,9 @@
 package com.sspl.platform
 
 
+import com.sspl.IosStorage
 import com.sspl.core.getBaseClient
+import com.sspl.storage.Storage
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
 import platform.Foundation.*
@@ -107,3 +109,5 @@ actual fun formatDateTime(dateTime: String, inFormat: String, outFormat: String)
         ""
     }
 }
+
+actual fun getStorage(): Storage = IosStorage()
