@@ -46,13 +46,28 @@ class SignInViewModel : ViewModel() {
                     _uiState.update {
                         it.copy(isLoading = true)
                     }
+
                     delay(1500)
                     if (_uiState.value.isOtpMode) {
                         val phoneNo = _uiState.value.country.callingCodes.first()
                             .toString() + _uiState.value.phoneNo
-                        _uiState.update {
-                            it.copy(isLoading = false)
+                        val emailRegex = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\$")
+                        val isEmailValid = emailRegex.matches(_uiState.value.email)
+                        val isPasswordValid = _uiState.value.password.length >= 10
+
+                        if (!isEmailValid || !isPasswordValid) {
+                            val errorMessage = when {
+                                !isEmailValid -> "Please enter a valid email address."
+                                !isPasswordValid -> "Password must be at least 10 characters long."
+                                else -> "Invalid email or password."
+                            }
+                            _oneTimeEvents.emit(OneTimeEvents.ShowError(errorMessage))
+                            _uiState.update {
+                                it.copy(isLoading = false)
+                            }
+                            return@launch
                         }
+
                         if (/*requestSentSuccessfull*/true){
                             _oneTimeEvents.emit(OneTimeEvents.NavigateToOtpScreen)
                         }else{
@@ -60,9 +75,6 @@ class SignInViewModel : ViewModel() {
                         }
                     } else {
 
-                        _uiState.update {
-                            it.copy(isLoading = false)
-                        }
                         if (/*aunthicated*/true){
                             _oneTimeEvents.emit(OneTimeEvents.LoginSuccess)
                         }else{
