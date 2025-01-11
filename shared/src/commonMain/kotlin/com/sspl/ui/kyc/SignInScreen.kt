@@ -117,6 +117,8 @@ fun LoginScreen(
         }
     }
 
+    Scaffold(snackbarHost = { SnackbarHost(scaffoldState) }) { padding ->
+
         LoginScreenContent(
             email = uiState.email,
             password = uiState.password,
@@ -125,8 +127,9 @@ fun LoginScreen(
             showPassword = uiState.isPasswordVisible,
             isLoading = uiState.isLoading, showCountryChooser = uiState.showCountryChooser,
             onEvents = viewModel::onEvent,
-            modifier = modifier,
+            modifier = modifier.padding(padding),
         )
+        }
 
 
 }

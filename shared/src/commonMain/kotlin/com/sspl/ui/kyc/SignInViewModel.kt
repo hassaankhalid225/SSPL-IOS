@@ -51,9 +51,17 @@ class SignInViewModel : ViewModel() {
                     if (_uiState.value.isOtpMode) {
                         val phoneNo = _uiState.value.country.callingCodes.first()
                             .toString() + _uiState.value.phoneNo
+
+
+                        if (/*requestSentSuccessfull*/true){
+                            _oneTimeEvents.emit(OneTimeEvents.NavigateToOtpScreen)
+                        }else{
+                            _oneTimeEvents.emit(OneTimeEvents.ShowError("Something went wrong"))
+                        }
+                    } else {
                         val emailRegex = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\$")
                         val isEmailValid = emailRegex.matches(_uiState.value.email)
-                        val isPasswordValid = _uiState.value.password.length >= 10
+                        val isPasswordValid = _uiState.value.password.length >= 6
 
                         if (!isEmailValid || !isPasswordValid) {
                             val errorMessage = when {
@@ -67,14 +75,6 @@ class SignInViewModel : ViewModel() {
                             }
                             return@launch
                         }
-
-                        if (/*requestSentSuccessfull*/true){
-                            _oneTimeEvents.emit(OneTimeEvents.NavigateToOtpScreen)
-                        }else{
-                            _oneTimeEvents.emit(OneTimeEvents.ShowError("Something went wrong"))
-                        }
-                    } else {
-
                         if (/*aunthicated*/true){
                             _oneTimeEvents.emit(OneTimeEvents.LoginSuccess)
                         }else{
