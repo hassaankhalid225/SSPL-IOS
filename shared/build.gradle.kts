@@ -69,6 +69,11 @@ kotlin {
                 // Settings
                 implementation(libs.multiplatform.settings)
                 implementation(libs.multiplatform.settings.no.arg)
+
+                //country code picker
+
+                implementation(libs.compose.country.code.picker)
+
                 //implementation(libs.multiplatform.settings.encryption)
                 //Retrofit + OkHttp
 //            implementation(libs.retrofit)

@@ -76,4 +76,5 @@ dependencies {
     implementation(project.dependencies.platform(libs.firebase.bom)) // Use the latest version
     implementation(libs.firebase.analytics.ktx)
     implementation(libs.firebase.crashlytics)
+    implementation(libs.androidx.material3.android)
 }
