@@ -10,11 +10,18 @@
     <string name="conference_detail">Conference Detail</string>"
     <string name="sign_up">Sign Up</string>"
     <string name="log_in">Log In</string>
-
-    <string name="back">Back</string>
     <string name="login">Login</string>
+    <string name="welcome">Welcome</string>
+
+    <string name="back">Back!</string>
+    <string name="sign_in_via_email">Sign in via Email</string>
+    <string name="sign_in_via_phone">Sign in via Phone</string>
+    <string name="get_updates">Sign in to access the real time updates</string>
     <string name="welcome_back_to_app">Welcome back to SSPL!</string>
     <string name="enter_your_phone_number">Enter your phone number</string>
+    <string name="enter_your_mail">Enter your email</string>
+    <string name="enter_your_password">Enter your Password</string>
+    <string name="forgot_password">Forgot Password?</string>
     <string name="one_time_password">One Time Password</string>
     <string name="please_verify_your_phone_number">Please verify your phone number</string>
     <string name="with_otp_sent_to">with OTP we sent to </string>
