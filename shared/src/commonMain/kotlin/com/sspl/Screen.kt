@@ -20,6 +20,8 @@ import com.sspl.ui.ForumScreen
 import com.sspl.ui.HomeScreen
 import com.sspl.ui.ProfileScreen
 import com.sspl.ui.conferencescreen.ConferenceScreen
+import com.sspl.ui.kyc.LoginScreen
+import com.sspl.ui.otp.OtpScreen
 import com.sspl.ui.postscreen.PostScreen
 import com.sspl.utils.IconResource
 import org.jetbrains.compose.resources.StringResource
@@ -84,6 +86,10 @@ sealed class Screen(
         title = Res.string.sign_up,
         route = "SignUpScreen",
     )
+    data object OtpScreen : Screen(
+        title = Res.string.sign_up,
+        route = "OtpScreen",
+    )
 }
 
 fun screenByRoute(route: String?): Screen? =
@@ -112,5 +118,13 @@ fun otherScreens(): List<NavItem> = listOf(
     NavItem(
         screen = Screen.ConferenceDetailScreen,
         component = { ConferenceDetailScreen(navController = it) }
+    ),
+    NavItem(
+        screen = Screen.SignInScreen,
+        component = { LoginScreen(navController = it) }
+    ),
+    NavItem(
+        screen = Screen.OtpScreen,
+        component = { OtpScreen(navController = it) }
     )
 )
