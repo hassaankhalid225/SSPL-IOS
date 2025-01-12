@@ -13,8 +13,10 @@ import com.sspl.resources.forum
 import com.sspl.resources.home
 import com.sspl.resources.ic_forum
 import com.sspl.resources.log_in
+import com.sspl.resources.one_time_password
 import com.sspl.resources.profile
 import com.sspl.resources.sign_up
+import com.sspl.resources.verify_otp
 import com.sspl.ui.conferencescreen.ConferenceDetailScreen
 import com.sspl.ui.ForumScreen
 import com.sspl.ui.HomeScreen
@@ -87,7 +89,7 @@ sealed class Screen(
         route = "SignUpScreen",
     )
     data object OtpScreen : Screen(
-        title = Res.string.sign_up,
+        title = Res.string.verify_otp,
         route = "OtpScreen",
     )
 }
