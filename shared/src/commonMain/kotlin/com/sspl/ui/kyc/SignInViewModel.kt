@@ -19,109 +19,121 @@ import kotlinx.coroutines.launch
  * se.muhammadimran@gmail.com
  */
 class SignInViewModel : ViewModel() {
-
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState = _uiState.asStateFlow()
-
 
     private val _oneTimeEvents = MutableSharedFlow<OneTimeEvents>()
     val oneTimeEvents = _oneTimeEvents.asSharedFlow()
 
     fun onEvent(event: LoginScreenUiEvents) {
-        viewModelScope.launch {
-            when (event) {
-                is LoginScreenUiEvents.OnEmailTextChange -> {
-                    _uiState.update {
-                        it.copy(email = event.emailText)
-                    }
-                }
-
-                is LoginScreenUiEvents.OnPasswordTextChange -> {
-                    _uiState.update {
-                        it.copy(password = event.passwordText)
-                    }
-                }
-
-                LoginScreenUiEvents.OnSave -> {
-                    _uiState.update {
-                        it.copy(isLoading = true)
-                    }
-
-                    delay(1500)
-                    if (_uiState.value.isOtpMode) {
-                        val phoneNo = _uiState.value.country.callingCodes.first()
-                            .toString() + _uiState.value.phoneNo
-
-
-                        if (/*requestSentSuccessfull*/true){
-                            _oneTimeEvents.emit(OneTimeEvents.NavigateToOtpScreen)
-                        }else{
-                            _oneTimeEvents.emit(OneTimeEvents.ShowError("Something went wrong"))
-                        }
-                    } else {
-                        val emailRegex = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\$")
-                        val isEmailValid = emailRegex.matches(_uiState.value.email)
-                        val isPasswordValid = _uiState.value.password.length >= 6
-
-                        if (!isEmailValid || !isPasswordValid) {
-                            val errorMessage = when {
-                                !isEmailValid -> "Please enter a valid email address."
-                                !isPasswordValid -> "Password must be at least 10 characters long."
-                                else -> "Invalid email or password."
-                            }
-                            _oneTimeEvents.emit(OneTimeEvents.ShowError(errorMessage))
-                            _uiState.update {
-                                it.copy(isLoading = false)
-                            }
-                            return@launch
-                        }
-                        if (/*aunthicated*/true){
-                            _oneTimeEvents.emit(OneTimeEvents.LoginSuccess)
-                        }else{
-                            _oneTimeEvents.emit(OneTimeEvents.ShowError("Something went wrong"))
-                        }
-                    }
-                    _uiState.update {
-                        LoginUiState()
-                    }
-                }
-
-                LoginScreenUiEvents.TogglePasswordVisibility -> {
-                    _uiState.update {
-                        it.copy(isPasswordVisible = !_uiState.value.isPasswordVisible)
-                    }
-                }
-
-                LoginScreenUiEvents.ToggleOtpMode -> {
-                    _uiState.update {
-                        it.copy(isOtpMode = !_uiState.value.isOtpMode, phoneNo = "", email = "", password = "")
-                    }
-                }
-
-                is LoginScreenUiEvents.OnPhoneNoChange -> {
-                    _uiState.update {
-                        it.copy(phoneNo = event.phoneNumber)
-
-                    }
-                }
-
-                is LoginScreenUiEvents.OnCountryChange -> {
-                    _uiState.update {
-                        it.copy(country = event.country, showCountryChooser = false)
-                    }
-                }
-
-                LoginScreenUiEvents.ToggleCountryChooser -> {
-                    _uiState.update {
-                        it.copy(showCountryChooser = !_uiState.value.showCountryChooser)
-                    }
-                }
-
-            }
+        when (event) {
+            is LoginScreenUiEvents.OnEmailTextChange -> updateEmail(event.emailText)
+            is LoginScreenUiEvents.OnPasswordTextChange -> updatePassword(event.passwordText)
+            LoginScreenUiEvents.OnSave -> handleSave()
+            LoginScreenUiEvents.TogglePasswordVisibility -> togglePasswordVisibility()
+            LoginScreenUiEvents.ToggleOtpMode -> toggleOtpMode()
+            is LoginScreenUiEvents.OnPhoneNoChange -> updatePhoneNumber(event.phoneNumber)
+            is LoginScreenUiEvents.OnCountryChange -> updateCountry(event.country)
+            LoginScreenUiEvents.ToggleCountryChooser -> toggleCountryChooser()
         }
     }
 
+    private fun updateEmail(email: String) {
+        _uiState.update { it.copy(email = email) }
+    }
+
+    private fun updatePassword(password: String) {
+        _uiState.update { it.copy(password = password) }
+    }
+
+    private fun handleSave() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            delay(1500)
+
+            if (_uiState.value.isOtpMode) {
+                handleOtpSave()
+            } else {
+                handleEmailPasswordSave()
+            }
+
+            _uiState.update { LoginUiState() }
+        }
+    }
+
+    private suspend fun handleOtpSave() {
+        val phoneNo = "${_uiState.value.country.callingCodes.first()}${_uiState.value.phoneNo}"
+        if (/*requestSentSuccessful*/true) {
+            _oneTimeEvents.emit(OneTimeEvents.NavigateToOtpScreen)
+        } else {
+            _oneTimeEvents.emit(OneTimeEvents.ShowError("Something went wrong"))
+        }
+    }
+
+    private suspend fun handleEmailPasswordSave() {
+        val (isEmailValid, isPasswordValid) = validateEmailAndPassword()
+        if (!isEmailValid || !isPasswordValid) {
+            emitValidationError(isEmailValid, isPasswordValid)
+            return
+        }
+
+        if (/*authenticated*/true) {
+            _oneTimeEvents.emit(OneTimeEvents.LoginSuccess)
+        } else {
+            _oneTimeEvents.emit(OneTimeEvents.ShowError("Something went wrong"))
+        }
+    }
+
+    private fun validateEmailAndPassword(): Pair<Boolean, Boolean> {
+        val emailRegex = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\$")
+        val isEmailValid = emailRegex.matches(_uiState.value.email)
+        val isPasswordValid = _uiState.value.password.length >= 6
+        return Pair(isEmailValid, isPasswordValid)
+    }
+
+    private suspend fun emitValidationError(isEmailValid: Boolean, isPasswordValid: Boolean) {
+        val errorMessage = when {
+            !isEmailValid -> "Please enter a valid email address."
+            !isPasswordValid -> "Password must be at least 6 characters long."
+            else -> "Invalid email or password."
+        }
+        _oneTimeEvents.emit(OneTimeEvents.ShowError(errorMessage))
+        _uiState.update { it.copy(isLoading = false) }
+    }
+    private fun togglePasswordVisibility() {
+        _uiState.update { it.copy(isPasswordVisible = !it.isPasswordVisible) }
+    }
+
+    private fun toggleOtpMode() {
+        _uiState.update {
+            it.copy(
+                isOtpMode = !it.isOtpMode,
+                phoneNo = "",
+                email = "",
+                password = ""
+            )
+        }
+    }
+
+    private fun updatePhoneNumber(phoneNumber: String) {
+        _uiState.update { it.copy(phoneNo = phoneNumber) }
+    }
+
+    private fun updateCountry(country: Country) {
+        _uiState.update {
+            it.copy(
+                country = country,
+                showCountryChooser = false
+            )
+        }
+    }
+
+    private fun toggleCountryChooser() {
+        _uiState.update { it.copy(showCountryChooser = !it.showCountryChooser) }
+    }
 }
+
+
 
 data class LoginUiState(
     val email: String = "",

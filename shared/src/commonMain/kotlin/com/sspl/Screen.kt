@@ -23,6 +23,7 @@ import com.sspl.ui.HomeScreen
 import com.sspl.ui.ProfileScreen
 import com.sspl.ui.conferencescreen.ConferenceScreen
 import com.sspl.ui.kyc.LoginScreen
+import com.sspl.ui.kyc.SignUpScreen
 import com.sspl.ui.otp.OtpScreen
 import com.sspl.ui.postscreen.PostScreen
 import com.sspl.utils.IconResource
@@ -124,6 +125,10 @@ fun otherScreens(): List<NavItem> = listOf(
     NavItem(
         screen = Screen.SignInScreen,
         component = { LoginScreen(navController = it) }
+    ),
+    NavItem(
+        screen = Screen.SignUpScreen,
+        component = { SignUpScreen(navController = it) }
     ),
     NavItem(
         screen = Screen.OtpScreen,

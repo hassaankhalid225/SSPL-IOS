@@ -9,6 +9,7 @@
     <string name="conference">Conference</string>"
     <string name="conference_detail">Conference Detail</string>"
     <string name="sign_up">Sign Up</string>"
+    <string name="create_new_account">Create New Account</string>"
     <string name="log_in">Log In</string>
     <string name="login">Login</string>
     <string name="welcome">Welcome</string>

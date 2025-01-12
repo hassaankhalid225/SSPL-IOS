@@ -92,6 +92,7 @@ import org.koin.compose.viewmodel.koinViewModel
  * BhimSoft on 09/01/2025.
  * se.muhammadimran@gmail.com
  */
+
 @Composable
 fun LoginScreen(
     navController: NavController,
@@ -104,193 +105,184 @@ fun LoginScreen(
     LaunchedEffect(Unit) {
         viewModel.oneTimeEvents.collect { event ->
             when (event) {
-                OneTimeEvents.LoginSuccess -> {}
-                OneTimeEvents.NavigateToOtpScreen -> navController.navigate(Screen.OtpScreen.route)
-                is OneTimeEvents.ShowError -> scaffoldState.showSnackbar(event.message)
+                OneTimeEvents.LoginSuccess -> {
+
+                }
+
+                OneTimeEvents.NavigateToOtpScreen -> {
+                    navController.navigate(Screen.OtpScreen.route)
+                }
+
+                is OneTimeEvents.ShowError -> {
+                    scaffoldState.showSnackbar(event.message)
+                }
             }
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(scaffoldState) }
-    ) { _ ->
+    Scaffold(snackbarHost = { SnackbarHost(scaffoldState) }) { padding ->
+
         LoginScreenContent(
-            uiState = uiState,
+            email = uiState.email,
+            password = uiState.password,
+            phone = uiState.phoneNo, selectedCountry = uiState.country,
+            isOtpMode = uiState.isOtpMode,
+            showPassword = uiState.isPasswordVisible,
+            isLoading = uiState.isLoading, showCountryChooser = uiState.showCountryChooser,
             onEvents = viewModel::onEvent,
-            createNewAccount = { navController.navigate(Screen.SignUpScreen.route) },
+            createNewAccount = {
+                navController.navigate(Screen.SignUpScreen.route)
+            },
             modifier = modifier
         )
-    }
+        }
+
+
 }
 
 @Composable
 fun LoginScreenContent(
-    uiState: LoginUiState,
-    onEvents: (LoginScreenUiEvents) -> Unit,
-    createNewAccount: () -> Unit,
     modifier: Modifier = Modifier,
-    onForgotPassword: () -> Unit = {}
+    onEvents: (LoginScreenUiEvents) -> Unit = {},
+    isLoading: Boolean = true, selectedCountry: Country,
+    showCountryChooser: Boolean = false,
+    email: String = "", phone: String = "",
+    password: String = "",createNewAccount:()->Unit,
+    showPassword: Boolean = false,
+    onForgotPassword: () -> Unit = {},
+    isOtpMode: Boolean = false
 ) {
+
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(Color.White)
             .padding(top = 16.dp)
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.Top
+            .padding(horizontal = 16.dp), verticalArrangement = Arrangement.Top
     ) {
-        LoginHeader()
+        AppTextTitle(
+            text = stringResource(Res.string.welcome),
+            fontSize = 14.sp,
+        )
+        AppTextTitle(
+            text = stringResource(Res.string.back),
+            fontSize = 14.sp,
+        )
+        Spacer(Modifier.height(10.dp))
+        AppTextSmall(stringResource(Res.string.get_updates), color = Color.LightGray)
         Spacer(Modifier.weight(0.15f))
-        LoginForm(
-            uiState = uiState,
-            onEvents = onEvents,
-            onForgotPassword = onForgotPassword,
-            createNewAccount = createNewAccount,
-            modifier = Modifier.weight(1f)
-        )
-
-    }
-}
-
-@Composable
-private fun LoginHeader() {
-    AppTextTitle(text = stringResource(Res.string.welcome), fontSize = 14.sp)
-    AppTextTitle(text = stringResource(Res.string.back), fontSize = 14.sp)
-    Spacer(Modifier.height(10.dp))
-    AppTextSmall(stringResource(Res.string.get_updates), color = Color.LightGray)
-}
-
-@Composable
-private fun LoginForm(
-    uiState: LoginUiState,
-    onEvents: (LoginScreenUiEvents) -> Unit,
-    onForgotPassword: () -> Unit,
-    createNewAccount: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-        modifier = modifier
-    ) {
-        if (!uiState.isOtpMode) {
-            EmailPasswordForm(uiState, onEvents, onForgotPassword)
-        } else {
-            PhoneForm(uiState, onEvents)
-        }
-        LoginButtons(uiState, onEvents, createNewAccount)
-    }
-}
-
-@Composable
-private fun EmailPasswordForm(
-    uiState: LoginUiState,
-    onEvents: (LoginScreenUiEvents) -> Unit,
-    onForgotPassword: () -> Unit
-) {
-    LoginTextField(
-        placeholder = stringResource(Res.string.enter_your_mail),
-        text = uiState.email,
-        onTextChange = { onEvents(LoginScreenUiEvents.OnEmailTextChange(it)) },
-        modifier = Modifier.fillMaxWidth()
-    )
-    LoginTextField(
-        placeholder = stringResource(Res.string.enter_your_password),
-        text = uiState.password,
-        onTextChange = { onEvents(LoginScreenUiEvents.OnPasswordTextChange(it)) },
-        onTogglePassword = { onEvents(LoginScreenUiEvents.TogglePasswordVisibility) },
-        isPassword = true,
-        isPasswordVisible = uiState.isPasswordVisible,
-        modifier = Modifier.fillMaxWidth()
-    )
-    Row(Modifier.fillMaxWidth()) {
-        Spacer(Modifier.weight(1f))
-        AppTextSmall(
-            stringResource(Res.string.forgot_password),
-            color = Color.Red.copy(alpha = 0.7f),
-            modifier = Modifier.clickable(onClick = onForgotPassword)
-        )
-    }
-}
-
-@Composable
-private fun PhoneForm(
-    uiState: LoginUiState,
-    onEvents: (LoginScreenUiEvents) -> Unit
-) {
-    PhoneWithCountrySelector(
-        selectedCountry = uiState.country,
-        phone = uiState.phoneNo,
-        onPhoneNumberChange = { onEvents(LoginScreenUiEvents.OnPhoneNoChange(it)) },
-        showCountryChooser = uiState.showCountryChooser,
-        onCountryChange = { onEvents(LoginScreenUiEvents.OnCountryChange(it)) },
-        toggleCountryPicker = { onEvents(LoginScreenUiEvents.ToggleCountryChooser) }
-    )
-}
-
-@Composable
-private fun LoginButtons(
-    uiState: LoginUiState,
-    onEvents: (LoginScreenUiEvents) -> Unit,
-    createNewAccount: () -> Unit
-) {
-    Spacer(modifier = Modifier.height(16.dp))
-    LoginButton(uiState.isLoading) { onEvents(LoginScreenUiEvents.OnSave) }
-    Spacer(modifier = Modifier.height(16.dp))
-    OrDivider()
-    ToggleLoginModeButton(uiState.isOtpMode) { onEvents(LoginScreenUiEvents.ToggleOtpMode) }
-    CreateAccountButton(createNewAccount)
-}
-
-@Composable
-fun ToggleLoginModeButton(isOtpMode:Boolean,toggleOtpMode:()->Unit) {
-    AppRoundedCornerButton(
-        onClick = toggleOtpMode
-        , title =if (isOtpMode) stringResource(Res.string.sign_in_via_email) else stringResource(
-            Res.string.sign_in_via_phone
-        ) ,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
-    )
-}
-@Composable
-fun CreateAccountButton(createNewAccount: () -> Unit) {
-    AppRoundedCornerButton(
-        onClick = createNewAccount, title = stringResource( Res.string.create_new_account)
-        ,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
-    )
-}
-@Composable
-private fun LoginButton(isLoading: Boolean, onClick: () -> Unit) {
-    AppRoundedCornerButton(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(3.dp),
+            modifier = modifier.weight(1f)
         ) {
-            AppTextBody(
-                stringResource(Res.string.login),
-                fontSize = 12.sp,
-                color = Color.White
-            )
-            AnimatedVisibility(isLoading) {
-                CircularProgressIndicator(
-                    color = Color.White,
-                    modifier = Modifier.size(15.dp)
+            AnimatedVisibility(!isOtpMode) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    LoginTextField(
+                        placeholder = stringResource(Res.string.enter_your_mail),
+                        modifier = Modifier.fillMaxWidth(),
+                        text = email,
+                        onTextChange = { onEvents.invoke(LoginScreenUiEvents.OnEmailTextChange(it)) })
+
+                    LoginTextField(
+                        placeholder = stringResource(Res.string.enter_your_password),
+                        modifier = Modifier.fillMaxWidth(),
+                        text = password,
+                        onTogglePassword = {
+                            onEvents.invoke(LoginScreenUiEvents.TogglePasswordVisibility)
+                        },
+                        isPassword = true,
+                        isPasswordVisible = showPassword,
+                        onTextChange = { onEvents.invoke(LoginScreenUiEvents.OnPasswordTextChange(it)) })
+                    Row(Modifier.fillMaxWidth()) {
+                        Spacer(Modifier.weight(1f))
+                        AppTextSmall(
+                            stringResource(Res.string.forgot_password),
+                            color = Color.Red.copy(alpha = 0.7f),
+                            modifier = Modifier.clickable {
+                                onForgotPassword()
+                            })
+                    }
+                }
+            }
+            AnimatedVisibility(isOtpMode) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    PhoneWithCountrySelector(
+                        selectedCountry = selectedCountry,
+                        phone = phone,
+                        onPhoneNumberChange = {
+                            onEvents.invoke(LoginScreenUiEvents.OnPhoneNoChange(it))
+                        },
+                        showCountryChooser = showCountryChooser,
+                        onCountryChange = {
+                            onEvents.invoke(LoginScreenUiEvents.OnCountryChange(it))
+                        },
+                        toggleCountryPicker = {
+                            onEvents.invoke(LoginScreenUiEvents.ToggleCountryChooser)}
+
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(15.dp))
+            AppRoundedCornerButton(
+                onClick = {
+                    onEvents.invoke(LoginScreenUiEvents.OnSave)
+                },
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    AppTextBody(
+                        stringResource(Res.string.login),
+                        fontSize = 12.sp,
+                        color = Color.White
+                    )
+                    androidx.compose.animation.AnimatedVisibility(isLoading) {
+                        Row() {
+                            Spacer(Modifier.weight(1f))
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = modifier.size(15.dp)
+                            )
+                        }
+                    }
+                }
+            }
+            // Add "Sign in with Phone" Button
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(horizontalArrangement = Arrangement.Center) {
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f)
+                )
+                Text("or", fontSize = 8.sp)
+
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f)
                 )
             }
+            AppRoundedCornerButton(
+                onClick = {
+                    onEvents.invoke(LoginScreenUiEvents.ToggleOtpMode) // Trigger phone sign in event
+                }, title =if (isOtpMode) stringResource(Res.string.sign_in_via_email) else stringResource(
+                    Res.string.sign_in_via_phone
+                ) ,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
+            )
+            AppRoundedCornerButton(
+                onClick = createNewAccount, title = stringResource( Res.string.create_new_account)
+                 ,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
+            )
         }
-    }
-}
 
-@Composable
-private fun OrDivider() {
-    Row(horizontalArrangement = Arrangement.Center) {
-        HorizontalDivider(modifier = Modifier.weight(1f))
-        Text("or", fontSize = 8.sp)
-        HorizontalDivider(modifier = Modifier.weight(1f))
     }
 }
 
@@ -360,7 +352,7 @@ fun LoginTextField(
 
 @Composable
 fun PhoneWithCountrySelector(modifier: Modifier = Modifier, selectedCountry: Country, phone: String, onPhoneNumberChange: (String) -> kotlin.Unit, showCountryChooser: Boolean, onCountryChange:(Country)->Unit, toggleCountryPicker: () -> Unit) {
-    Row(modifier) {
+    Row {
         androidx.compose.animation.AnimatedVisibility(showCountryChooser) {
             CountryCodePicker(
                 initialCountry = Country.PAKISTAN,
