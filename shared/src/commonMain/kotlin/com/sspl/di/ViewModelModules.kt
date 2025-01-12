@@ -3,6 +3,7 @@ package com.sspl.di
 import com.sspl.ui.conferencescreen.ConferenceViewModel
 import com.sspl.ui.kyc.SignInViewModel
 import com.sspl.ui.kyc.SignUpViewModel
+import com.sspl.ui.otp.OtpViewModel
 import com.sspl.ui.postscreen.PostViewModel
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
@@ -30,6 +31,7 @@ internal val viewModelModules = module {
     viewModelOf(::SignInViewModel)
     viewModelOf(::SignUpViewModel)
     viewModelOf(::PostViewModel)
+    viewModelOf(::OtpViewModel)
 //    viewModelOf(::PlayerScreenViewModel)
 //    viewModelOf(::SearchScreenViewModel)
 }

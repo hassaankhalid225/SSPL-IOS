@@ -94,7 +94,7 @@ class SignInViewModel : ViewModel() {
 
                 LoginScreenUiEvents.ToggleOtpMode -> {
                     _uiState.update {
-                        it.copy(isOtpMode = !_uiState.value.isOtpMode)
+                        it.copy(isOtpMode = !_uiState.value.isOtpMode, phoneNo = "", email = "", password = "")
                     }
                 }
 

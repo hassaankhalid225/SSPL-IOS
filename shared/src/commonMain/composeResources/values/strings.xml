@@ -12,6 +12,9 @@
     <string name="log_in">Log In</string>
     <string name="login">Login</string>
     <string name="welcome">Welcome</string>
+    <string name="verify_otp">Verify</string>
+    <string name="verification_code">Verification Code</string>
+    <string name="enter_otp_sent_to_your_number">Enter OTP sent to your number</string>
 
     <string name="back">Back!</string>
     <string name="sign_in_via_email">Sign in via Email</string>

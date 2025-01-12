@@ -75,6 +75,7 @@ import com.sspl.resources.sign_in_via_email
 import com.sspl.resources.sign_in_via_phone
 import com.sspl.resources.welcome
 import com.sspl.theme.boxColor
+import com.sspl.ui.components.AppRoundedCornerButton
 import com.sspl.ui.components.AppText
 import com.sspl.ui.components.AppTextBody
 import com.sspl.ui.components.AppTextSmall
@@ -127,7 +128,7 @@ fun LoginScreen(
             showPassword = uiState.isPasswordVisible,
             isLoading = uiState.isLoading, showCountryChooser = uiState.showCountryChooser,
             onEvents = viewModel::onEvent,
-            modifier = modifier.padding(padding),
+            modifier = modifier
         )
         }
 
@@ -175,8 +176,6 @@ fun LoginScreenContent(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-
-
                     LoginTextField(
                         placeholder = stringResource(Res.string.enter_your_mail),
                         modifier = Modifier.fillMaxWidth(),
@@ -209,33 +208,27 @@ fun LoginScreenContent(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Row {
-                        androidx.compose.animation.AnimatedVisibility(showCountryChooser) {
-                            CountryCodePicker(
-                                initialCountry = Country.PAKISTAN,
-                                onClick = { country ->
-                                    onEvents.invoke(LoginScreenUiEvents.OnCountryChange(country))
-                                },
-                            )
-                        }
-                        PhoneNumberTextField(
-                            selectedCountry = selectedCountry,
-                            phoneNumber = phone,
-                            onPhoneNumberChange = {
-                                onEvents.invoke(LoginScreenUiEvents.OnPhoneNoChange(it))
-                            },
-                            toggleCountryPicker = {
-                                onEvents.invoke(LoginScreenUiEvents.ToggleCountryChooser)
-                            })
-                    }
+                    PhoneWithCountrySelector(
+                        selectedCountry = selectedCountry,
+                        phone = phone,
+                        onPhoneNumberChange = {
+                            onEvents.invoke(LoginScreenUiEvents.OnPhoneNoChange(it))
+                        },
+                        showCountryChooser = showCountryChooser,
+                        onCountryChange = {
+                            onEvents.invoke(LoginScreenUiEvents.OnCountryChange(it))
+                        },
+                        toggleCountryPicker = {
+                            onEvents.invoke(LoginScreenUiEvents.ToggleCountryChooser)}
+
+                    )
                 }
             }
             Spacer(modifier = Modifier.height(15.dp))
-            Button(
+            AppRoundedCornerButton(
                 onClick = {
                     onEvents.invoke(LoginScreenUiEvents.OnSave)
                 },
-                shape = RoundedCornerShape(16),
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
             ) {
                 Row(
@@ -270,20 +263,14 @@ fun LoginScreenContent(
                     modifier = Modifier.weight(1f)
                 )
             }
-            Button(
+            AppRoundedCornerButton(
                 onClick = {
                     onEvents.invoke(LoginScreenUiEvents.ToggleOtpMode) // Trigger phone sign in event
-                },
-                shape = RoundedCornerShape(16),
+                }, title =if (isOtpMode) stringResource(Res.string.sign_in_via_email) else stringResource(
+                    Res.string.sign_in_via_phone
+                ) ,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
-            ) {
-                AppTextBody(
-                    if (isOtpMode) stringResource(Res.string.sign_in_via_email) else stringResource(
-                        Res.string.sign_in_via_phone
-                    ),
-                    fontSize = 12.sp, color = Color.White
-                )
-            }
+            )
         }
         Spacer(Modifier.weight(0.85f))
 
@@ -354,6 +341,28 @@ fun LoginTextField(
     )
 }
 
+@Composable
+fun PhoneWithCountrySelector(modifier: Modifier = Modifier, selectedCountry: Country, phone: String, onPhoneNumberChange: (String) -> kotlin.Unit, showCountryChooser: Boolean, onCountryChange:(Country)->Unit, toggleCountryPicker: () -> Unit) {
+    Row {
+        androidx.compose.animation.AnimatedVisibility(showCountryChooser) {
+            CountryCodePicker(
+                initialCountry = Country.PAKISTAN,
+                onClick = { country ->
+                    onCountryChange.invoke(country)
+                },
+            )
+        }
+        PhoneNumberTextField(
+            selectedCountry = selectedCountry,
+            phoneNumber = phone,
+            onPhoneNumberChange = {
+                onPhoneNumberChange.invoke(it)
+            },
+            toggleCountryPicker = {
+               toggleCountryPicker.invoke()
+                  })
+    }
+}
 @Composable
 fun PhoneNumberTextField(
     modifier: Modifier = Modifier,

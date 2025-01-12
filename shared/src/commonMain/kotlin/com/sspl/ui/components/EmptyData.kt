@@ -24,7 +24,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
 import com.sspl.resources.Res
 import com.sspl.resources.add_icon
 import com.sspl.resources.arrow_no_record
@@ -66,7 +65,7 @@ fun NoItems(
             }
             AnimatedVisibility(showFloatingActionButton,modifier=Modifier.align(Alignment.End)
                 .padding(end = 15.dp)) {
-                PregnancyFloatingActionButton(
+                AppFloatingActionButton(
                     modifier = Modifier
                     , onButtonClick = onFloatingActionButtonClick
                 )
@@ -78,7 +77,7 @@ fun NoItems(
 }
 
 @Composable
-fun PregnancyFloatingActionButton(
+fun AppFloatingActionButton(
     modifier: Modifier = Modifier, onButtonClick: () -> Unit = {}
 ) {
     Image(
