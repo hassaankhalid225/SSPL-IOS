@@ -23,11 +23,10 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -42,14 +41,9 @@ import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.resources.Res
 import com.sspl.resources.enter_otp_sent_to_your_number
-import com.sspl.resources.please_verify_your_phone_number
 import com.sspl.resources.resend_it_now
 import com.sspl.resources.still_waiting_for_your_otp
 import com.sspl.resources.verification_code
-import com.sspl.resources.verify_otp
-import com.sspl.ui.components.AppRoundedCornerButton
-import com.sspl.ui.components.AppTextBody
-import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.AppTextSmall
 import com.sspl.ui.components.AppTextSubTitle
 import com.sspl.ui.components.AppTextTitle
@@ -58,70 +52,113 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
-
 @Composable
 fun OtpScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
     viewModel: OtpViewModel = koinViewModel()
 ) {
+    val uiState by viewModel.state.collectAsState()
     val scaffoldState = remember { SnackbarHostState() }
-    val isVerifying by viewModel.isVerifying.collectAsState()
-    val otpValue by viewModel.otpValue.collectAsState()
-    LaunchedEffect(Unit){
-        viewModel.resultFlow.collect{ result->
-            when(result){
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        viewModel.resultFlow.collect { result ->
+            when (result) {
                 is OtpOneTimeEvents.ShowMessage -> {
-                    scaffoldState.showSnackbar(result.message)
+                    scope.launch {
+                        scaffoldState.showSnackbar(result.message)
+                    }
                 }
                 OtpOneTimeEvents.Success -> {
                     navController.navigate(Screen.HomeScreen.route)
                 }
             }
-
         }
     }
 
-    Scaffold(snackbarHost = { SnackbarHost(scaffoldState) }) { _ ->
-        Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .alpha(if (isVerifying) 0.3f else 1f),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                OtpView(
-                    otpLength = 6,
-                    otpValue = otpValue,
-                    onOtpChange = viewModel::onOTPValueChange,
-                    onOtpEntered = viewModel::verifyOtp
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    AppTextSmall(text = stringResource(Res.string.still_waiting_for_your_otp))
-                    AppTextSmall(
-                        text = stringResource(Res.string.resend_it_now),
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.clickable(enabled = !isVerifying) {
-                            // Handle resend action
-                            viewModel.resendOtp()
-                        }
-                    )
-                }
-            }
-
-            if (isVerifying) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .align(Alignment.Center)
-                )
-            }
+    OtpScreenScaffold(
+        scaffoldState = scaffoldState,
+        content = {
+            OtpScreenContent(
+                modifier = modifier,
+                uiState = uiState,
+                onEvent = remember { viewModel::onEvent }
+            )
         }
-    }
-
-
+    )
 }
+
+@Composable
+fun OtpScreenScaffold(
+    scaffoldState: SnackbarHostState,
+    content: @Composable () -> Unit
+) {
+    Scaffold(
+        snackbarHost = { SnackbarHost(scaffoldState) }
+    ) { _ ->
+        Box(modifier = Modifier) {
+            content()
+        }
+    }
+}
+
+@Composable
+fun OtpScreenContent(
+    modifier: Modifier = Modifier,
+    uiState: OtpState,
+    onEvent: (OtpEvent) -> Unit
+) {
+    Box(modifier = modifier.fillMaxSize().background(Color.White)) {
+        val contentAlpha by remember(uiState.isVerifying) {
+            derivedStateOf { if (uiState.isVerifying) 0.3f else 1f }
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .alpha(contentAlpha),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            OtpView(
+                otpLength = 6,
+                otpValue = uiState.otpValue,
+                onOtpChange = { onEvent(OtpEvent.OtpValueChanged(it)) },
+                onOtpEntered = { onEvent(OtpEvent.VerifyOtp(it)) }
+            )
+            ResendOtpRow(
+                isVerifying = uiState.isVerifying,
+                onResendClick = { onEvent(OtpEvent.ResendOtp) }
+            )
+        }
+
+        if (uiState.isVerifying) {
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .size(50.dp)
+                    .align(Alignment.Center)
+            )
+        }
+    }
+}
+@Composable
+fun ResendOtpRow(
+    isVerifying: Boolean,
+    onResendClick: () -> Unit
+) {
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        AppTextSmall(text = stringResource(Res.string.still_waiting_for_your_otp))
+        AppTextSmall(
+            text = stringResource(Res.string.resend_it_now),
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.clickable(enabled = !isVerifying) {
+                onResendClick()
+            }
+        )
+    }
+}
+
 
 @Composable
 fun OtpView(
@@ -166,7 +203,7 @@ fun OtpView(
                     onClick = {
                         scope.launch {
                             focusManager.clearFocus(force = true)
-                            delay(100) // Short delay to ensure focus is cleared
+                            delay(100)
                             focusRequester.requestFocus()
                         }
                     }
