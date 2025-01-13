@@ -44,7 +44,7 @@ fun AppTextField(
     onTextChange: (String) -> Unit,
     errorMessage: String? = null
 ) {
-    BaseOutlinedTextField(
+    BaseTextField(
         modifier = modifier,
         text = text,
         placeholder = placeholder,
@@ -52,7 +52,7 @@ fun AppTextField(
         onFocusLost = onFocusLost,
         keyboardType = keyboardType,
         onTextChange = onTextChange,
-        errorMessage = errorMessage
+
     )
 }
 
@@ -68,7 +68,7 @@ fun PasswordTextField(
     onTextChange: (String) -> Unit,
     errorMessage: String? = null
 ) {
-    BaseOutlinedTextField(
+    BaseTextField(
         modifier = modifier,
         text = text,
         placeholder = placeholder,
@@ -79,7 +79,6 @@ fun PasswordTextField(
         isPasswordVisible = isPasswordVisible,
         onTogglePassword = onTogglePassword,
         onTextChange = onTextChange,
-        errorMessage = errorMessage
     )
 }
 
