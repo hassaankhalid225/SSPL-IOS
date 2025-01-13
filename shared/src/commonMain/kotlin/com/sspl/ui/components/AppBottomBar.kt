@@ -49,8 +49,12 @@ fun AppBottomBar(bottomNavItems: List<NavItem>, navController: NavHostController
 
                 onClick = {
                     navController.navigate(navItem.screen.route) {
-                        popUpTo(navController.graph.startDestinationRoute!!)
+                        popUpTo(navController.graph.startDestinationRoute!!){
+                //avoiding new screen instances on bottom item click
+                            saveState=true
+                        }
                         launchSingleTop = true
+                        restoreState=true
                     }
                 },
                 icon = {
