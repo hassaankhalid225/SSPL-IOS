@@ -24,7 +24,8 @@ class SignInViewModel(
     private val emailValidationUseCase: EmailValidationUseCase,
     private val phoneNumberValidationUseCase: PhoneNumberValidationUseCase,
     private val passwordValidationUseCase: PasswordValidationUseCase
-) : ViewModel() {
+) :
+    ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState = _uiState.asStateFlow()
@@ -34,59 +35,105 @@ class SignInViewModel(
 
     fun onEvent(event: LoginScreenUiEvents) {
         when (event) {
-            is LoginScreenUiEvents.OnEmailTextChange -> updateEmail(event.emailText)
-            is LoginScreenUiEvents.OnPasswordTextChange -> updatePassword(event.passwordText)
-            LoginScreenUiEvents.OnSave -> handleSave()
-            LoginScreenUiEvents.TogglePasswordVisibility -> togglePasswordVisibility()
-            LoginScreenUiEvents.ToggleOtpMode -> toggleOtpMode()
-            is LoginScreenUiEvents.OnPhoneNoChange -> updatePhoneNumber(event.phoneNumber)
-            is LoginScreenUiEvents.OnCountryChange -> updateCountry(event.country)
-            LoginScreenUiEvents.ToggleCountryChooser -> toggleCountryChooser()
-            LoginScreenUiEvents.OnEmailFocusLost -> validateEmail()
-            LoginScreenUiEvents.OnPasswordFocusLost -> validatePassword()
-            LoginScreenUiEvents.OnPhoneNoFocusLost -> validatePhoneNo()
-        }
-    }
+            is LoginScreenUiEvents.OnEmailTextChange -> {
+                _uiState.update {
+                    it.copy(
+                        email = event.emailText,
+                        emailError = null
+                    )
+                }
+                validateEmail()
+            }
 
-    private fun validateEmail() {
-        val isValid = emailValidationUseCase(_uiState.value.email)
-        _uiState.update {
-            it.copy(emailError = if (isValid) null else "Please enter a valid email address.")
+            is LoginScreenUiEvents.OnPasswordTextChange -> {
+                _uiState.update {
+                    it.copy(
+                        password = event.passwordText,
+                        passwordError = null
+                    )
+                }
+                validatePassword()
+            }
+
+            LoginScreenUiEvents.OnSave -> handleSave()
+            LoginScreenUiEvents.TogglePasswordVisibility -> _uiState.update {
+                it.copy(isPasswordVisible = !it.isPasswordVisible)
+            }
+
+            LoginScreenUiEvents.ToggleOtpMode -> _uiState.update {
+                it.copy(
+                    isOtpMode = !it.isOtpMode,
+                    phoneNo = "",
+                    email = "", isLoginEnabled = false,
+                    password = ""
+                )
+            }
+
+            is LoginScreenUiEvents.OnPhoneNoChange -> {
+                _uiState.update {
+                    it.copy(phoneNo = event.phoneNumber)
+                }
+                validatePhoneNumber()
+            }
+            is LoginScreenUiEvents.OnCountryChange -> _uiState.update {
+                it.copy(
+                    country = event.country,
+                    showCountryChooser = false
+                )
+            }
+
+            LoginScreenUiEvents.ToggleCountryChooser -> _uiState.update {
+                it.copy(showCountryChooser = !it.showCountryChooser)
+            }
+
+
         }
     }
 
     private fun validatePassword() {
-        val isValid = passwordValidationUseCase(_uiState.value.password)
+        val isPasswordValid = passwordValidationUseCase(_uiState.value.password)
         _uiState.update {
-            it.copy(passwordError = if (isValid) null else "Password must be at least 6 characters long.")
+            it.copy(
+                passwordError = if (!isPasswordValid) "Password must be at least 6 characters long" else null,
+                isLoginEnabled = isPasswordValid && _uiState.value.emailError == null && _uiState.value.email.isNotBlank(),  // Enable login only if both email and password are valid
+                isLoading = false // End loading after validation
+            )
         }
     }
 
-    private fun validatePhoneNo() {
+    private fun validateEmail() {
+        val isEmailValid = emailValidationUseCase(_uiState.value.email)
+        _uiState.update {
+            it.copy(
+                emailError = if (!isEmailValid) "Invalid email address" else null,
+                isLoginEnabled = isEmailValid && _uiState.value.passwordError == null && _uiState.value.password.isNotBlank(),  // Enable login only if both email and password are valid
+                isLoading = false // End loading after validation
+            )
+        }
+    }
+    private fun validatePhoneNumber() {
         val phoneNo = "${_uiState.value.country.callingCodes.first()}${_uiState.value.phoneNo}"
-        val isValid = phoneNumberValidationUseCase(phoneNo)
+        val isPhoneValid = phoneNumberValidationUseCase(phoneNo)
         _uiState.update {
-            it.copy(phoneNoError = if (isValid) null else "Please enter a valid phone number.")
+            it.copy(
+                phoneNoError = if (!isPhoneValid) "Invalid phone number" else null,
+                isLoginEnabled = isPhoneValid && _uiState.value.isOtpMode,  // Enable login only if phone number is valid in OTP mode
+                isLoading = false
+            )
         }
     }
 
-    private fun updateEmail(email: String) {
-        _uiState.update { it.copy(email = email) }
-    }
-
-    private fun updatePassword(password: String) {
-        _uiState.update { it.copy(password = password) }
-    }
 
     private fun handleSave() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            delay(1500) // Simulate loading time
+            delay(1500)
             if (_uiState.value.isOtpMode) {
                 handleOtpSave()
             } else {
                 handleEmailPasswordSave()
             }
+            _uiState.update { LoginUiState() }
         }
     }
 
@@ -95,7 +142,7 @@ class SignInViewModel(
         if (phoneNumberValidationUseCase(phoneNo)) {
             _oneTimeEvents.emit(OneTimeEvents.NavigateToOtpScreen)
         } else {
-            _oneTimeEvents.emit(OneTimeEvents.ShowError("Invalid phone number"))
+            _uiState.update { it.copy(phoneNoError = "Invalid phone number", isLoading = false) }
         }
     }
 
@@ -104,7 +151,17 @@ class SignInViewModel(
         val isPasswordValid = passwordValidationUseCase(_uiState.value.password)
 
         if (!isEmailValid || !isPasswordValid) {
-            emitValidationError(isEmailValid, isPasswordValid)
+            if (!isEmailValid) {
+                _uiState.update { it.copy(isLoading = false, emailError = "Invalid email address") }
+            }
+            if (!isPasswordValid) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        passwordError = "Password must be at least 6 characters long"
+                    )
+                }
+            }
             return
         }
         val isAuthenticated = true // For now, assume success
@@ -114,80 +171,5 @@ class SignInViewModel(
             _oneTimeEvents.emit(OneTimeEvents.ShowError("Something went wrong"))
         }
     }
-
-    private suspend fun emitValidationError(isEmailValid: Boolean, isPasswordValid: Boolean) {
-        val errorMessage = when {
-            !isEmailValid -> "Please enter a valid email address."
-            !isPasswordValid -> "Password must be at least 6 characters long."
-            else -> "Invalid email or password."
-        }
-        _oneTimeEvents.emit(OneTimeEvents.ShowError(errorMessage))
-        _uiState.update { it.copy(isLoading = false) }
-    }
-
-    private fun togglePasswordVisibility() {
-        _uiState.update { it.copy(isPasswordVisible = !it.isPasswordVisible) }
-    }
-
-    private fun toggleOtpMode() {
-        _uiState.update {
-            it.copy(
-                isOtpMode = !it.isOtpMode,
-                phoneNo = "",
-                email = "",
-                password = ""
-            )
-        }
-    }
-
-    private fun updatePhoneNumber(phoneNumber: String) {
-        _uiState.update { it.copy(phoneNo = phoneNumber) }
-    }
-
-    private fun updateCountry(country: Country) {
-        _uiState.update {
-            it.copy(
-                country = country,
-                showCountryChooser = false
-            )
-        }
-    }
-
-    private fun toggleCountryChooser() {
-        _uiState.update { it.copy(showCountryChooser = !it.showCountryChooser) }
-    }
 }
 
-data class LoginUiState(
-    val email: String = "",
-    val password: String = "",
-    val isOtpMode: Boolean = false,
-    val phoneNo: String = "",
-    val isLoading: Boolean = false,
-    val country: Country = Country.PAKISTAN,
-    val showCountryChooser: Boolean = false,
-    val isPasswordVisible: Boolean = false,
-    val emailError: String? = null,
-    val passwordError: String? = null,
-    val phoneNoError: String? = null
-)
-
-sealed interface LoginScreenUiEvents {
-    data class OnEmailTextChange(val emailText: String) : LoginScreenUiEvents
-    data class OnPasswordTextChange(val passwordText: String) : LoginScreenUiEvents
-    data class OnPhoneNoChange(val phoneNumber: String) : LoginScreenUiEvents
-    data object OnSave : LoginScreenUiEvents
-    data object TogglePasswordVisibility : LoginScreenUiEvents
-    data object ToggleOtpMode : LoginScreenUiEvents
-    data class OnCountryChange(val country: Country) : LoginScreenUiEvents
-    data object ToggleCountryChooser : LoginScreenUiEvents
-    data object OnEmailFocusLost : LoginScreenUiEvents
-    data object OnPasswordFocusLost : LoginScreenUiEvents
-    data object OnPhoneNoFocusLost : LoginScreenUiEvents
-}
-
-sealed interface OneTimeEvents {
-    data object NavigateToOtpScreen : OneTimeEvents
-    data object LoginSuccess : OneTimeEvents
-    data class ShowError(val message: String) : OneTimeEvents
-}
