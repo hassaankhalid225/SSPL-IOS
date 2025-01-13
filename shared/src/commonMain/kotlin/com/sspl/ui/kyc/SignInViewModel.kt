@@ -1,9 +1,10 @@
 package com.sspl.ui.kyc
 
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sspl.core.usecases.SignInUseCase
+import com.sspl.core.usecases.EmailValidationUseCase
+import com.sspl.core.usecases.PasswordValidationUseCase
+import com.sspl.core.usecases.PhoneNumberValidationUseCase
 import com.vanniktech.locale.Country
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -20,8 +21,11 @@ import kotlinx.coroutines.launch
  * se.muhammadimran@gmail.com
  */
 class SignInViewModel(
-    private val signInUseCase: SignInUseCase
+    private val emailValidationUseCase: EmailValidationUseCase,
+    private val phoneNumberValidationUseCase: PhoneNumberValidationUseCase,
+    private val passwordValidationUseCase: PasswordValidationUseCase
 ) : ViewModel() {
+
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -38,6 +42,31 @@ class SignInViewModel(
             is LoginScreenUiEvents.OnPhoneNoChange -> updatePhoneNumber(event.phoneNumber)
             is LoginScreenUiEvents.OnCountryChange -> updateCountry(event.country)
             LoginScreenUiEvents.ToggleCountryChooser -> toggleCountryChooser()
+            LoginScreenUiEvents.OnEmailFocusLost -> validateEmail()
+            LoginScreenUiEvents.OnPasswordFocusLost -> validatePassword()
+            LoginScreenUiEvents.OnPhoneNoFocusLost -> validatePhoneNo()
+        }
+    }
+
+    private fun validateEmail() {
+        val isValid = emailValidationUseCase(_uiState.value.email)
+        _uiState.update {
+            it.copy(emailError = if (isValid) null else "Please enter a valid email address.")
+        }
+    }
+
+    private fun validatePassword() {
+        val isValid = passwordValidationUseCase(_uiState.value.password)
+        _uiState.update {
+            it.copy(passwordError = if (isValid) null else "Password must be at least 6 characters long.")
+        }
+    }
+
+    private fun validatePhoneNo() {
+        val phoneNo = "${_uiState.value.country.callingCodes.first()}${_uiState.value.phoneNo}"
+        val isValid = phoneNumberValidationUseCase(phoneNo)
+        _uiState.update {
+            it.copy(phoneNoError = if (isValid) null else "Please enter a valid phone number.")
         }
     }
 
@@ -52,20 +81,18 @@ class SignInViewModel(
     private fun handleSave() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            delay(1500)
+            delay(1500) // Simulate loading time
             if (_uiState.value.isOtpMode) {
                 handleOtpSave()
             } else {
                 handleEmailPasswordSave()
             }
-
-            _uiState.update { LoginUiState() }
         }
     }
 
     private suspend fun handleOtpSave() {
         val phoneNo = "${_uiState.value.country.callingCodes.first()}${_uiState.value.phoneNo}"
-        if (signInUseCase.validatePhoneNumber(phoneNo)) {
+        if (phoneNumberValidationUseCase(phoneNo)) {
             _oneTimeEvents.emit(OneTimeEvents.NavigateToOtpScreen)
         } else {
             _oneTimeEvents.emit(OneTimeEvents.ShowError("Invalid phone number"))
@@ -73,17 +100,15 @@ class SignInViewModel(
     }
 
     private suspend fun handleEmailPasswordSave() {
-        val (isEmailValid, isPasswordValid) = signInUseCase.validateEmailAndPassword(
-            _uiState.value.email,
-            _uiState.value.password
-        )
+        val isEmailValid = emailValidationUseCase(_uiState.value.email)
+        val isPasswordValid = passwordValidationUseCase(_uiState.value.password)
 
         if (!isEmailValid || !isPasswordValid) {
             emitValidationError(isEmailValid, isPasswordValid)
             return
         }
-
-        if (/*authenticated*/true) {
+        val isAuthenticated = true // For now, assume success
+        if (isAuthenticated) {
             _oneTimeEvents.emit(OneTimeEvents.LoginSuccess)
         } else {
             _oneTimeEvents.emit(OneTimeEvents.ShowError("Something went wrong"))
@@ -133,32 +158,36 @@ class SignInViewModel(
     }
 }
 
-
-
 data class LoginUiState(
     val email: String = "",
     val password: String = "",
-    val country: Country = Country.PAKISTAN,
     val isOtpMode: Boolean = false,
     val phoneNo: String = "",
-    val showCountryChooser: Boolean = false,
     val isLoading: Boolean = false,
-    val isPasswordVisible: Boolean = false
+    val country: Country = Country.PAKISTAN,
+    val showCountryChooser: Boolean = false,
+    val isPasswordVisible: Boolean = false,
+    val emailError: String? = null,
+    val passwordError: String? = null,
+    val phoneNoError: String? = null
 )
 
 sealed interface LoginScreenUiEvents {
     data class OnEmailTextChange(val emailText: String) : LoginScreenUiEvents
     data class OnPasswordTextChange(val passwordText: String) : LoginScreenUiEvents
     data class OnPhoneNoChange(val phoneNumber: String) : LoginScreenUiEvents
-    data class OnCountryChange(val country: Country) : LoginScreenUiEvents
     data object OnSave : LoginScreenUiEvents
     data object TogglePasswordVisibility : LoginScreenUiEvents
     data object ToggleOtpMode : LoginScreenUiEvents
+    data class OnCountryChange(val country: Country) : LoginScreenUiEvents
     data object ToggleCountryChooser : LoginScreenUiEvents
+    data object OnEmailFocusLost : LoginScreenUiEvents
+    data object OnPasswordFocusLost : LoginScreenUiEvents
+    data object OnPhoneNoFocusLost : LoginScreenUiEvents
 }
 
-sealed interface OneTimeEvents{
-data object NavigateToOtpScreen:OneTimeEvents
-    data object LoginSuccess:OneTimeEvents
-    data class ShowError(val message:String):OneTimeEvents
+sealed interface OneTimeEvents {
+    data object NavigateToOtpScreen : OneTimeEvents
+    data object LoginSuccess : OneTimeEvents
+    data class ShowError(val message: String) : OneTimeEvents
 }

@@ -80,8 +80,11 @@ import com.sspl.theme.boxColor
 import com.sspl.ui.components.AppRoundedCornerButton
 import com.sspl.ui.components.AppText
 import com.sspl.ui.components.AppTextBody
+import com.sspl.ui.components.AppTextField
 import com.sspl.ui.components.AppTextSmall
 import com.sspl.ui.components.AppTextTitle
+import com.sspl.ui.components.PasswordTextField
+import com.sspl.ui.components.PhoneWithCountrySelector
 import com.vanniktech.locale.Country
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -128,6 +131,9 @@ fun LoginScreen(
             phone = uiState.phoneNo, selectedCountry = uiState.country,
             isOtpMode = uiState.isOtpMode,
             showPassword = uiState.isPasswordVisible,
+            emailErrorMsg = uiState.emailError,
+            passwordErrorMsg = uiState.passwordError,
+            phoneErrorMsg = uiState.phoneNoError,
             isLoading = uiState.isLoading, showCountryChooser = uiState.showCountryChooser,
             onEvents = viewModel::onEvent,
             createNewAccount = {
@@ -144,6 +150,9 @@ fun LoginScreen(
 fun LoginScreenContent(
     modifier: Modifier = Modifier,
     onEvents: (LoginScreenUiEvents) -> Unit = {},
+    emailErrorMsg:String?,
+    passwordErrorMsg:String?,
+    phoneErrorMsg:String?,
     isLoading: Boolean = true, selectedCountry: Country,
     showCountryChooser: Boolean = false,
     email: String = "", phone: String = "",
@@ -181,20 +190,20 @@ fun LoginScreenContent(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    LoginTextField(
+                    AppTextField(
                         placeholder = stringResource(Res.string.enter_your_mail),
                         modifier = Modifier.fillMaxWidth(),
                         text = email,
+                        errorMessage = emailErrorMsg,
                         onTextChange = { onEvents.invoke(LoginScreenUiEvents.OnEmailTextChange(it)) })
 
-                    LoginTextField(
+                    PasswordTextField(
                         placeholder = stringResource(Res.string.enter_your_password),
                         modifier = Modifier.fillMaxWidth(),
-                        text = password,
+                        text = password, errorMessage = passwordErrorMsg,
                         onTogglePassword = {
                             onEvents.invoke(LoginScreenUiEvents.TogglePasswordVisibility)
                         },
-                        isPassword = true,
                         isPasswordVisible = showPassword,
                         onTextChange = { onEvents.invoke(LoginScreenUiEvents.OnPasswordTextChange(it)) })
                     Row(Modifier.fillMaxWidth()) {
@@ -286,191 +295,6 @@ fun LoginScreenContent(
     }
 }
 
-@Composable
-fun LoginTextField(
-    modifier: Modifier = Modifier,
-    text: String?, isPassword: Boolean = false,
-    isPasswordVisible: Boolean = false, onTogglePassword: () -> Unit = {},
-    placeholder: String = "Enter your text here...",
-    shape: Shape = RoundedCornerShape(22), keyboardType: KeyboardType = KeyboardType.Text,
 
-    onTextChange: (String) -> Unit
-) {
-    var isFocused by remember { mutableStateOf(false) }
-    val focusManager = LocalFocusManager.current
-    TextField(
-        value = text ?: "",
-        onValueChange = { onTextChange.invoke(it) },
-        visualTransformation = when {
-            isPassword && !isPasswordVisible -> PasswordVisualTransformation()
-            else -> VisualTransformation.None
-        },
-        placeholder = {
-            AppTextBody(
-                placeholder, fontSize = 9.sp, fontFamily = FontFamily.Serif
-            )
-        },
-        modifier = modifier
-            .onFocusChanged { focusState ->
-                isFocused = focusState.isFocused
-            }
-            .border(
-                width = 1.dp,
-                color = if (!isFocused) boxColor else Color.LightGray,
-                shape = shape
-            ),
-        maxLines = 6,
-        singleLine = false,
-        keyboardOptions = KeyboardOptions(
-            imeAction = ImeAction.Done, keyboardType = keyboardType
-        ),
-        shape = RoundedCornerShape(22),
-        trailingIcon = {
-            if (isPassword) {
-                IconButton(onClick = { onTogglePassword() }) {
-                    Icon(
-                        imageVector = if (isPasswordVisible) Icons.Default.Favorite else Icons.Sharp.Call,
-                        contentDescription = "Hide password"
-                    )
-                }
-            }
-        },
 
-        colors = TextFieldDefaults.colors(
-            focusedTextColor = Color.Black,
-            unfocusedTextColor = Color.Black.copy(0.7f),
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            focusedContainerColor = Color.White,
-            unfocusedContainerColor = Color.White
-        ),
-        keyboardActions = KeyboardActions(onDone = {
-            focusManager.clearFocus()
-        }),
-    )
-}
-
-@Composable
-fun PhoneWithCountrySelector(modifier: Modifier = Modifier, selectedCountry: Country, phone: String, onPhoneNumberChange: (String) -> kotlin.Unit, showCountryChooser: Boolean, onCountryChange:(Country)->Unit, toggleCountryPicker: () -> Unit) {
-    Row {
-        androidx.compose.animation.AnimatedVisibility(showCountryChooser) {
-            CountryCodePicker(
-                initialCountry = Country.PAKISTAN,
-                onClick = { country ->
-                    onCountryChange.invoke(country)
-                },
-            )
-        }
-        PhoneNumberTextField(
-            selectedCountry = selectedCountry,
-            phoneNumber = phone,
-            onPhoneNumberChange = {
-                onPhoneNumberChange.invoke(it)
-            },
-            toggleCountryPicker = {
-               toggleCountryPicker.invoke()
-                  })
-    }
-}
-@Composable
-fun PhoneNumberTextField(
-    modifier: Modifier = Modifier,
-    selectedCountry: Country = Country.PAKISTAN,
-    phoneNumber: String,
-    onPhoneNumberChange: (String) -> Unit,
-    toggleCountryPicker: () -> Unit,
-    placeholder: String = "Mobile Number",
-    shape: Shape = RoundedCornerShape(22),
-    keyboardType: KeyboardType = KeyboardType.Phone
-) {
-    var isFocused by remember { mutableStateOf(false) }
-    val focusManager = LocalFocusManager.current
-
-    TextField(
-        value = phoneNumber,
-        onValueChange = { onPhoneNumberChange(it) },
-        placeholder = {
-            Text(
-                placeholder,
-                fontSize = 9.sp,
-                fontFamily = FontFamily.Serif
-            )
-        },
-        modifier = modifier
-            .fillMaxWidth()
-            .onFocusChanged { focusState ->
-                isFocused = focusState.isFocused
-            }
-            .border(
-                width = 1.dp,
-                color = if (!isFocused) boxColor else Color.LightGray,
-                shape = shape
-            ),
-        maxLines = 1,
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(
-            imeAction = ImeAction.Done,
-            keyboardType = keyboardType
-        ),
-        shape = shape,
-        leadingIcon = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.clickable(onClick = toggleCountryPicker)
-            ) {
-                AsyncImage(
-                    model = selectedCountry.emoji,
-                    contentDescription = "Country flag",
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = selectedCountry.code,
-                    modifier = Modifier.padding(end = 4.dp)
-                )
-                Icon(
-                    imageVector = Icons.Default.ArrowDropDown,
-                    contentDescription = "Select country code"
-                )
-            }
-        },
-        colors = TextFieldDefaults.colors(
-            focusedTextColor = Color.Black,
-            unfocusedTextColor = Color.Black.copy(0.7f),
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            focusedContainerColor = Color.White,
-            unfocusedContainerColor = Color.White
-        ),
-        keyboardActions = KeyboardActions(onDone = {
-            focusManager.clearFocus()
-        }),
-        visualTransformation = PhonePrefixTransformation(
-            selectedCountry.callingCodes.first().toString()
-        )
-    )
-}
-
-// Assuming you have this class defined
-class PhonePrefixTransformation(private val prefix: String) : VisualTransformation {
-    override fun filter(text: AnnotatedString): TransformedText {
-        val prefixOffset = prefix.length + 1 // +1 for the space
-        val annotatedString = buildAnnotatedString {
-            append(prefix)
-            append(" ")
-            append(text)
-        }
-        return TransformedText(annotatedString, PhonePrefixOffsetMapping(prefixOffset))
-    }
-
-    private class PhonePrefixOffsetMapping(private val prefixOffset: Int) : OffsetMapping {
-        override fun originalToTransformed(offset: Int): Int {
-            return offset + prefixOffset
-        }
-
-        override fun transformedToOriginal(offset: Int): Int {
-            return (offset - prefixOffset).coerceAtLeast(0)
-        }
-    }
-}
 
