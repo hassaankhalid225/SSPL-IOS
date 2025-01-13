@@ -13,20 +13,18 @@ import com.sspl.resources.forum
 import com.sspl.resources.home
 import com.sspl.resources.ic_forum
 import com.sspl.resources.log_in
-import com.sspl.resources.one_time_password
 import com.sspl.resources.profile
 import com.sspl.resources.sign_up
 import com.sspl.resources.verify_otp
-import com.sspl.ui.conferencescreen.ConferenceDetailScreen
-import com.sspl.ui.ForumScreen
 import com.sspl.ui.HomeScreen
 import com.sspl.ui.ProfileScreen
+import com.sspl.ui.conferencescreen.ConferenceDetailScreen
 import com.sspl.ui.conferencescreen.ConferenceScreen
 import com.sspl.ui.kyc.LoginScreen
 import com.sspl.ui.kyc.SignUpScreen
 import com.sspl.ui.otp.OtpScreen
 import com.sspl.ui.posts.PostScreen
- import com.sspl.utils.IconResource
+import com.sspl.utils.IconResource
 import org.jetbrains.compose.resources.StringResource
 
 
@@ -37,14 +35,11 @@ import org.jetbrains.compose.resources.StringResource
  * se.muhammadimran@gmail.com
  */
 data class NavItem(
-    val screen: Screen,
-    val component: @Composable (navController: NavHostController) -> Unit
+    val screen: Screen, val component: @Composable (navController: NavHostController) -> Unit
 )
 
 sealed class Screen(
-    val route: String,
-    val title: StringResource? = null,
-    val icon: IconResource? = null
+    val route: String, val title: StringResource? = null, val icon: IconResource? = null
 ) {
     data object None : Screen(
         route = "none",
@@ -89,6 +84,7 @@ sealed class Screen(
         title = Res.string.sign_up,
         route = "SignUpScreen",
     )
+
     data object OtpScreen : Screen(
         title = Res.string.verify_otp,
         route = "OtpScreen",
@@ -98,40 +94,15 @@ sealed class Screen(
 fun screenByRoute(route: String?): Screen? =
     (navItems() + otherScreens()).firstOrNull { it.screen.route == route }?.screen
 
-fun navItems(): List<NavItem> = listOf(
-    NavItem(
-        screen = Screen.HomeScreen,
-        component = { HomeScreen(navController = it) }
-    ),
-    NavItem(
-        screen = Screen.ForumScreen,
-        component = { PostScreen(/*navController = it*/) }
-    )
-)
+fun navItems(): List<NavItem> =
+    listOf(NavItem(screen = Screen.HomeScreen, component = { HomeScreen(navController = it) }),
+        NavItem(screen = Screen.ForumScreen, component = { PostScreen(/*navController = it*/) }))
 
-fun otherScreens(): List<NavItem> = listOf(
-    NavItem(
-        screen = Screen.ProfileScreen,
-        component = { ProfileScreen(navController = it) }
-    ),
-    NavItem(
-        screen = Screen.ConferenceScreen,
-        component = { ConferenceScreen(navController = it) }
-    ),
-    NavItem(
-        screen = Screen.ConferenceDetailScreen,
-        component = { ConferenceDetailScreen(navController = it) }
-    ),
-    NavItem(
-        screen = Screen.SignInScreen,
-        component = { LoginScreen(navController = it) }
-    ),
-    NavItem(
-        screen = Screen.SignUpScreen,
-        component = { SignUpScreen(navController = it) }
-    ),
-    NavItem(
-        screen = Screen.OtpScreen,
-        component = { OtpScreen(navController = it) }
-    )
-)
+fun otherScreens(): List<NavItem> = listOf(NavItem(screen = Screen.ProfileScreen,
+    component = { ProfileScreen(navController = it) }),
+    NavItem(screen = Screen.ConferenceScreen, component = { ConferenceScreen(navController = it) }),
+    NavItem(screen = Screen.ConferenceDetailScreen,
+        component = { ConferenceDetailScreen(navController = it) }),
+    NavItem(screen = Screen.SignInScreen, component = { LoginScreen(navController = it) }),
+    NavItem(screen = Screen.SignUpScreen, component = { SignUpScreen(navController = it) }),
+    NavItem(screen = Screen.OtpScreen, component = { OtpScreen(navController = it) }))
