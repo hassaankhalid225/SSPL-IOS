@@ -1,6 +1,13 @@
 package com.sspl.di
 
-import com.sspl.core.models.usecases.GetPostsUseCase
+import com.sspl.core.usecases.CommentOnPostUseCase
+import com.sspl.core.usecases.DislikePostUseCase
+import com.sspl.core.usecases.EmailValidationUseCase
+import com.sspl.core.usecases.GetPostsUseCase
+import com.sspl.core.usecases.LikePostUseCase
+import com.sspl.core.usecases.PasswordValidationUseCase
+import com.sspl.core.usecases.PhoneNumberValidationUseCase
+import com.sspl.core.usecases.SignInUseCase
 import org.koin.dsl.module
 
 /**
@@ -16,5 +23,12 @@ internal val useCaseModules = module {
 //    single { GetLiveStream(get(), get()) }
 //    single { GetLiveStreamCategories(get(), get()) }
     single { GetPostsUseCase(get()) }
+    single { LikePostUseCase() }
+    single { DislikePostUseCase() }
+    single { CommentOnPostUseCase() }
+    single { EmailValidationUseCase() }
+    single { PasswordValidationUseCase() }
+    single { PhoneNumberValidationUseCase() }
+    single { SignInUseCase(get(),get(),get()) }
 
 }

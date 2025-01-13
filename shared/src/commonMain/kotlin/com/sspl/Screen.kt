@@ -25,8 +25,8 @@ import com.sspl.ui.conferencescreen.ConferenceScreen
 import com.sspl.ui.kyc.LoginScreen
 import com.sspl.ui.kyc.SignUpScreen
 import com.sspl.ui.otp.OtpScreen
-import com.sspl.ui.postscreen.PostScreen
-import com.sspl.utils.IconResource
+import com.sspl.ui.posts.PostScreen
+ import com.sspl.utils.IconResource
 import org.jetbrains.compose.resources.StringResource
 
 

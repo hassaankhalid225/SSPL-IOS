@@ -3,6 +3,7 @@ package com.sspl.ui.kyc
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sspl.core.usecases.SignInUseCase
 import com.vanniktech.locale.Country
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -18,7 +19,9 @@ import kotlinx.coroutines.launch
  * BhimSoft on 09/01/2025.
  * se.muhammadimran@gmail.com
  */
-class SignInViewModel : ViewModel() {
+class SignInViewModel(
+    private val signInUseCase: SignInUseCase
+) : ViewModel() {
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -50,7 +53,6 @@ class SignInViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             delay(1500)
-
             if (_uiState.value.isOtpMode) {
                 handleOtpSave()
             } else {
@@ -63,15 +65,19 @@ class SignInViewModel : ViewModel() {
 
     private suspend fun handleOtpSave() {
         val phoneNo = "${_uiState.value.country.callingCodes.first()}${_uiState.value.phoneNo}"
-        if (/*requestSentSuccessful*/true) {
+        if (signInUseCase.validatePhoneNumber(phoneNo)) {
             _oneTimeEvents.emit(OneTimeEvents.NavigateToOtpScreen)
         } else {
-            _oneTimeEvents.emit(OneTimeEvents.ShowError("Something went wrong"))
+            _oneTimeEvents.emit(OneTimeEvents.ShowError("Invalid phone number"))
         }
     }
 
     private suspend fun handleEmailPasswordSave() {
-        val (isEmailValid, isPasswordValid) = validateEmailAndPassword()
+        val (isEmailValid, isPasswordValid) = signInUseCase.validateEmailAndPassword(
+            _uiState.value.email,
+            _uiState.value.password
+        )
+
         if (!isEmailValid || !isPasswordValid) {
             emitValidationError(isEmailValid, isPasswordValid)
             return
@@ -84,13 +90,6 @@ class SignInViewModel : ViewModel() {
         }
     }
 
-    private fun validateEmailAndPassword(): Pair<Boolean, Boolean> {
-        val emailRegex = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\$")
-        val isEmailValid = emailRegex.matches(_uiState.value.email)
-        val isPasswordValid = _uiState.value.password.length >= 6
-        return Pair(isEmailValid, isPasswordValid)
-    }
-
     private suspend fun emitValidationError(isEmailValid: Boolean, isPasswordValid: Boolean) {
         val errorMessage = when {
             !isEmailValid -> "Please enter a valid email address."
@@ -100,6 +99,7 @@ class SignInViewModel : ViewModel() {
         _oneTimeEvents.emit(OneTimeEvents.ShowError(errorMessage))
         _uiState.update { it.copy(isLoading = false) }
     }
+
     private fun togglePasswordVisibility() {
         _uiState.update { it.copy(isPasswordVisible = !it.isPasswordVisible) }
     }

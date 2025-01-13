@@ -1,4 +1,4 @@
-package com.sspl.ui.postscreen
+package com.sspl.ui.posts
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -42,7 +42,13 @@ import org.jetbrains.compose.resources.painterResource
 
 
 @Composable
-fun PostItem(modifier: Modifier = Modifier, post: Post) {
+fun PostItem(
+    modifier: Modifier = Modifier,
+    post: Post,
+    onLikePost: () -> Unit,
+    onDislikePost: () -> Unit,
+    onCommentPost: () -> Unit
+) {
     Card(
         modifier = modifier.fillMaxWidth().padding(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -120,31 +126,48 @@ fun PostItem(modifier: Modifier = Modifier, post: Post) {
             }
 
             Spacer(modifier = Modifier.height(8.dp))
-            PostInteractions(post)
+            PostInteractions(
+                post,
+                onLikePost = onLikePost,
+                onDislikePost = onDislikePost,
+                onCommentPost = onCommentPost
+            )
         }
     }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun PostInteractions(post: Post, modifier: Modifier = Modifier) {
+fun PostInteractions(
+    post: Post,
+    modifier: Modifier = Modifier,
+    onLikePost: () -> Unit,
+    onDislikePost: () -> Unit,
+    onCommentPost: () -> Unit
+) {
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        InteractionButton(icon = Icons.Filled.ThumbUp,
+        InteractionButton(
+            icon = Icons.Filled.ThumbUp,
             count = post.likes,
             contentDescription = "Like",
-            onClick = { /* Handle like action */ })
-        InteractionButton(icon = Icons.Filled.ThumbUp,
+            onClick = onLikePost
+        )
+        InteractionButton(
+            icon = Icons.Filled.ThumbUp,
             count = post.dislikes,
             contentDescription = "Dislike",
-            onClick = { /* Handle dislike action */ })
-        InteractionButton(icon = Icons.Filled.ThumbUp,
+            onClick = onDislikePost
+        )
+        InteractionButton(
+            icon = Icons.Filled.ThumbUp,
             count = post.commentCount,
             contentDescription = "Comment",
-            onClick = { /* Handle comment action */ })
+            onClick = onCommentPost
+        )
     }
 }
 
@@ -169,6 +192,17 @@ fun InteractionButton(
 
 fun LazyListScope.posts(
     items: List<Post>,
-) = itemsIndexed(items = items, key = { index, item -> index }, itemContent = { index, item ->
-    PostItem(post = item)
+    onLikePost: (Long) -> Unit,
+    onDislikePost: (Long) -> Unit,
+    onCommentPost: (Long) -> Unit,
+    modifier: Modifier = Modifier
+) = itemsIndexed(items = items, key = { index, _ -> index }, itemContent = { _, item ->
+    PostItem(
+        post = item,
+        modifier = modifier,
+        onLikePost = { onLikePost(item.postId) },
+        onDislikePost = { onDislikePost(item.postId) },
+        onCommentPost = { onCommentPost(item.postId) }
+    )
 })
+

@@ -1,7 +1,7 @@
 package com.sspl.core.models
 
 data class Post(
-    val postId: String?,
+    val postId: Long,
     val userName: String?,
     val userProfileUrl: String?,
     val description: String?,
@@ -14,7 +14,7 @@ data class Post(
 
 val dummyPostList = listOf(
     Post(
-        postId = "1",
+        postId = 1,
         userName = "JohnDoe",
         userProfileUrl = "https://example.com/john_doe.jpg",
         description = "Enjoying a beautiful day!",
@@ -25,7 +25,7 @@ val dummyPostList = listOf(
         disLikeCount = 5
     ),
     Post(
-        postId = "2",
+        postId = 2,
         userName = "JaneSmith",
         userProfileUrl = "https://example.com/jane_smith.jpg",
         description = "Weekend vibes!",
@@ -36,7 +36,7 @@ val dummyPostList = listOf(
         disLikeCount = 2
     ),
     Post(
-        postId = "2",
+        postId = 3,
         userName = "JaneSmith",
         userProfileUrl = "https://example.com/jane_smith.jpg",
         description = null,
@@ -47,7 +47,7 @@ val dummyPostList = listOf(
         disLikeCount = 2
     ),
     Post(
-        postId = "3",
+        postId =4,
         userName = "AwesomeUser",
         userProfileUrl = "https://example.com/awesome_user.jpg",
         description = "Just chilling...",
