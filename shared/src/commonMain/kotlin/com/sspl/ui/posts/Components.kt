@@ -37,7 +37,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sspl.core.models.Post
 import com.sspl.resources.Res
+import com.sspl.resources.comment_outline
 import com.sspl.resources.place_holder
+import com.sspl.resources.thumb_down_outline
+import com.sspl.resources.thumb_up_outline
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
 
@@ -151,43 +155,53 @@ fun PostInteractions(
         verticalAlignment = Alignment.CenterVertically
     ) {
         InteractionButton(
-            icon = Icons.Filled.ThumbUp,
+            imageRes = Res.drawable.comment_outline,
+            count = post.commentCount,
+            contentDescription = "Comment",
+            onClick = onCommentPost
+        )
+        Spacer(Modifier.weight(1f))
+
+        InteractionButton(
+            imageRes = Res.drawable.thumb_up_outline,
             count = post.likes,
             contentDescription = "Like",
             onClick = onLikePost
         )
         InteractionButton(
-            icon = Icons.Filled.ThumbUp,
+            imageRes = Res.drawable.thumb_down_outline,
             count = post.dislikes,
             contentDescription = "Dislike",
             onClick = onDislikePost
         )
-        InteractionButton(
-            icon = Icons.Filled.ThumbUp,
-            count = post.commentCount,
-            contentDescription = "Comment",
-            onClick = onCommentPost
-        )
     }
 }
 
+
 @Composable
 fun InteractionButton(
-    icon: ImageVector, count: Int?, contentDescription: String, onClick: () -> Unit
+    imageRes: DrawableResource, count: Int?, contentDescription: String, onClick: () -> Unit
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(onClick = onClick) {
-            Icon(icon, contentDescription = contentDescription, tint = Color.Gray)
+            Image(
+                painter = painterResource(imageRes),
+                contentDescription = contentDescription,
+                modifier = Modifier.size(24.dp), // Adjust size as needed
+                contentScale = ContentScale.Fit // Adjust scale as needed
+            )
         }
         Text(
             text = buildAnnotatedString {
-                append(count.toString())
-            }, modifier = Modifier.wrapContentWidth()
+                append(count?.toString() ?: "0") // Ensure count is not null
+            },
+            modifier = Modifier.wrapContentWidth()
         )
     }
 }
+
 
 
 fun LazyListScope.posts(

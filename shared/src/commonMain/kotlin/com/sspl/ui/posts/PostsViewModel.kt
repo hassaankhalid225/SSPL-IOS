@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
@@ -33,6 +34,8 @@ class PostViewModel(
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
+    private val _isLoadingMore = MutableStateFlow(false)
+    val isLoadingMore: StateFlow<Boolean> = _isLoadingMore.asStateFlow()
     private val _uiState = MutableStateFlow<PostUiState>(PostUiState.LoadingPosts)
     val uiState: StateFlow<PostUiState> = _uiState.onStart {
         fetchPosts()
@@ -56,6 +59,16 @@ class PostViewModel(
               }
                 PostScreenEvents.RefreshPosts -> {
                     refreshPost()
+                }
+
+                PostScreenEvents.LoadMorePosts -> {
+                    _isLoadingMore.update {
+                        true
+                    }
+                    delay(2000)
+                    _isLoadingMore.update {
+                        false
+                    }
                 }
             }
         }
@@ -90,6 +103,7 @@ sealed interface PostScreenEvents{
      data class LikePost(val postId:Long):PostScreenEvents
     data class DislikePost(val postId:Long):PostScreenEvents
     data class CommentPost(val postId:Long):PostScreenEvents
+    data object LoadMorePosts:PostScreenEvents
 }
 
 sealed interface PostUiState {
