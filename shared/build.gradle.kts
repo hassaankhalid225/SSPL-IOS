@@ -33,6 +33,7 @@ kotlin {
     sourceSets {
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.androidx.security.crypto)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
@@ -66,10 +67,6 @@ kotlin {
                 implementation(libs.ktor.client.content.negotiation)
                 implementation(libs.napier)
 
-                // Settings
-                implementation(libs.multiplatform.settings)
-                implementation(libs.multiplatform.settings.no.arg)
-
                 //country code picker
 
                 implementation(libs.compose.country.code.picker)
@@ -86,7 +83,7 @@ kotlin {
                 implementation(libs.coil.compose)
                 implementation(libs.coil.compose.core)
 
-                implementation(libs.kotlinx.datetime)
+                //implementation(libs.kotlinx.datetime)
 //                implementation(libs.kotlinx.datetime.i18n)
 //                implementation(libs.annotations.common)
 //                implementation(libs.androidx.core.i18n)

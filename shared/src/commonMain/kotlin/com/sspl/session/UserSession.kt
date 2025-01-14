@@ -1,6 +1,6 @@
 package com.sspl.session
 
-import com.sspl.storage.LocalStorage
+import com.sspl.storage.Storage
 
 /**
  * Created by M Imran
@@ -8,10 +8,10 @@ import com.sspl.storage.LocalStorage
  * BhimSoft on 12/12/2024.
  * se.muhammadimran@gmail.com
  */
-class UserSession(private val localStorage: LocalStorage) {
+class UserSession(private val storage: Storage) {
     companion object {
         private const val TOKEN_KEY = "user_token_key"
     }
 
-    suspend fun getToken(): String? = localStorage.getString(TOKEN_KEY)
+    suspend fun getToken(): String? = storage.getString(TOKEN_KEY)
 }

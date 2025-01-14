@@ -7,7 +7,10 @@ import org.koin.core.context.startKoin
 fun MainViewController() = ComposeUIViewController(
     configure = {
         startKoin {
-            modules(appModules)
+            modules(
+                appModules +
+                        listOf(iosModules)
+            )
         }
     }
 ) {
