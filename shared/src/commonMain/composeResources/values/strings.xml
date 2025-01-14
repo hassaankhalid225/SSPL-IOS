@@ -15,6 +15,11 @@
     <string name="login_here">Login Here</string>
     <string name="verify_otp">Verify</string>
     <string name="verification_code">Verification Code</string>
+    <string name="create_account">Create Account</string>
+    <string name="enter_first_name">Enter First Name</string>
+    <string name="enter_last_name">Enter Last Name</string>
+    <string name="already_have_an_account">Already have an account?</string>
+    <string name="create_an_account_so_you_can_interact_seamlessly">Create an account so you can\ninteract seamlessly</string>
     <string name="enter_otp_sent_to_your_number">Enter OTP sent to your number</string>
 
     <string name="back">Back!</string>

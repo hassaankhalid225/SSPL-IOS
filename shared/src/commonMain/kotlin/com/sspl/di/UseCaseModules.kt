@@ -7,7 +7,7 @@ import com.sspl.core.usecases.GetPostsUseCase
 import com.sspl.core.usecases.LikePostUseCase
 import com.sspl.core.usecases.PasswordValidationUseCase
 import com.sspl.core.usecases.PhoneNumberValidationUseCase
-import com.sspl.core.usecases.SignInUseCase
+import com.sspl.core.usecases.ValidateUserFirstNameUseCase
 import org.koin.dsl.module
 
 /**
@@ -29,6 +29,7 @@ internal val useCaseModules = module {
     single { EmailValidationUseCase() }
     single { PasswordValidationUseCase() }
     single { PhoneNumberValidationUseCase() }
-    single { SignInUseCase(get(),get(),get()) }
+    single { PhoneNumberValidationUseCase() }
+    single { ValidateUserFirstNameUseCase() }
 
 }

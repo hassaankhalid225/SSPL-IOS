@@ -1,9 +1,11 @@
 package com.sspl.ui.kyc
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,6 +14,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -40,6 +45,7 @@ import com.sspl.resources.forgot_password
 import com.sspl.resources.get_updates
 import com.sspl.resources.login
 import com.sspl.resources.login_here
+import com.sspl.resources.login_screen_background
 import com.sspl.resources.sign_in_via_email
 import com.sspl.resources.sign_in_via_phone
 import com.sspl.theme.primary
@@ -51,6 +57,7 @@ import com.sspl.ui.components.AppTextTitle
 import com.sspl.ui.components.PasswordTextField
 import com.sspl.ui.components.PhoneWithCountrySelector
 import com.vanniktech.locale.Country
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -132,101 +139,106 @@ fun LoginScreenContent(
     onForgotPassword: () -> Unit = {},
     isOtpMode: Boolean = false
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color.White).padding(horizontal = 16.dp)
+    Box(modifier.fillMaxSize()){
+        Image(painter = painterResource(Res.drawable.login_screen_background),contentDescription = null, contentScale = ContentScale.FillBounds)
+        Column(
+            modifier = modifier
+                .fillMaxSize().verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp)
             ,
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Title Section
-        Spacer(Modifier.weight(0.15f))
-        AppTextTitle(
-            text = stringResource(Res.string.login_here),
-            fontSize = 26.sp,
-            color = primary
-        )
-        AppTextTitle(
-            text = stringResource(Res.string.get_updates),
-            textAlign = TextAlign.Center
-        )
-        Spacer(Modifier.weight(0.15f))
-
-        // Form Section (Email/Password or Phone)
-        AnimatedVisibility(visible = !isOtpMode) {
-            LoginFields(
-               modifier= modifier,
-                email = email,
-                emailErrorMsg = emailErrorMsg,
-                password = password,
-                passwordErrorMsg = passwordErrorMsg,
-                showPassword = showPassword,
-                onEmailChange = { onEvents(LoginScreenUiEvents.OnEmailTextChange(it)) },
-                onPasswordChange = { onEvents(LoginScreenUiEvents.OnPasswordTextChange(it)) },
-                onPasswordToggle = { onEvents(LoginScreenUiEvents.TogglePasswordVisibility) },
-                onForgotPassword = onForgotPassword
-            )
-        }
-
-        AnimatedVisibility(visible = isOtpMode) {
-            PhoneWithCountrySelector(
-                selectedCountry = selectedCountry,
-                phone = phone,
-                onPhoneNumberChange = { onEvents(LoginScreenUiEvents.OnPhoneNoChange(it)) },
-                showCountryChooser = showCountryChooser,
-                onCountryChange = { onEvents(LoginScreenUiEvents.OnCountryChange(it)) },
-                toggleCountryPicker = { onEvents(LoginScreenUiEvents.ToggleCountryChooser) }
-            )
-        }
-
-        // Login Button
-        Spacer(modifier = Modifier.height(10.dp))
-        AppRoundedCornerButton(
-            onClick = { onEvents(LoginScreenUiEvents.OnSave) },
-            isEnabled = isLoginEnabled
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                AppTextLabel(
-                    text = stringResource(Res.string.login),
-                    color = if (isLoginEnabled) Color.White else Color.DarkGray,
-                    modifier = Modifier.padding(vertical = 6.dp)
-                )
+            // Title Section
+            Spacer(Modifier.weight(0.15f))
+            AppTextTitle(
+                text = stringResource(Res.string.login_here),
+                fontSize = 26.sp,
+                color = primary
+            )
+            AppTextTitle(
+                text = stringResource(Res.string.get_updates),
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.weight(0.15f))
 
-                // Use AnimatedVisibility for the CircularProgressIndicator
-                AnimatedVisibility(visible = isLoading) {
-                    Spacer(Modifier.weight(1f)) // Add spacer to push the progress indicator to the right
-                    CircularProgressIndicator(
-                        color = Color.White,
-                        modifier = Modifier.size(15.dp)
+            // Form Section (Email/Password or Phone)
+            AnimatedVisibility(visible = !isOtpMode) {
+                LoginFields(
+                    modifier= modifier,
+                    email = email,
+                    emailErrorMsg = emailErrorMsg,
+                    password = password,
+                    passwordErrorMsg = passwordErrorMsg,
+                    showPassword = showPassword,
+                    onEmailChange = { onEvents(LoginScreenUiEvents.OnEmailTextChange(it)) },
+                    onPasswordChange = { onEvents(LoginScreenUiEvents.OnPasswordTextChange(it)) },
+                    onPasswordToggle = { onEvents(LoginScreenUiEvents.TogglePasswordVisibility) },
+                    onForgotPassword = onForgotPassword
+                )
+            }
+
+            AnimatedVisibility(visible = isOtpMode) {
+                PhoneWithCountrySelector(
+                    selectedCountry = selectedCountry,
+                    phone = phone,
+                    onPhoneNumberChange = { onEvents(LoginScreenUiEvents.OnPhoneNoChange(it)) },
+                    showCountryChooser = showCountryChooser,
+                    onCountryChange = { onEvents(LoginScreenUiEvents.OnCountryChange(it)) },
+                    toggleCountryPicker = { onEvents(LoginScreenUiEvents.ToggleCountryChooser) }
+                )
+            }
+
+            // Login Button
+            Spacer(modifier = Modifier.height(10.dp))
+            AppRoundedCornerButton(
+                onClick = { onEvents(LoginScreenUiEvents.OnSave) },
+                isEnabled = isLoginEnabled
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    AppTextLabel(
+                        text = stringResource(Res.string.login),
+                        color = if (isLoginEnabled) Color.White else Color.DarkGray,
+                        modifier = Modifier.padding(vertical = 6.dp)
                     )
+
+                    // Use AnimatedVisibility for the CircularProgressIndicator
+                    AnimatedVisibility(visible = isLoading) {
+                       Row {
+                           Spacer(Modifier.weight(1f)) // Add spacer to push the progress indicator to the right
+                           CircularProgressIndicator(
+                               color = Color.White,
+                               modifier = Modifier.size(15.dp)
+                           )
+                       }
+                    }
                 }
             }
+
+            // Create Account Section
+            Spacer(modifier = Modifier.height(10.dp))
+            AppTextLabel(
+                text = stringResource(Res.string.create_new_account),
+                fontSize = 12.sp,
+                textDecoration = TextDecoration.Underline,
+                modifier = Modifier.clickable { createNewAccount() }
+            )
+
+            // Divider with "or" text
+            Spacer(modifier = Modifier.height(10.dp))
+            DividerWithText("or")
+
+            // OTP/Email Sign-in Toggle Button
+            Spacer(modifier = Modifier.height(10.dp))
+            AppRoundedCornerButton(
+                onClick = { onEvents(LoginScreenUiEvents.ToggleOtpMode) },
+                title = if (isOtpMode) stringResource(Res.string.sign_in_via_email) else stringResource(Res.string.sign_in_via_phone)
+            )
+            Spacer(Modifier.weight(0.2f))
         }
-
-        // Create Account Section
-        Spacer(modifier = Modifier.height(10.dp))
-        AppTextLabel(
-            text = stringResource(Res.string.create_new_account),
-            fontSize = 12.sp,
-            textDecoration = TextDecoration.Underline,
-            modifier = Modifier.clickable { createNewAccount() }
-        )
-
-        // Divider with "or" text
-        Spacer(modifier = Modifier.height(10.dp))
-        DividerWithText("or")
-
-        // OTP/Email Sign-in Toggle Button
-        Spacer(modifier = Modifier.height(10.dp))
-        AppRoundedCornerButton(
-            onClick = { onEvents(LoginScreenUiEvents.ToggleOtpMode) },
-            title = if (isOtpMode) stringResource(Res.string.sign_in_via_email) else stringResource(Res.string.sign_in_via_phone)
-        )
-        Spacer(Modifier.weight(0.2f))
     }
 }
 
@@ -246,7 +258,7 @@ fun LoginFields(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(10.dp),
-        modifier = Modifier
+        modifier = modifier
     ) {
         AppTextField(
             placeholder = stringResource(Res.string.enter_your_mail),
