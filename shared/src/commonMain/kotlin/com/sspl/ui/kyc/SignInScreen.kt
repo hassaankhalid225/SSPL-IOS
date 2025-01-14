@@ -151,14 +151,9 @@ fun LoginScreenContent(
         ) {
             // Title Section
             Spacer(Modifier.weight(0.15f))
-            AppTextTitle(
-                text = stringResource(Res.string.login_here),
-                fontSize = 26.sp,
-                color = primary
-            )
-            AppTextTitle(
-                text = stringResource(Res.string.get_updates),
-                textAlign = TextAlign.Center
+            HeaderSection(
+                title = stringResource(Res.string.login_here),
+                subTitle = stringResource(Res.string.get_updates)
             )
             Spacer(Modifier.weight(0.15f))
 
@@ -191,33 +186,12 @@ fun LoginScreenContent(
 
             // Login Button
             Spacer(modifier = Modifier.height(10.dp))
-            AppRoundedCornerButton(
+            LoginSignUpButtonWithProgress(
                 onClick = { onEvents(LoginScreenUiEvents.OnSave) },
-                isEnabled = isLoginEnabled
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    AppTextLabel(
-                        text = stringResource(Res.string.login),
-                        color = if (isLoginEnabled) Color.White else Color.DarkGray,
-                        modifier = Modifier.padding(vertical = 6.dp)
-                    )
-
-                    // Use AnimatedVisibility for the CircularProgressIndicator
-                    AnimatedVisibility(visible = isLoading) {
-                       Row {
-                           Spacer(Modifier.weight(1f)) // Add spacer to push the progress indicator to the right
-                           CircularProgressIndicator(
-                               color = Color.White,
-                               modifier = Modifier.size(15.dp)
-                           )
-                       }
-                    }
-                }
-            }
-
+                isEnabled = isLoginEnabled,
+                isLoading = isLoading,
+                buttonText = stringResource(Res.string.login)
+            )
             // Create Account Section
             Spacer(modifier = Modifier.height(10.dp))
             AppTextLabel(
@@ -303,6 +277,7 @@ fun DividerWithText(text: String) {
         HorizontalDivider(modifier = Modifier.weight(1f))
     }
 }
+
 
 
 

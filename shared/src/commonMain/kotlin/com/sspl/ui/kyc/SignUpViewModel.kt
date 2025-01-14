@@ -4,8 +4,7 @@ import androidx.lifecycle.ViewModel
 import com.sspl.core.usecases.EmailValidationUseCase
 import com.sspl.core.usecases.PasswordValidationUseCase
 import com.sspl.core.usecases.PhoneNumberValidationUseCase
-import com.sspl.core.usecases.ValidateUserFirstNameUseCase
-import com.vanniktech.locale.Country
+import com.sspl.core.usecases.ValidateUserNameUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,7 +14,7 @@ import kotlinx.coroutines.flow.update
 class SignUpViewModel(
     private val emailValidationUseCase: EmailValidationUseCase,
     private val passwordValidationUseCase: PasswordValidationUseCase,
-    private val nameValidationUseCase: ValidateUserFirstNameUseCase,
+    private val nameValidationUseCase: ValidateUserNameUseCase,
     private val phoneValidationUseCase: PhoneNumberValidationUseCase
 ) : ViewModel() {
 

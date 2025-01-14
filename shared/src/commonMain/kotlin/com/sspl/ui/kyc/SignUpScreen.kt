@@ -1,30 +1,24 @@
 package com.sspl.ui.kyc
 
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,19 +26,14 @@ import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.resources.Res
 import com.sspl.resources.already_have_an_account
-import com.sspl.resources.create_an_account_so_you_can_interact_seamlessly
-import com.sspl.resources.create_new_account
 import com.sspl.resources.enter_first_name
 import com.sspl.resources.enter_last_name
 import com.sspl.resources.enter_your_mail
 import com.sspl.resources.enter_your_password
 import com.sspl.resources.login
 import com.sspl.resources.login_screen_background
-import com.sspl.theme.primary
-import com.sspl.ui.components.AppRoundedCornerButton
 import com.sspl.ui.components.AppTextField
 import com.sspl.ui.components.AppTextLabel
-import com.sspl.ui.components.AppTextTitle
 import com.sspl.ui.components.PasswordTextField
 import com.sspl.ui.components.PhoneWithCountrySelector
 import com.vanniktech.locale.Country
@@ -154,11 +143,14 @@ fun SignUpScreenContent(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            SignUpButtonSection(
-                isSignUpEnabled = isSignUpEnabled,
+            LoginSignUpButtonWithProgress(
+                isEnabled = isSignUpEnabled,
                 isLoading = isLoading,
-                onSignUp = onSignUp,
-                onEvent = onEvent
+                onClick = {
+                    onEvent(UserEvents.Submit)
+                    onSignUp()
+                },
+                buttonText = stringResource(Res.string.login)
             )
 
             AlreadyHaveAccountSection(loginScreen)
@@ -168,18 +160,7 @@ fun SignUpScreenContent(
     }
 }
 
-@Composable
-fun HeaderSection() {
 
-    AppTextTitle(
-        text = stringResource(Res.string.create_new_account), fontSize = 26.sp, color = primary
-    )
-    AppTextTitle(
-        text = stringResource(Res.string.create_an_account_so_you_can_interact_seamlessly),
-        textAlign = TextAlign.Center
-    )
-
-}
 
 @Composable
 fun InputFieldsSection(
@@ -200,12 +181,12 @@ fun InputFieldsSection(
     showCountryChooser: Boolean,
     onEvent: (UserEvents) -> Unit
 ) {
-    InputFieldWithError(placeholder = stringResource(Res.string.enter_first_name),
+    AppTextField(placeholder = stringResource(Res.string.enter_first_name),
         text = firstName,
         errorMessage = firstNameErrorMsg,
         onTextChange = { onEvent(UserEvents.SetFirstName(it)) })
 
-    InputFieldWithError(placeholder = stringResource(Res.string.enter_last_name),
+    AppTextField(placeholder = stringResource(Res.string.enter_last_name),
         text = lastName,
         errorMessage = lastNameErrorMsg,
         onTextChange = { onEvent(UserEvents.SetLastName(it)) })
@@ -217,60 +198,24 @@ fun InputFieldsSection(
         onCountryChange = { onEvent(UserEvents.OnCountryChange(it)) },
         toggleCountryPicker = { onEvent(UserEvents.ToggleCountryChooser) })
 
-    InputFieldWithError(placeholder = stringResource(Res.string.enter_your_mail),
+    AppTextField(placeholder = stringResource(Res.string.enter_your_mail),
         text = email,
         errorMessage = emailErrorMsg,
         onTextChange = { onEvent(UserEvents.SetEmail(it)) })
 
-    PasswordFieldWithError(placeholder = stringResource(Res.string.enter_your_password),
+    PasswordTextField(placeholder = stringResource(Res.string.enter_your_password),
         text = password,
         errorMessage = passwordErrorMsg,
         isPasswordVisible = isPasswordVisible,
         onTogglePassword = { onEvent(UserEvents.TogglePasswordVisibility) },
         onTextChange = { onEvent(UserEvents.SetPassword(it)) })
 
-    PasswordFieldWithError(placeholder = stringResource(Res.string.enter_your_password),
+    PasswordTextField(placeholder = stringResource(Res.string.enter_your_password),
         text = reEnterPassword,
         errorMessage = reEnterPasswordErrorMsg,
         isPasswordVisible = isReEnteredVisible,
         onTogglePassword = { onEvent(UserEvents.ToggleReenteredPasswordVisibility) },
         onTextChange = { onEvent(UserEvents.OnRetypePassword(it)) })
-}
-
-@Composable
-fun SignUpButtonSection(
-    isSignUpEnabled: Boolean,
-    isLoading: Boolean,
-    onSignUp: () -> Unit,
-    onEvent: (UserEvents) -> Unit
-) {
-    AppRoundedCornerButton(
-        onClick = {
-            onEvent(UserEvents.Submit)
-            onSignUp()
-        }, isEnabled = isSignUpEnabled
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            AppTextLabel(
-                text = stringResource(Res.string.login),
-                color = if (isSignUpEnabled) Color.White else Color.DarkGray,
-                modifier = Modifier.padding(vertical = 6.dp)
-            )
-
-            // Show loading indicator only
-            AnimatedVisibility(visible = isLoading) {
-                Row {
-                    Spacer(Modifier.weight(1f))
-                    CircularProgressIndicator(
-                        color = Color.White, modifier = Modifier.size(15.dp)
-                    )
-                }
-            }
-        }
-    }
 }
 
 @Composable
@@ -281,37 +226,3 @@ fun AlreadyHaveAccountSection(loginScreen: () -> Unit) {
         modifier = Modifier.clickable { loginScreen() })
 }
 
-@Composable
-fun InputFieldWithError(
-    placeholder: String, text: String, errorMessage: String?, onTextChange: (String) -> Unit
-) {
-    AppTextField(
-        placeholder = placeholder,
-        modifier = Modifier.fillMaxWidth(),
-        text = text,
-        errorMessage = errorMessage,
-        isError = errorMessage != null,
-        onTextChange = onTextChange
-    )
-}
-
-@Composable
-fun PasswordFieldWithError(
-    placeholder: String,
-    text: String,
-    errorMessage: String?,
-    isPasswordVisible: Boolean,
-    onTogglePassword: () -> Unit,
-    onTextChange: (String) -> Unit
-) {
-    PasswordTextField(
-        placeholder = placeholder,
-        modifier = Modifier.fillMaxWidth(),
-        text = text,
-        errorMessage = errorMessage,
-        isError = errorMessage != null,
-        onTogglePassword = onTogglePassword,
-        isPasswordVisible = isPasswordVisible,
-        onTextChange = onTextChange
-    )
-}

@@ -2,7 +2,7 @@ package com.sspl.core.usecases
 
 import com.sspl.ui.kyc.ValidationResult
 
-class ValidateUserFirstNameUseCase {
+class ValidateUserNameUseCase {
     operator fun invoke(firstName: String?): ValidationResult {
         if (firstName.isNullOrEmpty()) {
             return ValidationResult.Error("First name cannot be empty")
