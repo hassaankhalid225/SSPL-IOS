@@ -13,6 +13,7 @@
     <string name="log_in">Log In</string>
     <string name="login">Login</string>
     <string name="login_here">Login Here</string>
+    <string name="user_details">User Details</string>
     <string name="verify_otp">Verify</string>
     <string name="verification_code">Verification Code</string>
     <string name="create_account">Create Account</string>

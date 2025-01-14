@@ -80,6 +80,9 @@ fun SignUpScreen(
         emailErrorMsg = uiState.emailError, firstNameErrorMsg = uiState.firstNameError,
         lastNameErrorMsg = uiState.lastNameError,
         phoneNo = uiState.phoneNo,
+        onSignUp = {
+            navController.navigate(Screen.UserDetailsScreen.route)
+        },
         loginScreen = {
             navController.navigate(Screen.SignInScreen.route)
         },
@@ -110,6 +113,7 @@ fun SignUpScreenContent(
     emailErrorMsg: String?,
     phoneNo: String,
     loginScreen: () -> Unit,
+    onSignUp: () -> Unit,
     onEvent: (UserEvents) -> Unit
 ) {
     Box(modifier.fillMaxSize()) {
@@ -151,7 +155,10 @@ fun SignUpScreenContent(
             Spacer(modifier = Modifier.height(10.dp))
 
             SignUpButtonSection(
-                isSignUpEnabled = isSignUpEnabled, isLoading = isLoading, onEvent = onEvent
+                isSignUpEnabled = isSignUpEnabled,
+                isLoading = isLoading,
+                onSignUp = onSignUp,
+                onEvent = onEvent
             )
 
             AlreadyHaveAccountSection(loginScreen)
@@ -232,10 +239,16 @@ fun InputFieldsSection(
 
 @Composable
 fun SignUpButtonSection(
-    isSignUpEnabled: Boolean, isLoading: Boolean, onEvent: (UserEvents) -> Unit
+    isSignUpEnabled: Boolean,
+    isLoading: Boolean,
+    onSignUp: () -> Unit,
+    onEvent: (UserEvents) -> Unit
 ) {
     AppRoundedCornerButton(
-        onClick = { onEvent(UserEvents.Submit) }, isEnabled = isSignUpEnabled
+        onClick = {
+            onEvent(UserEvents.Submit)
+            onSignUp()
+        }, isEnabled = isSignUpEnabled
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

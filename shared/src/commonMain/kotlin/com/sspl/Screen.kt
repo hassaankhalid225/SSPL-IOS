@@ -15,6 +15,7 @@ import com.sspl.resources.ic_forum
 import com.sspl.resources.log_in
 import com.sspl.resources.profile
 import com.sspl.resources.sign_up
+import com.sspl.resources.user_details
 import com.sspl.resources.verify_otp
 import com.sspl.ui.HomeScreen
 import com.sspl.ui.ProfileScreen
@@ -24,6 +25,7 @@ import com.sspl.ui.kyc.LoginScreen
 import com.sspl.ui.kyc.SignUpScreen
 import com.sspl.ui.otp.OtpScreen
 import com.sspl.ui.posts.PostScreen
+import com.sspl.ui.userdetails.UserDetailsScreen
 import com.sspl.utils.IconResource
 import org.jetbrains.compose.resources.StringResource
 
@@ -80,6 +82,11 @@ sealed class Screen(
         route = "SignInScreen",
     )
 
+    data object UserDetailsScreen : Screen(
+        title = Res.string.user_details,
+        route = "UserDetailsScreen",
+    )
+
     data object SignUpScreen : Screen(
         title = Res.string.sign_up,
         route = "SignUpScreen",
@@ -105,4 +112,5 @@ fun otherScreens(): List<NavItem> = listOf(NavItem(screen = Screen.ProfileScreen
         component = { ConferenceDetailScreen(navController = it) }),
     NavItem(screen = Screen.SignInScreen, component = { LoginScreen(navController = it) }),
     NavItem(screen = Screen.SignUpScreen, component = { SignUpScreen(navController = it) }),
-    NavItem(screen = Screen.OtpScreen, component = { OtpScreen(navController = it) }))
+    NavItem(screen = Screen.OtpScreen, component = { OtpScreen(navController = it) }),
+    NavItem(screen = Screen.UserDetailsScreen, component = { UserDetailsScreen(navController = it) }))

@@ -123,6 +123,11 @@ class SignUpViewModel(
         if (_uiState.value.isSignUpEnabled) {
             _uiState.update { it.copy(isLoading = true) }
             // Sign-up logic here
+//            if (responseOk){
+//                _uiState.update {
+//                    UserUiState()
+//                }
+//            }
         }
     }
 
