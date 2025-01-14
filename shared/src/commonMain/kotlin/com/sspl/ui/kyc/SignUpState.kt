@@ -1,6 +1,5 @@
 package com.sspl.ui.kyc
 
-import com.vanniktech.locale.Country
 
 data class UserUiState(
     val firstName: String = "",
@@ -16,7 +15,8 @@ data class UserUiState(
     val isSignUpEnabled: Boolean = false,
     val isLoading: Boolean = false,
     val phoneNo: String = "",
-    val retypedPassword: String = "", val country: Country = Country.PAKISTAN,
+    val retypedPassword: String = "",
+//    val country: Country = Country.PAKISTAN,
     val showCountryChooser: Boolean = false,
     val isPasswordVisible: Boolean = false,
     val isReenteredPasswordVisible: Boolean = false,
@@ -30,7 +30,7 @@ sealed interface UserEvents {
     data class SetPassword(val password: String) : UserEvents
     data class OnRetypePassword(val password: String) : UserEvents
     data class SetPhoneNo(val phoneNo: String) : UserEvents
-    data class OnCountryChange(val country: Country) : UserEvents
+//    data class OnCountryChange(val country: Country) : UserEvents
     data object ToggleCountryChooser : UserEvents
     data object TogglePasswordVisibility : UserEvents
     data object ToggleReenteredPasswordVisibility : UserEvents

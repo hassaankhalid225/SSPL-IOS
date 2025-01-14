@@ -76,9 +76,9 @@ class SignUpViewModel(
                     )
                 }
             }
-            is UserEvents.OnCountryChange -> {
-                _uiState.update { it.copy(country = event.country, showCountryChooser = false) }
-            }
+//            is UserEvents.OnCountryChange -> {
+//                _uiState.update { it.copy(country = event.country, showCountryChooser = false) }
+//            }
             UserEvents.ToggleCountryChooser -> {
                 _uiState.update { it.copy(showCountryChooser = !_uiState.value.showCountryChooser) }
             }

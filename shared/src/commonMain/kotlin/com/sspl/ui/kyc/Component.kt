@@ -38,6 +38,7 @@ fun HeaderSection(
 
 }
 
+// TODO: Move to to common components and rename it 
 @Composable
 fun LoginSignUpButtonWithProgress(
     onClick: () -> Unit,

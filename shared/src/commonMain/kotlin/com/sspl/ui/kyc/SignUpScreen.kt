@@ -35,8 +35,6 @@ import com.sspl.resources.login_screen_background
 import com.sspl.ui.components.AppTextField
 import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.PasswordTextField
-import com.sspl.ui.components.PhoneWithCountrySelector
-import com.vanniktech.locale.Country
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -65,7 +63,7 @@ fun SignUpScreen(
         password = uiState.password,
         isPasswordVisible = uiState.isPasswordVisible,
         showCountryChooser = uiState.showCountryChooser,
-        country = uiState.country,
+//        country = uiState.country,
         emailErrorMsg = uiState.emailError, firstNameErrorMsg = uiState.firstNameError,
         lastNameErrorMsg = uiState.lastNameError,
         phoneNo = uiState.phoneNo,
@@ -98,7 +96,7 @@ fun SignUpScreenContent(
     password: String,
     isPasswordVisible: Boolean,
     showCountryChooser: Boolean,
-    country: Country,
+//    country: Country,
     emailErrorMsg: String?,
     phoneNo: String,
     loginScreen: () -> Unit,
@@ -133,7 +131,7 @@ fun SignUpScreenContent(
                 lastNameErrorMsg = lastNameErrorMsg,
                 password = password,
                 isPasswordVisible = isPasswordVisible,
-                country = country,
+//                country = country,
                 email = email,
                 emailErrorMsg = emailErrorMsg,
                 phoneNo = phoneNo,
@@ -174,7 +172,7 @@ fun InputFieldsSection(
     lastNameErrorMsg: String?,
     password: String,
     isPasswordVisible: Boolean,
-    country: Country,
+//    country: Country,
     email: String,
     emailErrorMsg: String?,
     phoneNo: String,
@@ -191,12 +189,12 @@ fun InputFieldsSection(
         errorMessage = lastNameErrorMsg,
         onTextChange = { onEvent(UserEvents.SetLastName(it)) })
 
-    PhoneWithCountrySelector(selectedCountry = country,
-        phone = phoneNo,
-        onPhoneNumberChange = { onEvent(UserEvents.SetPhoneNo(it)) },
-        showCountryChooser = showCountryChooser,
-        onCountryChange = { onEvent(UserEvents.OnCountryChange(it)) },
-        toggleCountryPicker = { onEvent(UserEvents.ToggleCountryChooser) })
+//    PhoneWithCountrySelector(selectedCountry = country,
+//        phone = phoneNo,
+//        onPhoneNumberChange = { onEvent(UserEvents.SetPhoneNo(it)) },
+//        showCountryChooser = showCountryChooser,
+//        onCountryChange = { onEvent(UserEvents.OnCountryChange(it)) },
+//        toggleCountryPicker = { onEvent(UserEvents.ToggleCountryChooser) })
 
     AppTextField(placeholder = stringResource(Res.string.enter_your_mail),
         text = email,
