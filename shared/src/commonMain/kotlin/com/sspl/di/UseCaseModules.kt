@@ -1,6 +1,18 @@
 package com.sspl.di
 
-import com.sspl.core.models.usecases.GetPostsUseCase
+import com.sspl.core.usecases.CommentOnPostUseCase
+import com.sspl.core.usecases.DislikePostUseCase
+import com.sspl.core.usecases.EmailValidationUseCase
+import com.sspl.core.usecases.GetPostsUseCase
+import com.sspl.core.usecases.LikePostUseCase
+import com.sspl.core.usecases.PasswordValidationUseCase
+import com.sspl.core.usecases.PhoneNumberValidationUseCase
+import com.sspl.core.usecases.ValidateUserCityUseCase
+import com.sspl.core.usecases.ValidateUserCountryUseCase
+import com.sspl.core.usecases.ValidateUserDesignationUseCase
+import com.sspl.core.usecases.ValidateUserNameUseCase
+import com.sspl.core.usecases.ValidateUserInstitutionUseCase
+import com.sspl.core.usecases.ValidateUserPmdcNoUseCase
 import org.koin.dsl.module
 
 /**
@@ -16,5 +28,18 @@ internal val useCaseModules = module {
 //    single { GetLiveStream(get(), get()) }
 //    single { GetLiveStreamCategories(get(), get()) }
     single { GetPostsUseCase(get()) }
+    single { LikePostUseCase() }
+    single { DislikePostUseCase() }
+    single { CommentOnPostUseCase() }
+    single { EmailValidationUseCase() }
+    single { PasswordValidationUseCase() }
+    single { PhoneNumberValidationUseCase() }
+    single { PhoneNumberValidationUseCase() }
+    single { ValidateUserNameUseCase() }
+    single {ValidateUserCityUseCase()}
+    single { ValidateUserCountryUseCase() }
+    single { ValidateUserInstitutionUseCase() }
+    single { ValidateUserDesignationUseCase() }
+    single { ValidateUserPmdcNoUseCase() }
 
 }

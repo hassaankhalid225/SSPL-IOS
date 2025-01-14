@@ -1,4 +1,4 @@
-package com.sspl.core.models.usecases
+package com.sspl.core.usecases
 
 import com.sspl.core.models.Post
 import com.sspl.core.repositories.PostsRepository

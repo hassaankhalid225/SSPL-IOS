@@ -1,6 +1,17 @@
 package com.sspl.ui.kyc
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.sspl.core.usecases.EmailValidationUseCase
+import com.sspl.core.usecases.PasswordValidationUseCase
+import com.sspl.core.usecases.PhoneNumberValidationUseCase
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 /**
  * Created by M Imran
@@ -8,5 +19,158 @@ import androidx.lifecycle.ViewModel
  * BhimSoft on 09/01/2025.
  * se.muhammadimran@gmail.com
  */
-class SignInViewModel :ViewModel() {
+class SignInViewModel(
+    private val emailValidationUseCase: EmailValidationUseCase,
+    private val phoneNumberValidationUseCase: PhoneNumberValidationUseCase,
+    private val passwordValidationUseCase: PasswordValidationUseCase
+) :
+    ViewModel() {
+
+    private val _uiState = MutableStateFlow(LoginUiState())
+    val uiState = _uiState.asStateFlow()
+
+    private val _oneTimeEvents = MutableSharedFlow<OneTimeEvents>()
+    val oneTimeEvents = _oneTimeEvents.asSharedFlow()
+
+    fun onEvent(event: LoginScreenUiEvents) {
+        when (event) {
+            is LoginScreenUiEvents.OnEmailTextChange -> {
+                _uiState.update {
+                    it.copy(
+                        email = event.emailText,
+                        emailError = null
+                    )
+                }
+                validateEmail()
+            }
+
+            is LoginScreenUiEvents.OnPasswordTextChange -> {
+                _uiState.update {
+                    it.copy(
+                        password = event.passwordText,
+                        passwordError = null
+                    )
+                }
+                validatePassword()
+            }
+
+            LoginScreenUiEvents.OnSave -> handleSave()
+            LoginScreenUiEvents.TogglePasswordVisibility -> _uiState.update {
+                it.copy(isPasswordVisible = !it.isPasswordVisible)
+            }
+
+            LoginScreenUiEvents.ToggleOtpMode -> _uiState.update {
+                it.copy(
+                    isOtpMode = !it.isOtpMode,
+                    phoneNo = "",
+                    email = "", isLoginEnabled = false,
+                    password = ""
+                )
+            }
+
+            is LoginScreenUiEvents.OnPhoneNoChange -> {
+                _uiState.update {
+                    it.copy(phoneNo = event.phoneNumber)
+                }
+                validatePhoneNumber()
+            }
+//            is LoginScreenUiEvents.OnCountryChange -> _uiState.update {
+//                it.copy(
+//                    country = event.country,
+//                    showCountryChooser = false
+//                )
+//            }
+
+            LoginScreenUiEvents.ToggleCountryChooser -> _uiState.update {
+                it.copy(showCountryChooser = !it.showCountryChooser)
+            }
+
+
+        }
+    }
+
+    private fun validatePassword() {
+        val isPasswordValid = passwordValidationUseCase(_uiState.value.password)
+        _uiState.update {
+            it.copy(
+                passwordError = if (!isPasswordValid) "Password must be at least 6 characters long" else null,
+                isLoginEnabled = isPasswordValid && _uiState.value.emailError == null && _uiState.value.email.isNotBlank(),  // Enable login only if both email and password are valid
+                isLoading = false // End loading after validation
+            )
+        }
+    }
+
+    private fun validateEmail() {
+        val isEmailValid = emailValidationUseCase(_uiState.value.email)
+        _uiState.update {
+            it.copy(
+                emailError = if (!isEmailValid) "Invalid email address" else null,
+                isLoginEnabled = isEmailValid && _uiState.value.passwordError == null && _uiState.value.password.isNotBlank(),  // Enable login only if both email and password are valid
+                isLoading = false // End loading after validation
+            )
+        }
+    }
+    private fun validatePhoneNumber() {
+//        val phoneNo = "${_uiState.value.country.callingCodes.first()}${_uiState.value.phoneNo}"
+        val phoneNo = ""
+        val isPhoneValid = phoneNumberValidationUseCase(phoneNo)
+        _uiState.update {
+            it.copy(
+                phoneNoError = if (!isPhoneValid) "Invalid phone number" else null,
+                isLoginEnabled = isPhoneValid && _uiState.value.isOtpMode,  // Enable login only if phone number is valid in OTP mode
+                isLoading = false
+            )
+        }
+    }
+
+
+    private fun handleSave() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            delay(1500)
+            if (_uiState.value.isOtpMode) {
+                handleOtpSave()
+            } else {
+                handleEmailPasswordSave()
+            }
+            _uiState.update { LoginUiState() }
+        }
+    }
+
+    private suspend fun handleOtpSave() {
+//        val phoneNo = "${_uiState.value.country.callingCodes.first()}${_uiState.value.phoneNo}"
+        val phoneNo = ""
+        if (phoneNumberValidationUseCase(phoneNo)) {
+            _oneTimeEvents.emit(OneTimeEvents.NavigateToOtpScreen)
+        } else {
+            _uiState.update { it.copy(phoneNoError = "Invalid phone number", isLoading = false) }
+        }
+    }
+
+    private suspend fun handleEmailPasswordSave() {
+        val isEmailValid = emailValidationUseCase(_uiState.value.email)
+        val isPasswordValid = passwordValidationUseCase(_uiState.value.password)
+
+        if (!isEmailValid || !isPasswordValid) {
+            if (!isEmailValid) {
+                _uiState.update { it.copy(isLoading = false, emailError = "Invalid email address") }
+            }
+            if (!isPasswordValid) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        passwordError = "Password must be at least 6 characters long"
+                    )
+                }
+            }
+            return
+        }
+        val isAuthenticated = true // For now, assume success
+        if (isAuthenticated) {
+            _oneTimeEvents.emit(OneTimeEvents.LoginSuccess)
+        } else {
+            _oneTimeEvents.emit(OneTimeEvents.ShowError("Something went wrong"))
+        }
+    }
 }
+

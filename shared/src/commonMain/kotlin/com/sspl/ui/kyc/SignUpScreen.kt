@@ -1,16 +1,226 @@
 package com.sspl.ui.kyc
 
-import androidx.compose.runtime.Composable
-import androidx.navigation.NavController
-import com.sspl.ui.components.AppTextBody
 
-/**
- * Created by M Imran
- * Senior Software Engineer at
- * BhimSoft on 09/01/2025.
- * se.muhammadimran@gmail.com
- */
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.sspl.Screen
+import com.sspl.resources.Res
+import com.sspl.resources.already_have_an_account
+import com.sspl.resources.enter_first_name
+import com.sspl.resources.enter_last_name
+import com.sspl.resources.enter_your_mail
+import com.sspl.resources.enter_your_password
+import com.sspl.resources.login
+import com.sspl.resources.login_screen_background
+import com.sspl.ui.components.AppTextField
+import com.sspl.ui.components.AppTextLabel
+import com.sspl.ui.components.PasswordTextField
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.koin.compose.viewmodel.koinViewModel
+
+
+@Preview
 @Composable
-fun SignUpScreen(navController: NavController) {
-    AppTextBody(text = "SignUpScreen()")
+fun SignUpScreen(
+    navController: NavController, viewModel: SignUpViewModel = koinViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+
+
+    SignUpScreenContent(
+        modifier = Modifier,
+        email = uiState.email,
+        isSignUpEnabled = uiState.isSignUpEnabled,
+        firstName = uiState.firstName,
+        lastName = uiState.lastName,
+        reEnterPassword = uiState.retypedPassword,
+        reEnterPasswordErrorMsg = uiState.retypedPasswordError,
+        isReEnteredVisible = uiState.isReenteredPasswordVisible,
+        isLoading = uiState.isLoading,
+        passwordErrorMsg = uiState.passwordError,
+        password = uiState.password,
+        isPasswordVisible = uiState.isPasswordVisible,
+        showCountryChooser = uiState.showCountryChooser,
+//        country = uiState.country,
+        emailErrorMsg = uiState.emailError, firstNameErrorMsg = uiState.firstNameError,
+        lastNameErrorMsg = uiState.lastNameError,
+        phoneNo = uiState.phoneNo,
+        onSignUp = {
+            navController.navigate(Screen.UserDetailsScreen.route)
+        },
+        loginScreen = {
+            navController.navigate(Screen.SignInScreen.route)
+        },
+        onEvent = viewModel::onEvent,
+    )
+
+
 }
+
+@Composable
+fun SignUpScreenContent(
+    modifier: Modifier = Modifier,
+    email: String,
+    isSignUpEnabled: Boolean,
+    firstName: String,
+    lastName: String,
+    reEnterPassword: String,
+    reEnterPasswordErrorMsg: String?,
+    isReEnteredVisible: Boolean,
+    isLoading: Boolean,
+    passwordErrorMsg: String?,
+    firstNameErrorMsg: String?,
+    lastNameErrorMsg: String?,
+    password: String,
+    isPasswordVisible: Boolean,
+    showCountryChooser: Boolean,
+//    country: Country,
+    emailErrorMsg: String?,
+    phoneNo: String,
+    loginScreen: () -> Unit,
+    onSignUp: () -> Unit,
+    onEvent: (UserEvents) -> Unit
+) {
+    Box(modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(Res.drawable.login_screen_background),
+            contentDescription = null,
+            contentScale = ContentScale.FillBounds
+        )
+
+        Column(
+            modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(Modifier.weight(0.15f))
+            HeaderSection()
+            Spacer(Modifier.weight(0.15f))
+            // Input Fields Section
+            InputFieldsSection(
+                firstName = firstName,
+                lastName = lastName,
+                reEnterPassword = reEnterPassword,
+                reEnterPasswordErrorMsg = reEnterPasswordErrorMsg,
+                isReEnteredVisible = isReEnteredVisible,
+                passwordErrorMsg = passwordErrorMsg,
+                firstNameErrorMsg = firstNameErrorMsg,
+                lastNameErrorMsg = lastNameErrorMsg,
+                password = password,
+                isPasswordVisible = isPasswordVisible,
+//                country = country,
+                email = email,
+                emailErrorMsg = emailErrorMsg,
+                phoneNo = phoneNo,
+                showCountryChooser = showCountryChooser,
+                onEvent = onEvent
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            LoginSignUpButtonWithProgress(
+                isEnabled = isSignUpEnabled,
+                isLoading = isLoading,
+                onClick = {
+                    onEvent(UserEvents.Submit)
+                    onSignUp()
+                },
+                buttonText = stringResource(Res.string.login)
+            )
+
+            AlreadyHaveAccountSection(loginScreen)
+
+            Spacer(Modifier.weight(0.7f))
+        }
+    }
+}
+
+
+
+@Composable
+fun InputFieldsSection(
+    firstName: String,
+    lastName: String,
+    reEnterPassword: String,
+    reEnterPasswordErrorMsg: String?,
+    isReEnteredVisible: Boolean,
+    passwordErrorMsg: String?,
+    firstNameErrorMsg: String?,
+    lastNameErrorMsg: String?,
+    password: String,
+    isPasswordVisible: Boolean,
+//    country: Country,
+    email: String,
+    emailErrorMsg: String?,
+    phoneNo: String,
+    showCountryChooser: Boolean,
+    onEvent: (UserEvents) -> Unit
+) {
+    AppTextField(placeholder = stringResource(Res.string.enter_first_name),
+        text = firstName,
+        errorMessage = firstNameErrorMsg,
+        onTextChange = { onEvent(UserEvents.SetFirstName(it)) })
+
+    AppTextField(placeholder = stringResource(Res.string.enter_last_name),
+        text = lastName,
+        errorMessage = lastNameErrorMsg,
+        onTextChange = { onEvent(UserEvents.SetLastName(it)) })
+
+//    PhoneWithCountrySelector(selectedCountry = country,
+//        phone = phoneNo,
+//        onPhoneNumberChange = { onEvent(UserEvents.SetPhoneNo(it)) },
+//        showCountryChooser = showCountryChooser,
+//        onCountryChange = { onEvent(UserEvents.OnCountryChange(it)) },
+//        toggleCountryPicker = { onEvent(UserEvents.ToggleCountryChooser) })
+
+    AppTextField(placeholder = stringResource(Res.string.enter_your_mail),
+        text = email,
+        errorMessage = emailErrorMsg,
+        onTextChange = { onEvent(UserEvents.SetEmail(it)) })
+
+    PasswordTextField(placeholder = stringResource(Res.string.enter_your_password),
+        text = password,
+        errorMessage = passwordErrorMsg,
+        isPasswordVisible = isPasswordVisible,
+        onTogglePassword = { onEvent(UserEvents.TogglePasswordVisibility) },
+        onTextChange = { onEvent(UserEvents.SetPassword(it)) })
+
+    PasswordTextField(placeholder = stringResource(Res.string.enter_your_password),
+        text = reEnterPassword,
+        errorMessage = reEnterPasswordErrorMsg,
+        isPasswordVisible = isReEnteredVisible,
+        onTogglePassword = { onEvent(UserEvents.ToggleReenteredPasswordVisibility) },
+        onTextChange = { onEvent(UserEvents.OnRetypePassword(it)) })
+}
+
+@Composable
+fun AlreadyHaveAccountSection(loginScreen: () -> Unit) {
+    AppTextLabel(text = stringResource(Res.string.already_have_an_account),
+        fontSize = 12.sp,
+        textDecoration = TextDecoration.Underline,
+        modifier = Modifier.clickable { loginScreen() })
+}
+

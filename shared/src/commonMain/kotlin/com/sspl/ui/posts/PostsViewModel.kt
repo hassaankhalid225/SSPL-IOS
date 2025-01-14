@@ -1,6 +1,21 @@
 package com.sspl.ui.posts
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.sspl.core.models.Post
+import com.sspl.core.usecases.CommentOnPostUseCase
+import com.sspl.core.usecases.DislikePostUseCase
+import com.sspl.core.usecases.GetPostsUseCase
+import com.sspl.core.usecases.LikePostUseCase
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 /**
  * Created by M Imran
@@ -8,5 +23,91 @@ import androidx.lifecycle.ViewModel
  * BhimSoft on 09/01/2025.
  * se.muhammadimran@gmail.com
  */
-class PostsViewModel : ViewModel() {
+
+class PostViewModel(
+    private val getPostsUseCase: GetPostsUseCase,
+    private val likePostUseCase: LikePostUseCase,
+    private val dislikePostUseCase: DislikePostUseCase,
+    private val commentOnPostUseCase: CommentOnPostUseCase
+) : ViewModel() {
+
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
+    private val _isLoadingMore = MutableStateFlow(false)
+    val isLoadingMore: StateFlow<Boolean> = _isLoadingMore.asStateFlow()
+    private val _uiState = MutableStateFlow<PostUiState>(PostUiState.LoadingPosts)
+    val uiState: StateFlow<PostUiState> = _uiState.onStart {
+        fetchPosts()
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = PostUiState.LoadingPosts
+    )
+
+    fun onEvent(event: PostScreenEvents){
+        viewModelScope.launch {
+            when(event){
+               is PostScreenEvents.CommentPost -> {
+                    commentOnPostUseCase(event.postId)
+                }
+              is  PostScreenEvents.DislikePost -> {
+                  dislikePostUseCase(event.postId)
+              }
+              is  PostScreenEvents.LikePost -> {
+                  likePostUseCase(event.postId)
+              }
+                PostScreenEvents.RefreshPosts -> {
+                    refreshPost()
+                }
+
+                PostScreenEvents.LoadMorePosts -> {
+                    _isLoadingMore.update {
+                        true
+                    }
+                    delay(2000)
+                    _isLoadingMore.update {
+                        false
+                    }
+                }
+            }
+        }
+    }
+
+    private fun refreshPost(){
+        _isRefreshing.value = true
+        viewModelScope.launch {
+            delay(1500)
+            fetchPosts()
+            _isRefreshing.value = false
+        }
+    }
+
+    private fun fetchPosts(){
+        viewModelScope.launch {
+            getPostsUseCase().collect { posts ->
+                if (posts.isEmpty()) {
+                    _uiState.value = PostUiState.NoPostFound
+                } else {
+                    _uiState.value = PostUiState.Success(posts)
+                    _isRefreshing.value=false
+                }
+            }
+        }
+    }
+
+}
+
+sealed interface PostScreenEvents{
+    data object RefreshPosts:PostScreenEvents
+     data class LikePost(val postId:Long):PostScreenEvents
+    data class DislikePost(val postId:Long):PostScreenEvents
+    data class CommentPost(val postId:Long):PostScreenEvents
+    data object LoadMorePosts:PostScreenEvents
+}
+
+sealed interface PostUiState {
+    data object LoadingPosts : PostUiState
+    data object NoPostFound : PostUiState
+    data class Success(val posts: List<Post>) : PostUiState
 }

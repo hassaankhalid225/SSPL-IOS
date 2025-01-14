@@ -1,4 +1,4 @@
-package com.sspl.ui.postscreen
+package com.sspl.ui.posts
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -37,12 +37,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sspl.core.models.Post
 import com.sspl.resources.Res
+import com.sspl.resources.comment_outline
 import com.sspl.resources.place_holder
+import com.sspl.resources.thumb_down_outline
+import com.sspl.resources.thumb_up_outline
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
 
 @Composable
-fun PostItem(modifier: Modifier = Modifier, post: Post) {
+fun PostItem(
+    modifier: Modifier = Modifier,
+    post: Post,
+    onLikePost: () -> Unit,
+    onDislikePost: () -> Unit,
+    onCommentPost: () -> Unit
+) {
     Card(
         modifier = modifier.fillMaxWidth().padding(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -120,55 +130,93 @@ fun PostItem(modifier: Modifier = Modifier, post: Post) {
             }
 
             Spacer(modifier = Modifier.height(8.dp))
-            PostInteractions(post)
+            PostInteractions(
+                post,
+                onLikePost = onLikePost,
+                onDislikePost = onDislikePost,
+                onCommentPost = onCommentPost
+            )
         }
     }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun PostInteractions(post: Post, modifier: Modifier = Modifier) {
+fun PostInteractions(
+    post: Post,
+    modifier: Modifier = Modifier,
+    onLikePost: () -> Unit,
+    onDislikePost: () -> Unit,
+    onCommentPost: () -> Unit
+) {
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        InteractionButton(icon = Icons.Filled.ThumbUp,
-            count = post.likes,
-            contentDescription = "Like",
-            onClick = { /* Handle like action */ })
-        InteractionButton(icon = Icons.Filled.ThumbUp,
-            count = post.dislikes,
-            contentDescription = "Dislike",
-            onClick = { /* Handle dislike action */ })
-        InteractionButton(icon = Icons.Filled.ThumbUp,
+        InteractionButton(
+            imageRes = Res.drawable.comment_outline,
             count = post.commentCount,
             contentDescription = "Comment",
-            onClick = { /* Handle comment action */ })
-    }
-}
+            onClick = onCommentPost
+        )
+        Spacer(Modifier.weight(1f))
 
-@Composable
-fun InteractionButton(
-    icon: ImageVector, count: Int?, contentDescription: String, onClick: () -> Unit
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        IconButton(onClick = onClick) {
-            Icon(icon, contentDescription = contentDescription, tint = Color.Gray)
-        }
-        Text(
-            text = buildAnnotatedString {
-                append(count.toString())
-            }, modifier = Modifier.wrapContentWidth()
+        InteractionButton(
+            imageRes = Res.drawable.thumb_up_outline,
+            count = post.likes,
+            contentDescription = "Like",
+            onClick = onLikePost
+        )
+        InteractionButton(
+            imageRes = Res.drawable.thumb_down_outline,
+            count = post.dislikes,
+            contentDescription = "Dislike",
+            onClick = onDislikePost
         )
     }
 }
 
 
+@Composable
+fun InteractionButton(
+    imageRes: DrawableResource, count: Int?, contentDescription: String, onClick: () -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IconButton(onClick = onClick) {
+            Image(
+                painter = painterResource(imageRes),
+                contentDescription = contentDescription,
+                modifier = Modifier.size(24.dp), // Adjust size as needed
+                contentScale = ContentScale.Fit // Adjust scale as needed
+            )
+        }
+        Text(
+            text = buildAnnotatedString {
+                append(count?.toString() ?: "0") // Ensure count is not null
+            },
+            modifier = Modifier.wrapContentWidth()
+        )
+    }
+}
+
+
+
 fun LazyListScope.posts(
     items: List<Post>,
-) = itemsIndexed(items = items, key = { index, item -> index }, itemContent = { index, item ->
-    PostItem(post = item)
+    onLikePost: (Long) -> Unit,
+    onDislikePost: (Long) -> Unit,
+    onCommentPost: (Long) -> Unit,
+    modifier: Modifier = Modifier
+) = itemsIndexed(items = items, key = { index, _ -> index }, itemContent = { _, item ->
+    PostItem(
+        post = item,
+        modifier = modifier,
+        onLikePost = { onLikePost(item.postId) },
+        onDislikePost = { onDislikePost(item.postId) },
+        onCommentPost = { onCommentPost(item.postId) }
+    )
 })
+
