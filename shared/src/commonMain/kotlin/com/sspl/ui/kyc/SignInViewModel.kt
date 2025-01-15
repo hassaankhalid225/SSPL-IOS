@@ -74,12 +74,12 @@ class SignInViewModel(
                 }
                 validatePhoneNumber()
             }
-//            is LoginScreenUiEvents.OnCountryChange -> _uiState.update {
-//                it.copy(
-//                    country = event.country,
-//                    showCountryChooser = false
-//                )
-//            }
+            is LoginScreenUiEvents.OnCountryChange -> _uiState.update {
+                it.copy(
+                    country = event.country,
+                    showCountryChooser = false
+                )
+            }
 
             LoginScreenUiEvents.ToggleCountryChooser -> _uiState.update {
                 it.copy(showCountryChooser = !it.showCountryChooser)
@@ -111,8 +111,8 @@ class SignInViewModel(
         }
     }
     private fun validatePhoneNumber() {
-//        val phoneNo = "${_uiState.value.country.callingCodes.first()}${_uiState.value.phoneNo}"
-        val phoneNo = ""
+         val phoneNo = "${_uiState.value.country.dialCode.first()}${_uiState.value.phoneNo}"
+
         val isPhoneValid = phoneNumberValidationUseCase(phoneNo)
         _uiState.update {
             it.copy(
@@ -138,8 +138,8 @@ class SignInViewModel(
     }
 
     private suspend fun handleOtpSave() {
-//        val phoneNo = "${_uiState.value.country.callingCodes.first()}${_uiState.value.phoneNo}"
-        val phoneNo = ""
+         val phoneNo = "${_uiState.value.country.dialCode.first()}${_uiState.value.phoneNo}"
+
         if (phoneNumberValidationUseCase(phoneNo)) {
             _oneTimeEvents.emit(OneTimeEvents.NavigateToOtpScreen)
         } else {

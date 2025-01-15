@@ -23,8 +23,7 @@ coroutines = "1.9.0"
 securityCrypto = "1.1.0-alpha06"
 
 [libraries]
-compose-country-code-picker = { module = "com.eygraber:compose-country-code-picker", version.ref = "composeCountryCodePicker" }
-firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+ firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-analytics-ktx = { module = "com.google.firebase:firebase-analytics-ktx" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }

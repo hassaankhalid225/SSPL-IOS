@@ -67,8 +67,7 @@ kotlin {
                 implementation(libs.ktor.client.content.negotiation)
                 implementation(libs.napier)
 
-                //country code picker
-                //implementation(libs.compose.country.code.picker)
+
 
                 //implementation(libs.multiplatform.settings.encryption)
                 //Retrofit + OkHttp
