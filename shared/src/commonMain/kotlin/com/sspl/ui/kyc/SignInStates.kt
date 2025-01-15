@@ -1,5 +1,8 @@
 package com.sspl.ui.kyc
 
+import com.sspl.ui.components.countrypicker.Country
+import com.sspl.ui.components.countrypicker.Pakistan
+
 
 sealed interface LoginScreenUiEvents {
     data class OnEmailTextChange(val emailText: String) : LoginScreenUiEvents
@@ -8,7 +11,7 @@ sealed interface LoginScreenUiEvents {
     data object OnSave : LoginScreenUiEvents
     data object TogglePasswordVisibility : LoginScreenUiEvents
     data object ToggleOtpMode : LoginScreenUiEvents
-//    data class OnCountryChange(val country: Country) : LoginScreenUiEvents
+     data class OnCountryChange(val country: Country) : LoginScreenUiEvents
     data object ToggleCountryChooser : LoginScreenUiEvents
 }
 
@@ -19,7 +22,7 @@ data class LoginUiState(
     val isLoginEnabled: Boolean = false,
     val phoneNo: String = "",
     val isLoading: Boolean = false,
-//    val country: Country = Country.PAKISTAN,
+    val country: Country = Pakistan,
     val showCountryChooser: Boolean = false,
     val isPasswordVisible: Boolean = false,
     val emailError: String? = null,

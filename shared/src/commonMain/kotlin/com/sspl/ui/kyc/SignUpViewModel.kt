@@ -32,6 +32,7 @@ class SignUpViewModel(
                     )
                 }
             }
+
             is UserEvents.SetFirstName -> {
                 val validationResult = nameValidationUseCase(event.firstName)
                 _uiState.update {
@@ -41,6 +42,7 @@ class SignUpViewModel(
                     )
                 }
             }
+
             is UserEvents.SetLastName -> {
                 val validationResult = nameValidationUseCase(event.lastName)
                 _uiState.update {
@@ -50,6 +52,7 @@ class SignUpViewModel(
                     )
                 }
             }
+
             is UserEvents.SetPassword -> {
                 val isValid = passwordValidationUseCase(event.password)
                 _uiState.update {
@@ -59,6 +62,7 @@ class SignUpViewModel(
                     )
                 }
             }
+
             is UserEvents.SetPhoneNo -> {
                 val isValid = phoneValidationUseCase(event.phoneNo)
                 _uiState.update {
@@ -68,6 +72,7 @@ class SignUpViewModel(
                     )
                 }
             }
+
             is UserEvents.OnRetypePassword -> {
                 _uiState.update {
                     it.copy(
@@ -76,18 +81,23 @@ class SignUpViewModel(
                     )
                 }
             }
-//            is UserEvents.OnCountryChange -> {
-//                _uiState.update { it.copy(country = event.country, showCountryChooser = false) }
-//            }
+
+            is UserEvents.OnCountryChange -> {
+                _uiState.update { it.copy(country = event.country, showCountryChooser = false) }
+            }
+
             UserEvents.ToggleCountryChooser -> {
                 _uiState.update { it.copy(showCountryChooser = !_uiState.value.showCountryChooser) }
             }
+
             UserEvents.TogglePasswordVisibility -> {
                 _uiState.update { it.copy(isPasswordVisible = !_uiState.value.isPasswordVisible) }
             }
+
             UserEvents.ToggleReenteredPasswordVisibility -> {
                 _uiState.update { it.copy(isReenteredPasswordVisible = !_uiState.value.isReenteredPasswordVisible) }
             }
+
             UserEvents.Submit -> {
                 if (_uiState.value.isSignUpEnabled) {
                     _uiState.update { it.copy(isLoading = true) }
@@ -102,18 +112,7 @@ class SignUpViewModel(
         val state = _uiState.value
         _uiState.update {
             it.copy(
-                isSignUpEnabled = state.emailError == null &&
-                        state.passwordError == null &&
-                        state.phoneNoError == null &&
-                        state.firstNameError == null &&
-                        state.lastNameError == null &&
-                        state.retypedPasswordError == null &&
-                        state.email.isNotEmpty() &&
-                        state.password.isNotEmpty() &&
-                        state.phoneNo.isNotEmpty() &&
-                        state.firstName.isNotEmpty() &&
-                        state.lastName.isNotEmpty() &&
-                        state.retypedPassword == state.password
+                isSignUpEnabled = state.emailError == null && state.passwordError == null && state.phoneNoError == null && state.firstNameError == null && state.lastNameError == null && state.retypedPasswordError == null && state.email.isNotEmpty() && state.password.isNotEmpty() && state.phoneNo.isNotEmpty() && state.firstName.isNotEmpty() && state.lastName.isNotEmpty() && state.retypedPassword == state.password
             )
         }
     }

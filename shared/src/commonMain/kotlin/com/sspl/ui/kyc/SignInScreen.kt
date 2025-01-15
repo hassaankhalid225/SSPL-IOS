@@ -55,6 +55,8 @@ import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.AppTextSmall
 import com.sspl.ui.components.AppTextTitle
 import com.sspl.ui.components.PasswordTextField
+import com.sspl.ui.components.PhoneWithCountrySelector
+import com.sspl.ui.components.countrypicker.Country
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -100,7 +102,7 @@ fun LoginScreen(
             email = uiState.email,
             password = uiState.password,
             phone = uiState.phoneNo,
-//            selectedCountry = uiState.country,
+             selectedCountry = uiState.country,
             isOtpMode = uiState.isOtpMode,
             showPassword = uiState.isPasswordVisible,
             emailErrorMsg = uiState.emailError,
@@ -128,7 +130,7 @@ fun LoginScreenContent(
     isLoginEnabled: Boolean = false,
     phoneErrorMsg: String?,
     isLoading: Boolean = true,
-//    selectedCountry: Country,
+    selectedCountry: Country,
     showCountryChooser: Boolean = false,
     email: String = "",
     phone: String = "",
@@ -172,16 +174,16 @@ fun LoginScreenContent(
                 )
             }
 
-//            AnimatedVisibility(visible = isOtpMode) {
-//                PhoneWithCountrySelector(
-//                    selectedCountry = selectedCountry,
-//                    phone = phone,
-//                    onPhoneNumberChange = { onEvents(LoginScreenUiEvents.OnPhoneNoChange(it)) },
-//                    showCountryChooser = showCountryChooser,
-//                    onCountryChange = { onEvents(LoginScreenUiEvents.OnCountryChange(it)) },
-//                    toggleCountryPicker = { onEvents(LoginScreenUiEvents.ToggleCountryChooser) }
-//                )
-//            }
+             AnimatedVisibility(visible = isOtpMode) {
+                 PhoneWithCountrySelector(
+                     selectedCountry = selectedCountry,
+                     phone = phone,
+                     onPhoneNumberChange = { onEvents(LoginScreenUiEvents.OnPhoneNoChange(it)) },
+                     showCountryChooser = showCountryChooser,
+                     onCountryChange = { onEvents(LoginScreenUiEvents.OnCountryChange(it)) },
+                     toggleCountryPicker = { onEvents(LoginScreenUiEvents.ToggleCountryChooser) }
+                 )
+             }
 
             // Login Button
             Spacer(modifier = Modifier.height(10.dp))
