@@ -38,38 +38,4 @@ fun HeaderSection(
 
 }
 
-// TODO: Move to to common components and rename it 
-@Composable
-fun LoginSignUpButtonWithProgress(
-    onClick: () -> Unit,
-    isEnabled: Boolean,
-    isLoading: Boolean,
-    buttonText: String
-) {
-    AppRoundedCornerButton(
-        onClick = { onClick() },
-        isEnabled = isEnabled
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            AppTextLabel(
-                text = buttonText,
-                color = if (isEnabled) Color.White else Color.DarkGray,
-                modifier = Modifier.padding(vertical = 6.dp)
-            )
 
-            // Use AnimatedVisibility for the CircularProgressIndicator
-            AnimatedVisibility(visible = isLoading) {
-                Row {
-                    Spacer(Modifier.weight(1f)) // Add spacer to push the progress indicator to the right
-                    CircularProgressIndicator(
-                        color = Color.White,
-                        modifier = Modifier.size(15.dp)
-                    )
-                }
-            }
-        }
-    }
-}

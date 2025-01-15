@@ -23,29 +23,24 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.resources.Res
-import com.sspl.resources.already_have_an_account
 import com.sspl.resources.city
 import com.sspl.resources.country
 import com.sspl.resources.designation
-import com.sspl.resources.enter_first_name
 import com.sspl.resources.enter_pmdc_number
 import com.sspl.resources.enter_registration_number
 import com.sspl.resources.fill_out_the_details_below_to_finish_setting_up_your_account
 import com.sspl.resources.institution_name
-import com.sspl.resources.login
 import com.sspl.resources.login_screen_background
 import com.sspl.resources.personal_details
 import com.sspl.resources.save_details
 import com.sspl.resources.skip_for_now
 import com.sspl.ui.components.AppTextField
 import com.sspl.ui.components.AppTextLabel
+import com.sspl.ui.components.ButtonWithProgress
 import com.sspl.ui.kyc.HeaderSection
-import com.sspl.ui.kyc.LoginSignUpButtonWithProgress
-import com.sspl.ui.kyc.UserEvents
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.scope.ScopeID
 
 @Composable
 fun UserDetailsScreen(
@@ -136,7 +131,7 @@ fun UserDetailsScreenContent(
 
             // Save Button
             Spacer(modifier = Modifier.height(10.dp))
-            LoginSignUpButtonWithProgress(
+            ButtonWithProgress(
                 isEnabled = isSaveEnabled,
                 isLoading = isLoading,
                 onClick = { onEvent(UserDetailsUiEvents.OnSave) },

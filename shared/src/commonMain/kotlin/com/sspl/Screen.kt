@@ -9,6 +9,7 @@ import androidx.navigation.NavHostController
 import com.sspl.resources.Res
 import com.sspl.resources.conference
 import com.sspl.resources.conference_detail
+import com.sspl.resources.create_post
 import com.sspl.resources.forum
 import com.sspl.resources.home
 import com.sspl.resources.ic_forum
@@ -24,6 +25,7 @@ import com.sspl.ui.conferencescreen.ConferenceScreen
 import com.sspl.ui.kyc.LoginScreen
 import com.sspl.ui.kyc.SignUpScreen
 import com.sspl.ui.otp.OtpScreen
+import com.sspl.ui.postcreation.CreatePostScreen
 import com.sspl.ui.posts.PostScreen
 import com.sspl.ui.userdetails.UserDetailsScreen
 import com.sspl.utils.IconResource
@@ -91,6 +93,10 @@ sealed class Screen(
         title = Res.string.sign_up,
         route = "SignUpScreen",
     )
+    data object CreatePostScreen : Screen(
+        title = Res.string.create_post,
+        route = "CreatePostScreen",
+    )
 
     data object OtpScreen : Screen(
         title = Res.string.verify_otp,
@@ -103,7 +109,7 @@ fun screenByRoute(route: String?): Screen? =
 
 fun navItems(): List<NavItem> =
     listOf(NavItem(screen = Screen.HomeScreen, component = { HomeScreen(navController = it) }),
-        NavItem(screen = Screen.ForumScreen, component = { PostScreen(/*navController = it*/) }))
+        NavItem(screen = Screen.ForumScreen, component = { PostScreen(navController = it) }))
 
 fun otherScreens(): List<NavItem> = listOf(NavItem(screen = Screen.ProfileScreen,
     component = { ProfileScreen(navController = it) }),
@@ -113,4 +119,6 @@ fun otherScreens(): List<NavItem> = listOf(NavItem(screen = Screen.ProfileScreen
     NavItem(screen = Screen.SignInScreen, component = { LoginScreen(navController = it) }),
     NavItem(screen = Screen.SignUpScreen, component = { SignUpScreen(navController = it) }),
     NavItem(screen = Screen.OtpScreen, component = { OtpScreen(navController = it) }),
-    NavItem(screen = Screen.UserDetailsScreen, component = { UserDetailsScreen(navController = it) }))
+    NavItem(screen = Screen.UserDetailsScreen, component = { UserDetailsScreen(navController = it) }),
+    NavItem(screen = Screen.CreatePostScreen, component = { CreatePostScreen(navController = it) }),
+    )

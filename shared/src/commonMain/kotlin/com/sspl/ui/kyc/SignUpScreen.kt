@@ -33,6 +33,7 @@ import com.sspl.resources.login
 import com.sspl.resources.login_screen_background
 import com.sspl.ui.components.AppTextField
 import com.sspl.ui.components.AppTextLabel
+import com.sspl.ui.components.ButtonWithProgress
 import com.sspl.ui.components.PasswordTextField
 import com.sspl.ui.components.PhoneWithCountrySelector
 import com.sspl.ui.components.countrypicker.Country
@@ -142,7 +143,7 @@ fun SignUpScreenContent(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            LoginSignUpButtonWithProgress(
+            ButtonWithProgress(
                 isEnabled = isSignUpEnabled, isLoading = isLoading, onClick = {
                     onEvent(UserEvents.Submit)
                     onSignUp()

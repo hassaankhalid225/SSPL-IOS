@@ -12,7 +12,7 @@ class PostRepositoryImpl(
 ) : PostsRepository {
     override suspend fun getPosts(): Flow<List<Post>> {
         return flow {
-            delay(1500) // Simulating network delay for demonstration purposes
+            delay(500) // Simulating network delay for demonstration purposes
             emit(dummyPostList)
 //            emit(emptyList())
         }

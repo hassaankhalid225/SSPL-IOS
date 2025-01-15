@@ -1,5 +1,6 @@
 package com.sspl.ui.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -20,8 +21,11 @@ import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.sspl.resources.Res
+import com.sspl.resources.ad_sspl
 import com.sspl.resources.place_holder
+import com.sspl.resources.visibility_icon
 import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
 
 
 @Composable
@@ -45,17 +49,23 @@ fun AppAsyncImage(
 fun RoundedImageView(
     modifier: Modifier = Modifier,
     image: Any,
-    cornerRadius: Int = 25,
+    cornerRadius: Int = 12,
     contentScale: ContentScale = ContentScale.Crop
 ) {
-    AsyncImage(
+    /*AsyncImage(
         model = ImageRequest.Builder(LocalPlatformContext.current).data(image).crossfade(true)
             .crossfade(500).build(),
         contentDescription = null,
         error = rememberAsyncImagePainter(Res.drawable.place_holder),
         contentScale = contentScale,
         modifier = modifier
-            .size(60.dp)
+            .clip(RoundedCornerShape(percent = cornerRadius))
+    )*/Image(
+        painter = painterResource(Res.drawable.ad_sspl)
+            ,
+        contentDescription = null,
+         contentScale = contentScale,
+        modifier = modifier
             .clip(RoundedCornerShape(percent = cornerRadius))
     )
 }
