@@ -9,14 +9,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -29,15 +28,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.resources.Res
+import com.sspl.resources.app_logo
 import com.sspl.resources.create_new_account
 import com.sspl.resources.enter_your_mail
 import com.sspl.resources.enter_your_password
@@ -53,10 +53,11 @@ import com.sspl.ui.components.AppRoundedCornerButton
 import com.sspl.ui.components.AppTextField
 import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.AppTextSmall
-import com.sspl.ui.components.AppTextTitle
+import com.sspl.ui.components.ButtonWithProgress
 import com.sspl.ui.components.PasswordTextField
 import com.sspl.ui.components.PhoneWithCountrySelector
 import com.sspl.ui.components.countrypicker.Country
+import com.sspl.utils.IconResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -82,7 +83,12 @@ fun LoginScreen(
         viewModel.oneTimeEvents.collect { event ->
             when (event) {
                 OneTimeEvents.LoginSuccess -> {
-
+                    navController.navigate(Screen.MainScreen.route) {
+                        popUpTo(Screen.SignInScreen.route) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
                 }
 
                 OneTimeEvents.NavigateToOtpScreen -> {
@@ -102,7 +108,7 @@ fun LoginScreen(
             email = uiState.email,
             password = uiState.password,
             phone = uiState.phoneNo,
-             selectedCountry = uiState.country,
+            selectedCountry = uiState.country,
             isOtpMode = uiState.isOtpMode,
             showPassword = uiState.isPasswordVisible,
             emailErrorMsg = uiState.emailError,
@@ -140,19 +146,39 @@ fun LoginScreenContent(
     onForgotPassword: () -> Unit = {},
     isOtpMode: Boolean = false
 ) {
-    Box(modifier.fillMaxSize()){
-        Image(painter = painterResource(Res.drawable.login_screen_background),contentDescription = null, contentScale = ContentScale.FillBounds)
+    Box(modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(Res.drawable.login_screen_background),
+            contentDescription = null,
+            contentScale = ContentScale.FillBounds
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.15f)
+                .background(
+                    brush = Brush.verticalGradient(
+                        listOf(
+                            MaterialTheme.colorScheme.primary,
+                            MaterialTheme.colorScheme.primary.copy(alpha = .8F),
+                            MaterialTheme.colorScheme.primary.copy(alpha = .5F),
+                            MaterialTheme.colorScheme.primary.copy(alpha = .1F),
+                            Color.Transparent
+                        )
+                    )
+                )
+        )
         Column(
             modifier = modifier
                 .fillMaxSize().verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp)
-            ,
+                .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Title Section
             Spacer(Modifier.weight(0.15f))
             HeaderSection(
+                iconResource = IconResource.fromDrawableResource(drawable = Res.drawable.app_logo),
                 title = stringResource(Res.string.login_here),
                 subTitle = stringResource(Res.string.get_updates)
             )
@@ -161,7 +187,7 @@ fun LoginScreenContent(
             // Form Section (Email/Password or Phone)
             AnimatedVisibility(visible = !isOtpMode) {
                 LoginFields(
-                    modifier= modifier,
+                    modifier = modifier,
                     email = email,
                     emailErrorMsg = emailErrorMsg,
                     password = password,
@@ -174,20 +200,20 @@ fun LoginScreenContent(
                 )
             }
 
-             AnimatedVisibility(visible = isOtpMode) {
-                 PhoneWithCountrySelector(
-                     selectedCountry = selectedCountry,
-                     phone = phone,
-                     onPhoneNumberChange = { onEvents(LoginScreenUiEvents.OnPhoneNoChange(it)) },
-                     showCountryChooser = showCountryChooser,
-                     onCountryChange = { onEvents(LoginScreenUiEvents.OnCountryChange(it)) },
-                     toggleCountryPicker = { onEvents(LoginScreenUiEvents.ToggleCountryChooser) }
-                 )
-             }
+            AnimatedVisibility(visible = isOtpMode) {
+                PhoneWithCountrySelector(
+                    selectedCountry = selectedCountry,
+                    phone = phone,
+                    onPhoneNumberChange = { onEvents(LoginScreenUiEvents.OnPhoneNoChange(it)) },
+                    showCountryChooser = showCountryChooser,
+                    onCountryChange = { onEvents(LoginScreenUiEvents.OnCountryChange(it)) },
+                    toggleCountryPicker = { onEvents(LoginScreenUiEvents.ToggleCountryChooser) }
+                )
+            }
 
             // Login Button
             Spacer(modifier = Modifier.height(10.dp))
-            LoginSignUpButtonWithProgress(
+            ButtonWithProgress(
                 onClick = { onEvents(LoginScreenUiEvents.OnSave) },
                 isEnabled = isLoginEnabled,
                 isLoading = isLoading,
@@ -210,7 +236,9 @@ fun LoginScreenContent(
             Spacer(modifier = Modifier.height(10.dp))
             AppRoundedCornerButton(
                 onClick = { onEvents(LoginScreenUiEvents.ToggleOtpMode) },
-                title = if (isOtpMode) stringResource(Res.string.sign_in_via_email) else stringResource(Res.string.sign_in_via_phone)
+                title = if (isOtpMode) stringResource(Res.string.sign_in_via_email) else stringResource(
+                    Res.string.sign_in_via_phone
+                )
             )
             Spacer(Modifier.weight(0.2f))
         }
@@ -219,7 +247,7 @@ fun LoginScreenContent(
 
 @Composable
 fun LoginFields(
-    modifier: Modifier=Modifier,
+    modifier: Modifier = Modifier,
     email: String,
     emailErrorMsg: String?,
     password: String,

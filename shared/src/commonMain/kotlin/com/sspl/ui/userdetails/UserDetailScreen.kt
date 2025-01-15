@@ -39,13 +39,11 @@ import com.sspl.resources.save_details
 import com.sspl.resources.skip_for_now
 import com.sspl.ui.components.AppTextField
 import com.sspl.ui.components.AppTextLabel
+import com.sspl.ui.components.ButtonWithProgress
 import com.sspl.ui.kyc.HeaderSection
-import com.sspl.ui.kyc.LoginSignUpButtonWithProgress
-import com.sspl.ui.kyc.UserEvents
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.scope.ScopeID
 
 @Composable
 fun UserDetailsScreen(
@@ -69,7 +67,12 @@ fun UserDetailsScreen(
         designation = uiState.designation,
         designationError = uiState.designationError,
         registrationNumber = uiState.registrationNumber,onSkip={
-            navController.navigate(Screen.HomeScreen.route)
+            navController.navigate(Screen.MainScreen.route) {
+                popUpTo(Screen.SignInScreen.route) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
         },
         onEvent = viewModel::onEvent
         )
@@ -136,7 +139,7 @@ fun UserDetailsScreenContent(
 
             // Save Button
             Spacer(modifier = Modifier.height(10.dp))
-            LoginSignUpButtonWithProgress(
+            ButtonWithProgress(
                 isEnabled = isSaveEnabled,
                 isLoading = isLoading,
                 onClick = { onEvent(UserDetailsUiEvents.OnSave) },

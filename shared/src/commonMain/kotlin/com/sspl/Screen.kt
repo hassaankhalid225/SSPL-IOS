@@ -47,6 +47,8 @@ sealed class Screen(
         route = "none",
     )
 
+    data object MainScreen : Screen(route = "MainScreen")
+
     data object HomeScreen : Screen(
         title = Res.string.home,
         route = "HomeScreen",
@@ -110,7 +112,11 @@ fun otherScreens(): List<NavItem> = listOf(NavItem(screen = Screen.ProfileScreen
     NavItem(screen = Screen.ConferenceScreen, component = { ConferenceScreen(navController = it) }),
     NavItem(screen = Screen.ConferenceDetailScreen,
         component = { ConferenceDetailScreen(navController = it) }),
-    NavItem(screen = Screen.SignInScreen, component = { LoginScreen(navController = it) }),
-    NavItem(screen = Screen.SignUpScreen, component = { SignUpScreen(navController = it) }),
-    NavItem(screen = Screen.OtpScreen, component = { OtpScreen(navController = it) }),
     NavItem(screen = Screen.UserDetailsScreen, component = { UserDetailsScreen(navController = it) }))
+
+fun kycScreens(): List<NavItem> = listOf(
+    NavItem(screen = Screen.SignUpScreen, component = { SignUpScreen(navController = it) }),
+    NavItem(screen = Screen.SignInScreen, component = { LoginScreen(navController = it) }),
+    NavItem(screen = Screen.OtpScreen, component = { OtpScreen(navController = it) }),
+    NavItem(screen = Screen.UserDetailsScreen, component = { UserDetailsScreen(navController = it) }),
+)
