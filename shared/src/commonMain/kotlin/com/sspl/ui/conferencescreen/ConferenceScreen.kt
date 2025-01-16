@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.core.models.Conference
@@ -55,7 +56,7 @@ fun ConferenceScreen(
     navController: NavController,
     viewModel: ConferenceViewModel = koinViewModel()
 ) {
-    val conferences by viewModel.conferences.collectAsState()
+    val conferences by viewModel.conferences.collectAsStateWithLifecycle()
     println("conferences: ${conferences.size}")
     LazyColumn(
         modifier = Modifier.fillMaxSize(),

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -34,6 +35,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.resources.Res
@@ -75,7 +77,7 @@ fun LoginScreen(
     modifier: Modifier = Modifier,
     viewModel: SignInViewModel = koinViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scaffoldState = remember { SnackbarHostState() }
 
 
@@ -214,11 +216,13 @@ fun LoginScreenContent(
             // Login Button
             Spacer(modifier = Modifier.height(10.dp))
             ButtonWithProgress(
-                onClick = { onEvents(LoginScreenUiEvents.OnSave) },
                 isEnabled = isLoginEnabled,
                 isLoading = isLoading,
-                buttonText = stringResource(Res.string.login)
-            )
+                buttonText = stringResource(Res.string.login),
+                modifier = Modifier.imePadding()
+            ) {
+                onEvents(LoginScreenUiEvents.OnSave)
+            }
             // Create Account Section
             Spacer(modifier = Modifier.height(10.dp))
             AppTextLabel(

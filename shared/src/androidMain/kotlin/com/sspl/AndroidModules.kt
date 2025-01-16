@@ -1,7 +1,6 @@
 package com.sspl
 
-import com.sspl.core.repositories.PostsRepository
-import com.sspl.storage.Storage
+ import com.sspl.storage.Storage
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -15,4 +14,4 @@ import org.koin.dsl.module
 
 val androidModules = module {
     singleOf(::AndroidStorage).bind<Storage>()
-}
+ }

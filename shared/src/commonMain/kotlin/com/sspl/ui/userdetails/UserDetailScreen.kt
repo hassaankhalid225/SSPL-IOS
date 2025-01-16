@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -20,19 +21,17 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.resources.Res
-import com.sspl.resources.already_have_an_account
 import com.sspl.resources.city
 import com.sspl.resources.country
 import com.sspl.resources.designation
-import com.sspl.resources.enter_first_name
 import com.sspl.resources.enter_pmdc_number
 import com.sspl.resources.enter_registration_number
 import com.sspl.resources.fill_out_the_details_below_to_finish_setting_up_your_account
 import com.sspl.resources.institution_name
-import com.sspl.resources.login
 import com.sspl.resources.login_screen_background
 import com.sspl.resources.personal_details
 import com.sspl.resources.save_details
@@ -51,7 +50,7 @@ fun UserDetailsScreen(
     viewModel: UserDetailViewModel = koinViewModel(),
     modifier: Modifier = Modifier
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     UserDetailsScreenContent(modifier= modifier,
         pmdcNumber = uiState.pmDcNumber,
@@ -140,11 +139,13 @@ fun UserDetailsScreenContent(
             // Save Button
             Spacer(modifier = Modifier.height(10.dp))
             ButtonWithProgress(
+                modifier = Modifier.imePadding(),
                 isEnabled = isSaveEnabled,
                 isLoading = isLoading,
-                onClick = { onEvent(UserDetailsUiEvents.OnSave) },
                 buttonText = stringResource(Res.string.save_details)
-            )
+            ) {
+                onEvent(UserDetailsUiEvents.OnSave)
+            }
             AppTextLabel(text = stringResource(Res.string.skip_for_now),
                 fontSize = 12.sp,
                 textDecoration = TextDecoration.Underline,

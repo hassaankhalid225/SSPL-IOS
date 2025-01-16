@@ -36,6 +36,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sspl.theme.boxColor
@@ -103,7 +104,7 @@ fun PhoneNumberTextField(
         ) {
             Spacer(Modifier.width(5.dp))
             AppTextTitle(
-                text = selectedCountry.flag,
+                text = selectedCountry.flag, textAlign = TextAlign.Center,
                 modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.width(4.dp))

@@ -1,5 +1,6 @@
 package com.sspl.ui.posts
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,6 +21,9 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
+import com.sspl.Screen
 import com.sspl.ui.components.FullScreenProgressIndicator
 import com.sspl.ui.components.LoadMoreLazyColumn
 import com.sspl.ui.components.NoItems
@@ -37,12 +41,12 @@ import org.koin.compose.viewmodel.koinViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostScreen(
-    modifier: Modifier = Modifier, viewModel: PostViewModel = koinViewModel()
+    navController: NavController, modifier: Modifier = Modifier, viewModel: PostViewModel = koinViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val isRefreshing by viewModel.isRefreshing.collectAsState()
-    val isLoadingMore by viewModel.isLoadingMore.collectAsState()
-    val lazyListState = rememberLazyListState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val isLoadingMore by viewModel.isLoadingMore.collectAsStateWithLifecycle()
+
 
     when (uiState) {
         is PostUiState.LoadingPosts -> {
@@ -64,7 +68,9 @@ fun PostScreen(
                     isLoadingMore = isLoadingMore,
                     onLoadMore = { viewModel.onEvent(PostScreenEvents.LoadMorePosts) },
                     itemContent = { post ->
-                        PostItem(post = post,
+                        PostItem(post = post, modifier = Modifier.clickable {
+                            navController.navigate(Screen.CreatePostScreen.route)
+                        },
                             onLikePost = { viewModel.onEvent(PostScreenEvents.LikePost(post.postId)) },
                             onDislikePost = { viewModel.onEvent(PostScreenEvents.DislikePost(post.postId)) },
                             onCommentPost = { viewModel.onEvent(PostScreenEvents.CommentPost(post.postId)) })
@@ -79,8 +85,3 @@ fun PostScreen(
 }
 
 
-@Preview
-@Composable
-fun PostScreenPreview() {
-    PostScreen()
-}

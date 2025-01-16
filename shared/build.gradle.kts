@@ -34,6 +34,8 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
             implementation(libs.androidx.security.crypto)
+            implementation(libs.accompanist.permissions)
+
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
@@ -48,6 +50,11 @@ kotlin {
                 implementation(compose.ui)
                 implementation(compose.components.resources)
                 implementation(compose.components.uiToolingPreview)
+                implementation(libs.lifecycle.runtime.compose)
+                implementation("io.github.onseok:peekaboo-ui:0.5.2")
+
+                // peekaboo-image-picker
+                implementation("io.github.onseok:peekaboo-image-picker:0.5.2")
                 //
 
                 //Navigation
