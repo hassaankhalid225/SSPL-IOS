@@ -53,6 +53,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.resources.Res
 import com.sspl.resources.ad_sspl
@@ -84,7 +85,7 @@ fun CreatePostScreen(
     viewModel: PostCreationViewModel = koinViewModel(),
     modifier: Modifier = Modifier
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     CreatePostContent(
         descriptionText = uiState.description,
         isLoginEnabled = uiState.isUploadEnabled,

@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.resources.Res
@@ -58,7 +59,7 @@ fun OtpScreen(
     modifier: Modifier = Modifier,
     viewModel: OtpViewModel = koinViewModel()
 ) {
-    val uiState by viewModel.state.collectAsState()
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
     val scaffoldState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
