@@ -72,7 +72,12 @@ fun OtpScreen(
                     }
                 }
                 OtpOneTimeEvents.Success -> {
-                    navController.navigate(Screen.HomeScreen.route)
+                    navController.navigate(Screen.MainScreen.route) {
+                        popUpTo(Screen.SignInScreen.route) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
                 }
             }
         }
@@ -220,7 +225,7 @@ fun OtpView(
                 if (newValue.length <= otpLength) {
                     onOtpChange(newValue.filter { it.isDigit() })
                     if (newValue.length == otpLength) {
-                        onOtpEntered(otpValue)
+                        onOtpEntered(newValue)
                         focusManager.clearFocus() // Dismiss keyboard when all digits are entered
                     }
                 }

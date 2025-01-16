@@ -2,21 +2,27 @@ package com.sspl.ui.kyc
 
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -26,6 +32,7 @@ import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.resources.Res
 import com.sspl.resources.already_have_an_account
+import com.sspl.resources.app_logo
 import com.sspl.resources.enter_first_name
 import com.sspl.resources.enter_last_name
 import com.sspl.resources.enter_your_mail
@@ -38,6 +45,7 @@ import com.sspl.ui.components.ButtonWithProgress
 import com.sspl.ui.components.PasswordTextField
 import com.sspl.ui.components.PhoneWithCountrySelector
 import com.sspl.ui.components.countrypicker.Country
+import com.sspl.utils.IconResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -113,6 +121,23 @@ fun SignUpScreenContent(
             contentScale = ContentScale.FillBounds
         )
 
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.15f)
+                .background(
+                    brush = Brush.verticalGradient(
+                        listOf(
+                            MaterialTheme.colorScheme.primary,
+                            MaterialTheme.colorScheme.primary.copy(alpha = .8F),
+                            MaterialTheme.colorScheme.primary.copy(alpha = .5F),
+                            MaterialTheme.colorScheme.primary.copy(alpha = .1F),
+                            Color.Transparent
+                        )
+                    )
+                )
+        )
+
         Column(
             modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp),
@@ -120,7 +145,9 @@ fun SignUpScreenContent(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(Modifier.weight(0.15f))
-            HeaderSection()
+            HeaderSection(
+                iconResource = IconResource.fromDrawableResource(drawable = Res.drawable.app_logo)
+            )
             Spacer(Modifier.weight(0.15f))
             // Input Fields Section
             InputFieldsSection(

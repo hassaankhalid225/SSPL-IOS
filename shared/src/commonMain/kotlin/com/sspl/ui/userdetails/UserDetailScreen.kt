@@ -65,7 +65,12 @@ fun UserDetailsScreen(
         designation = uiState.designation,
         designationError = uiState.designationError,
         registrationNumber = uiState.registrationNumber,onSkip={
-            navController.navigate(Screen.HomeScreen.route)
+            navController.navigate(Screen.MainScreen.route) {
+                popUpTo(Screen.SignInScreen.route) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
         },
         onEvent = viewModel::onEvent
         )

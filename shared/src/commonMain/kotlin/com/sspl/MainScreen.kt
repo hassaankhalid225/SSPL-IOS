@@ -41,7 +41,7 @@ fun MainScreen(paddingValues: PaddingValues) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
 
     Scaffold(
-        modifier = Modifier.fillMaxSize().padding(paddingValues),
+        modifier = Modifier.fillMaxSize(),
         containerColor = windowBackGround,
         topBar = {
             MyTopAppBar(
