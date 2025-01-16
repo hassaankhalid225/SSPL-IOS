@@ -61,6 +61,7 @@ import com.sspl.resources.gallery_ic
 import com.sspl.resources.post
 import com.sspl.resources.whats_on_your_mind
 import com.sspl.theme.primary
+import com.sspl.ui.components.AppCameraView
 import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.AppTextSubTitle
 import com.sspl.ui.components.BetterModalBottomSheet
@@ -82,13 +83,11 @@ fun CreatePostScreen(
     val imagePicker =
         rememberImagePickerLauncher(selectionMode = if (uiState.images.isEmpty()) SelectionMode.Multiple(
             maxSelection = 2
-        ) else SelectionMode.Single,
-            scope = scope,
-            onResult = { byteArrays ->
-                byteArrays.forEach { image ->
-                    viewModel.onEvent(CreatePostUIEvents.OnImageAdd(listOf(image)))
-                }
-            })
+        ) else SelectionMode.Single, scope = scope, onResult = { byteArrays ->
+            byteArrays.forEach { image ->
+                viewModel.onEvent(CreatePostUIEvents.OnImageAdd(listOf(image)))
+            }
+        })
 
     CreatePostContent(
         uiState = uiState, onEvent = viewModel::onEvent, onAddImage = {
@@ -99,12 +98,20 @@ fun CreatePostScreen(
     AnimatedVisibility(uiState.showChooserBottomSheet) {
         ChooserBottomSheet(onCameraSelected = {
             viewModel.onEvent(CreatePostUIEvents.ToggleBottomSheet(false))
-            // Handle camera selection
+            viewModel.onEvent(CreatePostUIEvents.ToggleCameraView)
         }, onGallerySelected = {
             viewModel.onEvent(CreatePostUIEvents.ToggleBottomSheet(false))
             imagePicker.launch()
         }, onDismiss = {
             viewModel.onEvent(CreatePostUIEvents.ToggleBottomSheet(false))
+        })
+    }
+    AnimatedVisibility(uiState.isCameraOpen) {
+        AppCameraView(onImageCaptured = { byteArray ->
+            byteArray?.let {
+                viewModel.onEvent(CreatePostUIEvents.OnImageAdd(listOf(it)))
+            }
+            viewModel.onEvent(CreatePostUIEvents.ToggleCameraView)
         })
     }
 }
@@ -292,7 +299,8 @@ fun ChooserBottomSheet(
     onGallerySelected: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true,
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
         confirmValueChange = { it != SheetValue.Hidden })
     val scope = rememberCoroutineScope()
 

@@ -25,6 +25,9 @@ class PostCreationViewModel : ViewModel() {
             is CreatePostUIEvents.ToggleBottomSheet -> {
                 _uiState.update { it.copy(showChooserBottomSheet = event.showChooserBottomSheet) }
             }
+            is CreatePostUIEvents.ToggleCameraView -> {
+                _uiState.update { it.copy(isCameraOpen = !it.isCameraOpen) }
+            }
 
             is CreatePostUIEvents.OnImageAdd -> {
                 _uiState.update { currentState ->
@@ -70,6 +73,7 @@ class PostCreationViewModel : ViewModel() {
 
 data class PostCreationUiState(
     val description: String = "",
+    val isCameraOpen:Boolean=false,
     val isLoading: Boolean = false,
     val isUploadEnabled: Boolean = false,val showChooserBottomSheet: Boolean = false,
     val images: List<ByteArray> = emptyList(),
@@ -81,4 +85,5 @@ sealed interface CreatePostUIEvents {
     data class OnImageDelete(val index: Int) : CreatePostUIEvents
     data class ToggleBottomSheet(val showChooserBottomSheet: Boolean) : CreatePostUIEvents
     data object UploadPost : CreatePostUIEvents
+    data object  ToggleCameraView : CreatePostUIEvents
 }
