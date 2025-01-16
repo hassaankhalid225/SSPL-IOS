@@ -22,6 +22,9 @@ class PostCreationViewModel : ViewModel() {
                 _uiState.update { it.copy(description = event.message) }
                 checkUploadEnabled()
             }
+            is CreatePostUIEvents.ToggleBottomSheet -> {
+                _uiState.update { it.copy(showChooserBottomSheet = event.showChooserBottomSheet) }
+            }
 
             is CreatePostUIEvents.OnImageAdd -> {
                 _uiState.update { currentState ->
@@ -68,7 +71,7 @@ class PostCreationViewModel : ViewModel() {
 data class PostCreationUiState(
     val description: String = "",
     val isLoading: Boolean = false,
-    val isUploadEnabled: Boolean = false,
+    val isUploadEnabled: Boolean = false,val showChooserBottomSheet: Boolean = false,
     val images: List<String> = emptyList(),
 )
 
@@ -76,5 +79,6 @@ sealed interface CreatePostUIEvents {
     data class OnDescriptionChange(val message: String) : CreatePostUIEvents
     data class OnImageAdd(val image: List<String>) : CreatePostUIEvents
     data class OnImageDelete(val index: Int) : CreatePostUIEvents
-    object UploadPost : CreatePostUIEvents
+    data class ToggleBottomSheet(val showChooserBottomSheet: Boolean) : CreatePostUIEvents
+    data object UploadPost : CreatePostUIEvents
 }

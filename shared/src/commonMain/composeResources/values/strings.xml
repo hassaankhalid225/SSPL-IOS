@@ -13,6 +13,8 @@
     <string name="log_in">Log In</string>
     <string name="login">Login</string>
     <string name="post">Post</string>
+    <string name="gallery">Gallery</string>
+    <string name="camera">Camera</string>
     <string name="add_images_up_to_two">Add images (Max 2) - Upload from Gallery or take with Camera</string>
     <string name="whats_on_your_mind">What's on your mind?</string>
     <string name="create_post">Create Post</string>
