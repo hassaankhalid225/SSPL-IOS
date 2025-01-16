@@ -25,8 +25,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SheetValue
@@ -36,9 +39,13 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -66,10 +73,19 @@ import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.AppTextSubTitle
 import com.sspl.ui.components.BetterModalBottomSheet
 import com.sspl.ui.components.ButtonWithProgress
+import com.sspl.ui.components.CameraPermissionDeniedDialog
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import shared.PermissionCallback
+import shared.PermissionStatus
+import shared.PermissionType
+import shared.createPermissionsManager
+import shared.rememberCameraManager
+import shared.rememberGalleryManager
 
 @Composable
 fun CreatePostScreen(
@@ -78,7 +94,67 @@ fun CreatePostScreen(
     modifier: Modifier = Modifier
 ) {
     val scope = rememberCoroutineScope()
+
+    var launchCamera by remember { mutableStateOf(value = false) }
+    var launchSetting by remember { mutableStateOf(value = false) }
+    var permissionRationalDialog by remember { mutableStateOf(value = false) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val permissionsManager = createPermissionsManager(object : PermissionCallback {
+        override fun onPermissionStatus(
+            permissionType: PermissionType,
+            status: PermissionStatus
+        ) {
+            when (status) {
+                PermissionStatus.GRANTED -> {
+                    when (permissionType) {
+                        PermissionType.CAMERA -> launchCamera = true
+                       else ->Unit
+                    }
+                }
+
+                else -> {
+                    permissionRationalDialog = true
+                }
+            }
+        }
+    })
+    val cameraManager = rememberCameraManager {
+        scope.launch {
+            withContext(Dispatchers.Default) {
+                it?.let { img->
+                    viewModel.onEvent(CreatePostUIEvents.OnImageLoading(true))
+                img.toByteArray()?.let { asByteArray->
+                    viewModel.onEvent(CreatePostUIEvents.OnImageAdd(listOf(asByteArray)))
+                }
+                }
+            }
+        }
+    }
+
+    if (launchCamera) {
+        if (permissionsManager.isPermissionGranted(PermissionType.CAMERA)) {
+            cameraManager.launch()
+        } else {
+            permissionsManager.askPermission(PermissionType.CAMERA)
+        }
+        launchCamera = false
+    }
+    if (launchSetting) {
+        permissionsManager.launchSettings()
+        launchSetting = false
+    }
+    if (permissionRationalDialog) {
+        CameraPermissionDeniedDialog(
+            onDismiss = { permissionRationalDialog = false },
+            onOpenSettings = {
+                permissionRationalDialog = false
+                launchSetting=true
+            }
+        )
+
+
+    }
+
 
     val imagePicker =
         rememberImagePickerLauncher(selectionMode = if (uiState.images.isEmpty()) SelectionMode.Multiple(
@@ -88,17 +164,23 @@ fun CreatePostScreen(
                 viewModel.onEvent(CreatePostUIEvents.OnImageAdd(listOf(image)))
             }
         })
-
+Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center){
     CreatePostContent(
         uiState = uiState, onEvent = viewModel::onEvent, onAddImage = {
             viewModel.onEvent(CreatePostUIEvents.ToggleBottomSheet(true))
-        }, modifier = modifier
+        }, modifier = modifier.alpha(
+            if (uiState.isLoadingImage) 0.5f else 1f
+        )
     )
+    if (uiState.isLoadingImage){
+        CircularProgressIndicator()
+    }
+}
 
     AnimatedVisibility(uiState.showChooserBottomSheet) {
         ChooserBottomSheet(onCameraSelected = {
             viewModel.onEvent(CreatePostUIEvents.ToggleBottomSheet(false))
-            viewModel.onEvent(CreatePostUIEvents.ToggleCameraView)
+            launchCamera=true
         }, onGallerySelected = {
             viewModel.onEvent(CreatePostUIEvents.ToggleBottomSheet(false))
             imagePicker.launch()
@@ -106,14 +188,14 @@ fun CreatePostScreen(
             viewModel.onEvent(CreatePostUIEvents.ToggleBottomSheet(false))
         })
     }
-    AnimatedVisibility(uiState.isCameraOpen) {
-        AppCameraView(onImageCaptured = { byteArray ->
-            byteArray?.let {
-                viewModel.onEvent(CreatePostUIEvents.OnImageAdd(listOf(it)))
-            }
-            viewModel.onEvent(CreatePostUIEvents.ToggleCameraView)
-        })
-    }
+//    AnimatedVisibility(uiState.isCameraOpen) {
+//        AppCameraView(onImageCaptured = { byteArray ->
+//            byteArray?.let {
+//                viewModel.onEvent(CreatePostUIEvents.OnImageAdd(listOf(it)))
+//            }
+//            viewModel.onEvent(CreatePostUIEvents.ToggleCameraView)
+//        })
+//    }
 }
 
 @Composable

@@ -32,9 +32,9 @@ class PostCreationViewModel : ViewModel() {
             is CreatePostUIEvents.OnImageAdd -> {
                 _uiState.update { currentState ->
                     if (currentState.images.size < 2) {
-                        currentState.copy(images = currentState.images + event.image)
+                        currentState.copy(images = currentState.images + event.image, isLoadingImage = false)
                     } else {
-                        currentState
+                        currentState.copy(isLoadingImage = false)
                     }
                 }
                 checkUploadEnabled()
@@ -45,6 +45,9 @@ class PostCreationViewModel : ViewModel() {
                     currentState.copy(images = currentState.images.filterIndexed { i, _ -> i != event.index })
                 }
                 checkUploadEnabled()
+            }
+            is CreatePostUIEvents.OnImageLoading -> {
+                _uiState.update { it.copy(isLoadingImage = event.isLoading) }
             }
 
             is CreatePostUIEvents.UploadPost -> {
@@ -74,6 +77,7 @@ class PostCreationViewModel : ViewModel() {
 data class PostCreationUiState(
     val description: String = "",
     val isCameraOpen:Boolean=false,
+    val isLoadingImage: Boolean = false,
     val isLoading: Boolean = false,
     val isUploadEnabled: Boolean = false,val showChooserBottomSheet: Boolean = false,
     val images: List<ByteArray> = emptyList(),
@@ -81,6 +85,7 @@ data class PostCreationUiState(
 
 sealed interface CreatePostUIEvents {
     data class OnDescriptionChange(val message: String) : CreatePostUIEvents
+    data class OnImageLoading(val isLoading: Boolean) : CreatePostUIEvents
     data class OnImageAdd(val image: List<ByteArray>) : CreatePostUIEvents
     data class OnImageDelete(val index: Int) : CreatePostUIEvents
     data class ToggleBottomSheet(val showChooserBottomSheet: Boolean) : CreatePostUIEvents
