@@ -52,19 +52,12 @@ fun RoundedImageView(
     cornerRadius: Int = 12,
     contentScale: ContentScale = ContentScale.Crop
 ) {
-    /*AsyncImage(
+    AsyncImage(
         model = ImageRequest.Builder(LocalPlatformContext.current).data(image).crossfade(true)
             .crossfade(500).build(),
         contentDescription = null,
         error = rememberAsyncImagePainter(Res.drawable.place_holder),
         contentScale = contentScale,
-        modifier = modifier
-            .clip(RoundedCornerShape(percent = cornerRadius))
-    )*/Image(
-        painter = painterResource(Res.drawable.ad_sspl)
-            ,
-        contentDescription = null,
-         contentScale = contentScale,
         modifier = modifier
             .clip(RoundedCornerShape(percent = cornerRadius))
     )

@@ -48,7 +48,11 @@ kotlin {
                 implementation(compose.ui)
                 implementation(compose.components.resources)
                 implementation(compose.components.uiToolingPreview)
-                implementation("org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
+                implementation(libs.lifecycle.runtime.compose)
+                implementation("io.github.onseok:peekaboo-ui:0.5.2")
+
+                // peekaboo-image-picker
+                implementation("io.github.onseok:peekaboo-image-picker:0.5.2")
                 //
 
                 //Navigation

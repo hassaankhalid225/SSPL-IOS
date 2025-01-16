@@ -72,12 +72,12 @@ data class PostCreationUiState(
     val description: String = "",
     val isLoading: Boolean = false,
     val isUploadEnabled: Boolean = false,val showChooserBottomSheet: Boolean = false,
-    val images: List<String> = emptyList(),
+    val images: List<ByteArray> = emptyList(),
 )
 
 sealed interface CreatePostUIEvents {
     data class OnDescriptionChange(val message: String) : CreatePostUIEvents
-    data class OnImageAdd(val image: List<String>) : CreatePostUIEvents
+    data class OnImageAdd(val image: List<ByteArray>) : CreatePostUIEvents
     data class OnImageDelete(val index: Int) : CreatePostUIEvents
     data class ToggleBottomSheet(val showChooserBottomSheet: Boolean) : CreatePostUIEvents
     data object UploadPost : CreatePostUIEvents

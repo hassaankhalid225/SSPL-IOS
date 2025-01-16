@@ -29,25 +29,20 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -55,8 +50,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.preat.peekaboo.image.picker.SelectionMode
+import com.preat.peekaboo.image.picker.rememberImagePickerLauncher
+import com.sspl.platform.toBitmap
 import com.sspl.resources.Res
-import com.sspl.resources.ad_sspl
 import com.sspl.resources.camera
 import com.sspl.resources.camera_ic
 import com.sspl.resources.gallery
@@ -66,14 +63,8 @@ import com.sspl.resources.whats_on_your_mind
 import com.sspl.theme.primary
 import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.AppTextSubTitle
-import com.sspl.ui.components.AppTextTitle
 import com.sspl.ui.components.BetterModalBottomSheet
 import com.sspl.ui.components.ButtonWithProgress
-import com.sspl.ui.components.RoundedImageView
-import com.sspl.ui.components.countrypicker.Country
-import com.sspl.ui.components.countrypicker.CountryList
-import com.sspl.ui.components.countrypicker.SearchBar
-import com.sspl.ui.components.countrypicker.allCountries
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -85,27 +76,33 @@ fun CreatePostScreen(
     viewModel: PostCreationViewModel = koinViewModel(),
     modifier: Modifier = Modifier
 ) {
+    val scope = rememberCoroutineScope()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    val imagePicker =
+        rememberImagePickerLauncher(selectionMode = if (uiState.images.isEmpty()) SelectionMode.Multiple(
+            maxSelection = 2
+        ) else SelectionMode.Single,
+            scope = scope,
+            onResult = { byteArrays ->
+                byteArrays.forEach { image ->
+                    viewModel.onEvent(CreatePostUIEvents.OnImageAdd(listOf(image)))
+                }
+            })
+
     CreatePostContent(
-        descriptionText = uiState.description,
-        isLoginEnabled = uiState.isUploadEnabled,
-        addImage = {
+        uiState = uiState, onEvent = viewModel::onEvent, onAddImage = {
             viewModel.onEvent(CreatePostUIEvents.ToggleBottomSheet(true))
-        },
-        isLoading = uiState.isLoading,
-        images = uiState.images,
-        onEvent = viewModel::onEvent,
-        modifier = modifier
+        }, modifier = modifier
     )
-    AnimatedVisibility (uiState.showChooserBottomSheet) {
+
+    AnimatedVisibility(uiState.showChooserBottomSheet) {
         ChooserBottomSheet(onCameraSelected = {
             viewModel.onEvent(CreatePostUIEvents.ToggleBottomSheet(false))
-
-//
+            // Handle camera selection
         }, onGallerySelected = {
             viewModel.onEvent(CreatePostUIEvents.ToggleBottomSheet(false))
-
-//
+            imagePicker.launch()
         }, onDismiss = {
             viewModel.onEvent(CreatePostUIEvents.ToggleBottomSheet(false))
         })
@@ -114,40 +111,29 @@ fun CreatePostScreen(
 
 @Composable
 fun CreatePostContent(
-    modifier: Modifier = Modifier,
-    isLoginEnabled: Boolean,
-    images: List<String>,
-    isLoading: Boolean,
-    addImage: (Int) -> Unit,
-    descriptionText: String,
-    onEvent: (CreatePostUIEvents) -> Unit
+    uiState: PostCreationUiState,
+    onEvent: (CreatePostUIEvents) -> Unit,
+    onAddImage: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     Column(
         modifier = modifier.fillMaxSize().background(Color.White).padding(16.dp)
             .pointerInput(Unit) {
-                detectTapGestures {
-                    keyboardController?.hide()
-                }
+                detectTapGestures { keyboardController?.hide() }
             }, horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-        DescriptionTextEditor(text = descriptionText,
-            onTextChanged = { onEvent(CreatePostUIEvents.OnDescriptionChange(it)) }
-
-        )
+        DescriptionTextEditor(text = uiState.description,
+            onTextChanged = { onEvent(CreatePostUIEvents.OnDescriptionChange(it)) })
         Spacer(Modifier.height(20.dp))
-        AddImages(images = images, onAddImageClick = addImage, onDeleteImageClick = {
-            onEvent.invoke(CreatePostUIEvents.OnImageDelete(it))
-        })
-
+        AddImages(images = uiState.images,
+            onAddImageClick = onAddImage,
+            onDeleteImageClick = { onEvent(CreatePostUIEvents.OnImageDelete(it)) })
         Spacer(Modifier.weight(0.15f))
         ButtonWithProgress(
-            onClick = {
-                onEvent(CreatePostUIEvents.UploadPost)
-            },
-            isEnabled = isLoginEnabled,
-            isLoading = isLoading,
+            onClick = { onEvent(CreatePostUIEvents.UploadPost) },
+            isEnabled = uiState.isUploadEnabled,
+            isLoading = uiState.isLoading,
             buttonText = stringResource(Res.string.post),
             modifier = Modifier.imePadding()
         )
@@ -192,7 +178,7 @@ fun DescriptionTextEditor(
 
 @Composable
 fun AddImages(
-    images: List<String>, onAddImageClick: (Int) -> Unit, onDeleteImageClick: (Int) -> Unit
+    images: List<ByteArray>, onAddImageClick: () -> Unit, onDeleteImageClick: (Int) -> Unit
 ) {
     val imageCount = images.size
     Card(
@@ -215,9 +201,9 @@ fun AddImages(
 }
 
 @Composable
-fun ImageAddState(onAddImageClick: (Int) -> Unit, imageCount: Int) {
+fun ImageAddState(onAddImageClick: () -> Unit, imageCount: Int) {
     Column(
-        modifier = Modifier.fillMaxSize().clickable { onAddImageClick(imageCount) },
+        modifier = Modifier.fillMaxSize().clickable { onAddImageClick() },
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -245,7 +231,7 @@ fun ImageAddState(onAddImageClick: (Int) -> Unit, imageCount: Int) {
 
 @Composable
 fun OneImageWithAddState(
-    image: String, onAddImageClick: (Int) -> Unit, onDeleteImageClick: (Int) -> Unit
+    image: ByteArray, onAddImageClick: () -> Unit, onDeleteImageClick: (Int) -> Unit
 ) {
     Row(Modifier.fillMaxSize()) {
         // Display the first image with delete option
@@ -262,7 +248,7 @@ fun OneImageWithAddState(
 
         // Show the "Add second image" option
         Box(
-            modifier = Modifier.weight(1f).fillMaxHeight().clickable { onAddImageClick(2) },
+            modifier = Modifier.weight(1f).fillMaxHeight().clickable { onAddImageClick() },
             contentAlignment = Alignment.Center
         ) {
             ImageAddState(onAddImageClick, imageCount = 1)
@@ -271,7 +257,7 @@ fun OneImageWithAddState(
 }
 
 @Composable
-fun TwoImagesState(images: List<String>, onDeleteImageClick: (Int) -> Unit) {
+fun TwoImagesState(images: List<ByteArray>, onDeleteImageClick: (Int) -> Unit) {
     Row(Modifier.fillMaxSize()) {
         images.take(2).forEachIndexed { index, image ->
             Box(
@@ -295,9 +281,7 @@ fun DeleteImageButton(modifier: Modifier = Modifier, onDeleteImageClick: () -> U
             .clickable { onDeleteImageClick() } // Make the Icon clickable
             .background(Color.White.copy(alpha = 0.7f), shape = CircleShape)
             .padding(5.dp) // Optional background for better visibility
-
     )
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -308,10 +292,8 @@ fun ChooserBottomSheet(
     onGallerySelected: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-        confirmValueChange = { it != SheetValue.Hidden }
-    )
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true,
+        confirmValueChange = { it != SheetValue.Hidden })
     val scope = rememberCoroutineScope()
 
     BetterModalBottomSheet(
@@ -324,12 +306,10 @@ fun ChooserBottomSheet(
         Row(modifier.padding(16.dp)) {
             // Gallery Column
             Column(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .clickable {
-                        scope.launch { sheetState.hide() }
-                        onGallerySelected()
-                    }, verticalArrangement = Arrangement.spacedBy(6.dp)
+                modifier = Modifier.padding(16.dp).clickable {
+                    scope.launch { sheetState.hide() }
+                    onGallerySelected()
+                }, verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Image(
                     painter = painterResource(Res.drawable.gallery_ic),
@@ -343,13 +323,11 @@ fun ChooserBottomSheet(
 
             // Camera Column
             Column(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .clickable {
-                        scope.launch { sheetState.hide() }
-                        onCameraSelected()
+                modifier = Modifier.padding(16.dp).clickable {
+                    scope.launch { sheetState.hide() }
+                    onCameraSelected()
 
-        }, verticalArrangement = Arrangement.spacedBy(6.dp)
+                }, verticalArrangement = Arrangement.spacedBy(6.dp)
 
             ) {
                 Image(
@@ -362,6 +340,23 @@ fun ChooserBottomSheet(
         }
     }
 }
+
+
+@Composable
+fun RoundedImageView(
+    modifier: Modifier = Modifier,
+    image: ByteArray,
+    cornerRadius: Int = 12,
+    contentScale: ContentScale = ContentScale.Crop
+) {
+    Image(
+        bitmap = image.toBitmap(),
+        contentDescription = null,
+        contentScale = contentScale,
+        modifier = modifier.clip(RoundedCornerShape(percent = cornerRadius))
+    )
+}
+
 
 
 

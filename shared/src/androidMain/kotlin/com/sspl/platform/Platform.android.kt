@@ -1,5 +1,7 @@
 package com.sspl.platform
 
+import android.graphics.BitmapFactory
+import androidx.compose.ui.graphics.asImageBitmap
 import com.sspl.core.getBaseClient
 import com.sspl.storage.Storage
 import io.ktor.client.HttpClient
@@ -41,3 +43,5 @@ actual fun formatDateTime(dateTime: String, inFormat: String, outFormat: String)
 actual fun getStorage(): Storage {
     TODO("Not yet implemented")
 }
+
+actual fun ByteArray.toBitmap() = BitmapFactory.decodeByteArray(this, 0, size).asImageBitmap()
