@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -33,6 +34,10 @@ actual class PermissionsManager actual constructor(private val callback: Permiss
                 val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
                 LaunchedEffect(cameraPermissionState) {
                     val permissionResult = cameraPermissionState.status
+                    Log.d("Mtauts", "askPermission: ")
+                    print(permissionResult
+                        .toString()+"Permissions")
+                    println(permissionResult.toString()+"MMPerismison")
                     if (!permissionResult.isGranted) {
                         if (permissionResult.shouldShowRationale) {
                             callback.onPermissionStatus(

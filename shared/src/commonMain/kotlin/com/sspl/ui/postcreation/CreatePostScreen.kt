@@ -101,14 +101,13 @@ fun CreatePostScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val permissionsManager = createPermissionsManager(object : PermissionCallback {
         override fun onPermissionStatus(
-            permissionType: PermissionType,
-            status: PermissionStatus
+            permissionType: PermissionType, status: PermissionStatus
         ) {
             when (status) {
                 PermissionStatus.GRANTED -> {
                     when (permissionType) {
                         PermissionType.CAMERA -> launchCamera = true
-                       else ->Unit
+                        else -> Unit
                     }
                 }
 
@@ -121,11 +120,11 @@ fun CreatePostScreen(
     val cameraManager = rememberCameraManager {
         scope.launch {
             withContext(Dispatchers.Default) {
-                it?.let { img->
+                it?.let { img ->
                     viewModel.onEvent(CreatePostUIEvents.OnImageLoading(true))
-                img.toByteArray()?.let { asByteArray->
-                    viewModel.onEvent(CreatePostUIEvents.OnImageAdd(listOf(asByteArray)))
-                }
+                    img.toByteArray()?.let { asByteArray ->
+                        viewModel.onEvent(CreatePostUIEvents.OnImageAdd(listOf(asByteArray)))
+                    }
                 }
             }
         }
@@ -144,13 +143,11 @@ fun CreatePostScreen(
         launchSetting = false
     }
     if (permissionRationalDialog) {
-        CameraPermissionDeniedDialog(
-            onDismiss = { permissionRationalDialog = false },
+        CameraPermissionDeniedDialog(onDismiss = { permissionRationalDialog = false },
             onOpenSettings = {
                 permissionRationalDialog = false
-                launchSetting=true
-            }
-        )
+                launchSetting = true
+            })
 
 
     }
@@ -164,23 +161,23 @@ fun CreatePostScreen(
                 viewModel.onEvent(CreatePostUIEvents.OnImageAdd(listOf(image)))
             }
         })
-Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center){
-    CreatePostContent(
-        uiState = uiState, onEvent = viewModel::onEvent, onAddImage = {
-            viewModel.onEvent(CreatePostUIEvents.ToggleBottomSheet(true))
-        }, modifier = modifier.alpha(
-            if (uiState.isLoadingImage) 0.5f else 1f
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        CreatePostContent(
+            uiState = uiState, onEvent = viewModel::onEvent, onAddImage = {
+                viewModel.onEvent(CreatePostUIEvents.ToggleBottomSheet(true))
+            }, modifier = modifier.alpha(
+                if (uiState.isLoadingImage) 0.5f else 1f
+            )
         )
-    )
-    if (uiState.isLoadingImage){
-        CircularProgressIndicator()
+        if (uiState.isLoadingImage) {
+            CircularProgressIndicator()
+        }
     }
-}
 
     AnimatedVisibility(uiState.showChooserBottomSheet) {
         ChooserBottomSheet(onCameraSelected = {
             viewModel.onEvent(CreatePostUIEvents.ToggleBottomSheet(false))
-            launchCamera=true
+            launchCamera = true
         }, onGallerySelected = {
             viewModel.onEvent(CreatePostUIEvents.ToggleBottomSheet(false))
             imagePicker.launch()
@@ -381,8 +378,7 @@ fun ChooserBottomSheet(
     onGallerySelected: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true,
         confirmValueChange = { it != SheetValue.Hidden })
     val scope = rememberCoroutineScope()
 
