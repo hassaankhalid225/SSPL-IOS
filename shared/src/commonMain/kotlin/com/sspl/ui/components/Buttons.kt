@@ -50,14 +50,16 @@ fun AppRoundedCornerButton(modifier: Modifier = Modifier,onClick:()->Unit,isEnab
 
 @Composable
 fun ButtonWithProgress(
-    onClick: () -> Unit,
     isEnabled: Boolean,
     isLoading: Boolean,
-    buttonText: String
+    buttonText: String,
+    modifier: Modifier,
+    onClick: () -> Unit
 ) {
     AppRoundedCornerButton(
         onClick = { onClick() },
-        isEnabled = isEnabled
+        isEnabled = isEnabled,
+        modifier = modifier
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -138,11 +139,13 @@ fun UserDetailsScreenContent(
             // Save Button
             Spacer(modifier = Modifier.height(10.dp))
             ButtonWithProgress(
+                modifier = Modifier.imePadding(),
                 isEnabled = isSaveEnabled,
                 isLoading = isLoading,
-                onClick = { onEvent(UserDetailsUiEvents.OnSave) },
                 buttonText = stringResource(Res.string.save_details)
-            )
+            ) {
+                onEvent(UserDetailsUiEvents.OnSave)
+            }
             AppTextLabel(text = stringResource(Res.string.skip_for_now),
                 fontSize = 12.sp,
                 textDecoration = TextDecoration.Underline,

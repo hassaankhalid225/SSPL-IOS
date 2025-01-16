@@ -2,6 +2,7 @@ package com.sspl.ui.kyc
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -214,11 +216,13 @@ fun LoginScreenContent(
             // Login Button
             Spacer(modifier = Modifier.height(10.dp))
             ButtonWithProgress(
-                onClick = { onEvents(LoginScreenUiEvents.OnSave) },
                 isEnabled = isLoginEnabled,
                 isLoading = isLoading,
-                buttonText = stringResource(Res.string.login)
-            )
+                buttonText = stringResource(Res.string.login),
+                modifier = Modifier.imePadding()
+            ) {
+                onEvents(LoginScreenUiEvents.OnSave)
+            }
             // Create Account Section
             Spacer(modifier = Modifier.height(10.dp))
             AppTextLabel(

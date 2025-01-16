@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -172,11 +173,14 @@ fun SignUpScreenContent(
             Spacer(modifier = Modifier.height(10.dp))
 
             ButtonWithProgress(
-                isEnabled = isSignUpEnabled, isLoading = isLoading, onClick = {
-                    onEvent(UserEvents.Submit)
-                    onSignUp()
-                }, buttonText = stringResource(Res.string.login)
-            )
+                isEnabled = isSignUpEnabled,
+                isLoading = isLoading,
+                buttonText = stringResource(Res.string.login),
+                modifier = Modifier.imePadding()
+            ) {
+                onEvent(UserEvents.Submit)
+                onSignUp()
+            }
 
             AlreadyHaveAccountSection(loginScreen)
 

@@ -113,12 +113,17 @@ fun navItems(): List<NavItem> =
     listOf(NavItem(screen = Screen.HomeScreen, component = { HomeScreen(navController = it) }),
         NavItem(screen = Screen.ForumScreen, component = { PostScreen(navController = it) }))
 
-fun otherScreens(): List<NavItem> = listOf(NavItem(screen = Screen.ProfileScreen,
-    component = { ProfileScreen(navController = it) }),
+fun otherScreens(): List<NavItem> = listOf(
+    NavItem(screen = Screen.ProfileScreen,
+        component = { ProfileScreen(navController = it) }),
     NavItem(screen = Screen.ConferenceScreen, component = { ConferenceScreen(navController = it) }),
     NavItem(screen = Screen.ConferenceDetailScreen,
         component = { ConferenceDetailScreen(navController = it) }),
-    NavItem(screen = Screen.UserDetailsScreen, component = { UserDetailsScreen(navController = it) }))
+    NavItem(
+        screen = Screen.UserDetailsScreen,
+        component = { UserDetailsScreen(navController = it) }),
+    NavItem(screen = Screen.CreatePostScreen, component = { CreatePostScreen(navController = it) }),
+)
 
 fun kycScreens(): List<NavItem> = listOf(
     NavItem(screen = Screen.SignUpScreen, component = { SignUpScreen(navController = it) }),
