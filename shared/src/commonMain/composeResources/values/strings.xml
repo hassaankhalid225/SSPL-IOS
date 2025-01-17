@@ -13,6 +13,16 @@
     <string name="log_in">Log In</string>
     <string name="login">Login</string>
     <string name="post">Post</string>
+    <string name="camera_permission_required">Camera Permission Required</string>
+    <string name="warning">Warning</string>
+    <string name="open_setting">Settings</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="go_to_settings">Camera permission is required to use this feature. Please enable camera access in your device settings.</string>
+    <string name="add_image_icon_description">Add image</string>
+    <string name="add_first_image">Add an image</string>
+    <string name="add_second_image">Add another image</string>
+    <string name="max_images_reached">Maximum images added (2)</string>
+    <string name="image_source_hint">Choose from Gallery or Camera</string>
     <string name="gallery">Gallery</string>
     <string name="camera">Camera</string>
     <string name="add_images_up_to_two">Add images (Max 2) - Upload from Gallery or take with Camera</string>

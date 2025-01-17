@@ -24,14 +24,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -59,19 +63,27 @@ import com.preat.peekaboo.image.picker.SelectionMode
 import com.preat.peekaboo.image.picker.rememberImagePickerLauncher
 import com.sspl.platform.toBitmap
 import com.sspl.resources.Res
+import com.sspl.resources.add_first_image
+import com.sspl.resources.add_second_image
 import com.sspl.resources.camera
 import com.sspl.resources.camera_ic
+import com.sspl.resources.camera_permission_required
+import com.sspl.resources.dismiss
 import com.sspl.resources.gallery
 import com.sspl.resources.gallery_ic
+import com.sspl.resources.go_to_settings
+import com.sspl.resources.image_source_hint
+import com.sspl.resources.max_images_reached
+import com.sspl.resources.open_setting
 import com.sspl.resources.post
+import com.sspl.resources.warning
 import com.sspl.resources.whats_on_your_mind
 import com.sspl.theme.primary
 import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.AppTextSubTitle
 import com.sspl.ui.components.BetterModalBottomSheet
 import com.sspl.ui.components.ButtonWithProgress
-import com.sspl.ui.components.CameraPermissionDeniedDialog
-import kotlinx.coroutines.Dispatchers
+ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.painterResource
@@ -287,14 +299,16 @@ fun ImageAddState(onAddImageClick: () -> Unit, imageCount: Int) {
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = when (imageCount) {
-                1 -> "Add second image"
-                2 -> "Add images (Max 2)"
-                else -> "Select an image" // Default message for zero images
-            }, textAlign = TextAlign.Center
+            text = stringResource(
+                when (imageCount) {
+                    0 -> Res.string.add_first_image
+                    1 -> Res.string.add_second_image
+                    else -> Res.string.max_images_reached
+                }
+            ), textAlign = TextAlign.Center
         )
         Text(
-            text = "Upload from Gallery or take with Camera",
+            text = stringResource(Res.string.image_source_hint),
             style = TextStyle(fontSize = 14.sp, color = Color.Gray),
             textAlign = TextAlign.Center
         )
@@ -428,6 +442,39 @@ fun RoundedImageView(
         contentScale = contentScale,
         modifier = modifier.clip(RoundedCornerShape(percent = cornerRadius))
     )
+}
+
+
+@Composable
+fun CameraPermissionDeniedDialog(
+    onDismiss: () -> Unit, onOpenSettings: () -> Unit
+) {
+    AlertDialog(onDismissRequest = onDismiss, title = {
+        Text(
+            text = stringResource(Res.string.camera_permission_required), style = MaterialTheme.typography.titleLarge
+        )
+    }, text = {
+        Column {
+            Icon(
+                imageVector = Icons.Default.Warning,
+                contentDescription = stringResource(Res.string.warning),
+                modifier = Modifier.size(48.dp).align(Alignment.CenterHorizontally),
+                tint = MaterialTheme.colorScheme.error
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = stringResource(Res.string.go_to_settings) ,  style = MaterialTheme.typography.bodyMedium
+            )
+        }
+    }, confirmButton = {
+        TextButton(onClick = onOpenSettings) {
+            Text(stringResource(Res.string.open_setting))
+        }
+    }, dismissButton = {
+        TextButton(onClick = onDismiss) {
+            Text(stringResource(Res.string.dismiss))
+        }
+    })
 }
 
 

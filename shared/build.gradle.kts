@@ -18,7 +18,15 @@ kotlin {
             }
         }
     }
-
+    targets.configureEach {
+        compilations.configureEach {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    freeCompilerArgs.add("-Xexpect-actual-classes")
+                }
+            }
+        }
+    }
     listOf(
         iosX64(),
         iosArm64(),
@@ -29,7 +37,6 @@ kotlin {
             isStatic = true
         }
     }
-
     sourceSets {
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
