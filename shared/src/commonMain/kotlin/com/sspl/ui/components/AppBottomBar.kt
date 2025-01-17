@@ -7,7 +7,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -58,7 +57,6 @@ fun AppBottomBar(bottomNavItems: List<NavItem>, navController: NavHostController
                     }
                 },
                 icon = {
-
                     navItem.screen.icon?.let {
                         Icon(
                             painter = it.icon(),
