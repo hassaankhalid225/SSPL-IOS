@@ -80,7 +80,7 @@ class SignUpViewModel(
                     _uiState.update {
                         it.copy(
                             phoneNo = event.phoneNo,
-                            phoneNoError = if (!isValid) "Phone number must be between 10 to 15 digits" else null
+                            phoneNoError = if (!isValid) "Invalid phone number " else null
                         )
                     }
                 }
