@@ -205,6 +205,7 @@ fun LoginScreenContent(
             AnimatedVisibility(visible = isOtpMode) {
                 PhoneWithCountrySelector(
                     selectedCountry = selectedCountry,
+                    errorMessage = phoneErrorMsg,
                     phone = phone,
                     onPhoneNumberChange = { onEvents(LoginScreenUiEvents.OnPhoneNoChange(it)) },
                     showCountryChooser = showCountryChooser,

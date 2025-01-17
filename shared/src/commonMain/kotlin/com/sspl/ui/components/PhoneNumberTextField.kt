@@ -14,6 +14,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -49,6 +52,7 @@ fun PhoneWithCountrySelector(
     modifier: Modifier = Modifier,
     selectedCountry: Country,
     phone: String,
+    errorMessage: String?,
     onPhoneNumberChange: (String) -> Unit,
     showCountryChooser: Boolean,
     onCountryChange: (Country) -> Unit,
@@ -64,6 +68,7 @@ fun PhoneWithCountrySelector(
         }
         PhoneNumberTextField(selectedCountry = selectedCountry,
             phoneNumber = phone,
+            errorMessage = errorMessage,
             onPhoneNumberChange = {
                 onPhoneNumberChange.invoke(it)
             },
@@ -82,54 +87,78 @@ fun PhoneNumberTextField(
     toggleCountryPicker: () -> Unit,
     placeholder: String = "Mobile Number",
     shape: Shape = RoundedCornerShape(22),
-    keyboardType: KeyboardType = KeyboardType.Phone
+    keyboardType: KeyboardType = KeyboardType.Phone,
+    errorMessage: String? = null,
+    isError: Boolean = errorMessage != null,
+    onFocusLost: () -> Unit = {}
 ) {
-    var isFocused by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
 
-    TextField(value = phoneNumber, onValueChange = { onPhoneNumberChange(it) }, placeholder = {
-        Text(
-            placeholder, fontSize = 9.sp, fontFamily = FontFamily.Serif
-        )
-    }, modifier = modifier.fillMaxWidth().onFocusChanged { focusState ->
-        isFocused = focusState.isFocused
-    }.border(
-        width = 1.dp, color = if (!isFocused) boxColor else Color.LightGray, shape = shape
-    ), maxLines = 1, singleLine = true, keyboardOptions = KeyboardOptions(
-        imeAction = ImeAction.Done, keyboardType = keyboardType
-    ), shape = shape, leadingIcon = {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.clickable(onClick = toggleCountryPicker).padding(start = 5.dp)
-        ) {
-            Spacer(Modifier.width(5.dp))
-            AppTextTitle(
-                text = selectedCountry.flag, textAlign = TextAlign.Center,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(4.dp))
+    OutlinedTextField(
+        value = phoneNumber,
+        onValueChange = { newText ->
+            val trimmedText = newText.replace("\\s".toRegex(), "")
+            onPhoneNumberChange(trimmedText)
+        },
+        modifier = modifier
+            .fillMaxWidth()
+            .onFocusChanged { if (!it.isFocused) onFocusLost() },
+        placeholder = {
             Text(
-                text = selectedCountry.code, modifier = Modifier.padding(end = 4.dp)
+                text = placeholder,
+                style = MaterialTheme.typography.bodySmall
             )
-            Icon(
-                imageVector = Icons.Default.ArrowDropDown,
-                contentDescription = "Select country code"
-            )
-        }
-    }, colors = TextFieldDefaults.colors(
-        focusedTextColor = Color.Black,
-        unfocusedTextColor = Color.Black.copy(0.7f),
-        focusedIndicatorColor = Color.Transparent,
-        unfocusedIndicatorColor = Color.Transparent,
-        focusedContainerColor = Color.White,
-        unfocusedContainerColor = Color.White
-    ), keyboardActions = KeyboardActions(onDone = {
-        focusManager.clearFocus()
-    }), visualTransformation = PhonePrefixTransformation(
-        selectedCountry.dialCode
-    )
+        },
+        shape = shape,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = keyboardType,
+            imeAction = ImeAction.Done
+        ),
+        keyboardActions = KeyboardActions(
+            onDone = { focusManager.clearFocus() }
+        ),
+        singleLine = true,
+        isError = isError,
+        supportingText = if (isError && !errorMessage.isNullOrBlank()) {
+            { Text(text = errorMessage) }
+        } else null,
+        leadingIcon = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .clickable(onClick = toggleCountryPicker)
+                    .padding(start = 5.dp)
+            ) {
+                Spacer(Modifier.width(5.dp))
+                AppTextTitle(
+                    text = selectedCountry.flag,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = selectedCountry.code,
+                    modifier = Modifier.padding(end = 4.dp)
+                )
+                Icon(
+                    imageVector = Icons.Default.ArrowDropDown,
+                    contentDescription = "Select country code"
+                )
+            }
+        },
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+            errorBorderColor = MaterialTheme.colorScheme.error,
+            focusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            focusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+        ),
+        visualTransformation = PhonePrefixTransformation(selectedCountry.dialCode)
     )
 }
+
 
 // Assuming you have this class defined
 class PhonePrefixTransformation(private val prefix: String) : VisualTransformation {

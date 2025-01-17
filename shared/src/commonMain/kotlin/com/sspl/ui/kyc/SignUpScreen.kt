@@ -96,6 +96,7 @@ fun SignUpScreen(
             isReEnteredVisible = uiState.isReenteredPasswordVisible,
             isLoading = uiState.isLoading,
             passwordErrorMsg = uiState.passwordError,
+            phoneError = uiState.phoneNoError,
             password = uiState.password,
             isPasswordVisible = uiState.isPasswordVisible,
             showCountryChooser = uiState.showCountryChooser,
@@ -126,6 +127,7 @@ fun SignUpScreenContent(
     passwordErrorMsg: String?,
     firstNameErrorMsg: String?,
     lastNameErrorMsg: String?,
+    phoneError: String?,
     password: String,
     isPasswordVisible: Boolean,
     showCountryChooser: Boolean,
@@ -178,6 +180,7 @@ fun SignUpScreenContent(
                 firstNameErrorMsg = firstNameErrorMsg,
                 lastNameErrorMsg = lastNameErrorMsg,
                 password = password,
+                phoneError = phoneError,
                 isPasswordVisible = isPasswordVisible,
                 country = country,
                 email = email,
@@ -221,6 +224,7 @@ fun InputFieldsSection(
     country: Country,
     email: String,
     emailErrorMsg: String?,
+    phoneError: String?,
     phoneNo: String,
     showCountryChooser: Boolean,
     onEvent: (UserEvents) -> Unit
@@ -236,7 +240,7 @@ fun InputFieldsSection(
         onTextChange = { onEvent(UserEvents.SetLastName(it)) })
 
     PhoneWithCountrySelector(selectedCountry = country,
-        phone = phoneNo,
+        phone = phoneNo, errorMessage = phoneError,
         onPhoneNumberChange = { onEvent(UserEvents.SetPhoneNo(it)) },
         showCountryChooser = showCountryChooser,
         onCountryChange = { onEvent(UserEvents.OnCountryChange(it)) },
