@@ -2,7 +2,7 @@ package com.sspl.ui.userdetails
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sspl.core.ApiStates
 import com.sspl.core.usecases.ValidateUserCityUseCase
 import com.sspl.core.usecases.ValidateUserCountryUseCase
 import com.sspl.core.usecases.ValidateUserDesignationUseCase
@@ -10,7 +10,10 @@ import com.sspl.core.usecases.ValidateUserInstitutionUseCase
 import com.sspl.core.usecases.ValidateUserPmdcNoUseCase
 import com.sspl.ui.kyc.ValidationResult
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -25,6 +28,9 @@ class UserDetailViewModel(
 
     private val _uiState = MutableStateFlow(UserDetailsUiState())
     val uiState = _uiState.asStateFlow()
+
+    private val _networkState = MutableSharedFlow<ApiStates<Unit>>()
+    val networkState: SharedFlow<ApiStates<Unit>> = _networkState.asSharedFlow()
 
     fun onEvent(event: UserDetailsUiEvents) {
         viewModelScope.launch {
@@ -88,17 +94,24 @@ class UserDetailViewModel(
                 }
 
                 UserDetailsUiEvents.OnSave -> {
-                    // Simulate a network call or save logic
-                    _uiState.update {
-                        it.copy(
-                            isLoading = true
-                        )
-                    }
-                    delay(2000) // Simulate network delay
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false
-                        )
+                    if (_uiState.value.isSaveEnabled && !_uiState.value.isLoading) {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = true
+                            )
+                        }
+                        delay(2000) // Simulate network delay
+                        if (true) {
+                            _networkState.emit(ApiStates.Success(Unit))
+                        } else {
+                            _networkState.emit(ApiStates.Failure("Something went wrong"))
+                        }
+
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false
+                            )
+                        }
                     }
                 }
             }
@@ -106,17 +119,21 @@ class UserDetailViewModel(
     }
 
     // Helper function to update the save button enabled state based on field validation
-    private fun UserDetailsUiState.updateSaveEnabledState() {
-        _uiState.update {
-            it.copy(
-                isSaveEnabled = listOf(
-                    cityError,
-                    countryError,
-                    designationError,
-                    institutionError,
-                    pmDcNumberError
-                ).all { error -> error == null }
-            )
+    private fun updateSaveEnabledState() {
+        _uiState.update { currentState ->
+            currentState.copy(isSaveEnabled = listOf(
+                currentState.institution,
+                currentState.city,
+                currentState.country,
+                currentState.pmDcNumber,
+                currentState.designation
+            ).all { field -> field.isNotEmpty() } && listOf(
+                currentState.institutionError,
+                currentState.cityError,
+                currentState.countryError,
+                currentState.pmDcNumberError,
+                currentState.designationError
+            ).all { error -> error == null })
         }
     }
 }

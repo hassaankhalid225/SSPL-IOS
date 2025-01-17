@@ -34,5 +34,4 @@ sealed interface OneTimeEvents {
     data object NavigateToOtpScreen : OneTimeEvents
     data object LoginSuccess : OneTimeEvents
     data class ShowError(val message: String) : OneTimeEvents
-
 }
