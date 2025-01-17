@@ -72,8 +72,9 @@ actual class PermissionsManager actual constructor(private val callback: Permiss
     override fun isPermissionGranted(permission: PermissionType): Boolean {
         return when (permission) {
             PermissionType.CAMERA -> {
-                val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
-                cameraPermissionState.status.isGranted
+//                val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
+//                cameraPermissionState.status.isGranted
+                true        // as we are just launching the intent to open camera App instead of creating own
             }
 
             PermissionType.GALLERY -> {

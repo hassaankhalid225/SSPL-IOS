@@ -25,8 +25,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -68,7 +66,6 @@ import com.sspl.resources.gallery_ic
 import com.sspl.resources.post
 import com.sspl.resources.whats_on_your_mind
 import com.sspl.theme.primary
-import com.sspl.ui.components.AppCameraView
 import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.AppTextSubTitle
 import com.sspl.ui.components.BetterModalBottomSheet
@@ -85,7 +82,6 @@ import shared.PermissionStatus
 import shared.PermissionType
 import shared.createPermissionsManager
 import shared.rememberCameraManager
-import shared.rememberGalleryManager
 
 @Composable
 fun CreatePostScreen(
@@ -148,8 +144,6 @@ fun CreatePostScreen(
                 permissionRationalDialog = false
                 launchSetting = true
             })
-
-
     }
 
 
@@ -185,14 +179,7 @@ fun CreatePostScreen(
             viewModel.onEvent(CreatePostUIEvents.ToggleBottomSheet(false))
         })
     }
-//    AnimatedVisibility(uiState.isCameraOpen) {
-//        AppCameraView(onImageCaptured = { byteArray ->
-//            byteArray?.let {
-//                viewModel.onEvent(CreatePostUIEvents.OnImageAdd(listOf(it)))
-//            }
-//            viewModel.onEvent(CreatePostUIEvents.ToggleCameraView)
-//        })
-//    }
+
 }
 
 @Composable
