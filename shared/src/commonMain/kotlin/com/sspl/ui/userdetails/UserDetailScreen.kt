@@ -12,9 +12,14 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -24,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.Screen
+import com.sspl.core.ApiStates
 import com.sspl.resources.Res
 import com.sspl.resources.city
 import com.sspl.resources.country
@@ -51,30 +57,55 @@ fun UserDetailsScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val scaffoldState = remember { SnackbarHostState() }
 
-    UserDetailsScreenContent(modifier= modifier,
-        pmdcNumber = uiState.pmDcNumber,
-        pmdcNumberError = uiState.pmDcNumberError,
-        isSaveEnabled = uiState.isSaveEnabled,
-        isLoading = uiState.isLoading,
-        city = uiState.city,
-        cityError = uiState.cityError,
-        country = uiState.country,
-        countryError = uiState.countryError,
-        institution = uiState.institution,
-        institutionError = uiState.institutionError,
-        designation = uiState.designation,
-        designationError = uiState.designationError,
-        registrationNumber = uiState.registrationNumber,onSkip={
-            navController.navigate(Screen.MainScreen.route) {
-                popUpTo(Screen.SignInScreen.route) {
-                    inclusive = true
+    LaunchedEffect(Unit) {
+        viewModel.networkState.collect { event ->
+            when (event) {
+                is ApiStates.Failure -> {
+                    scaffoldState.showSnackbar(event.msg ?: "Something went wrong")
                 }
-                launchSingleTop = true
+
+                is ApiStates.Success -> {
+                    navController.navigate(Screen.MainScreen.route) {
+                        popUpTo(Screen.SignInScreen.route) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
+                }
+
+                else -> Unit
             }
-        },
-        onEvent = viewModel::onEvent
+        }
+    }
+    Scaffold(snackbarHost = { SnackbarHost(scaffoldState) }) { _ ->
+        UserDetailsScreenContent(
+            modifier = modifier,
+            pmdcNumber = uiState.pmDcNumber,
+            pmdcNumberError = uiState.pmDcNumberError,
+            isSaveEnabled = uiState.isSaveEnabled,
+            isLoading = uiState.isLoading,
+            city = uiState.city,
+            cityError = uiState.cityError,
+            country = uiState.country,
+            countryError = uiState.countryError,
+            institution = uiState.institution,
+            institutionError = uiState.institutionError,
+            designation = uiState.designation,
+            designationError = uiState.designationError,
+            registrationNumber = uiState.registrationNumber,
+            onSkip = {
+                navController.navigate(Screen.MainScreen.route) {
+                    popUpTo(Screen.SignInScreen.route) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
+            },
+            onEvent = viewModel::onEvent
         )
+    }
 }
 
 @Composable
@@ -92,7 +123,8 @@ fun UserDetailsScreenContent(
     institutionError: String?,
     designation: String,
     designationError: String?,
-    registrationNumber: String?,onSkip:()->Unit,
+    registrationNumber: String?,
+    onSkip: () -> Unit,
     onEvent: (UserDetailsUiEvents) -> Unit
 ) {
     Box(modifier.fillMaxSize()) {
@@ -105,9 +137,7 @@ fun UserDetailsScreenContent(
 
         // Main Column
         Column(
-            modifier = modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+            modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -172,40 +202,28 @@ fun UserDetailFields(
     onEvent: (UserDetailsUiEvents) -> Unit
 ) {
     // Grouping all input fields into one section using AppTextField
-    AppTextField(
-        placeholder = stringResource(Res.string.enter_pmdc_number),
+    AppTextField(placeholder = stringResource(Res.string.enter_pmdc_number),
         text = pmdcNumber,
         errorMessage = pmdcNumberError,
-        onTextChange = { onEvent(UserDetailsUiEvents.OnPmDcNumberTextChange(it)) }
-    )
-    AppTextField(
-        placeholder = stringResource(Res.string.institution_name),
+        onTextChange = { onEvent(UserDetailsUiEvents.OnPmDcNumberTextChange(it)) })
+    AppTextField(placeholder = stringResource(Res.string.institution_name),
         text = institution,
         errorMessage = institutionError,
-        onTextChange = { onEvent(UserDetailsUiEvents.OnInstitutionTextChange(it)) }
-    )
-    AppTextField(
-        placeholder = stringResource(Res.string.country),
+        onTextChange = { onEvent(UserDetailsUiEvents.OnInstitutionTextChange(it)) })
+    AppTextField(placeholder = stringResource(Res.string.country),
         text = country,
         errorMessage = countryError,
-        onTextChange = { onEvent(UserDetailsUiEvents.OnCountryTextChange(it)) }
-    )
-    AppTextField(
-        placeholder = stringResource(Res.string.city),
+        onTextChange = { onEvent(UserDetailsUiEvents.OnCountryTextChange(it)) })
+    AppTextField(placeholder = stringResource(Res.string.city),
         text = city,
         errorMessage = cityError,
-        onTextChange = { onEvent(UserDetailsUiEvents.OnCityTextChange(it)) }
-    )
-    AppTextField(
-        placeholder = stringResource(Res.string.designation),
+        onTextChange = { onEvent(UserDetailsUiEvents.OnCityTextChange(it)) })
+    AppTextField(placeholder = stringResource(Res.string.designation),
         text = designation,
         errorMessage = designationError,
-        onTextChange = { onEvent(UserDetailsUiEvents.OnDesignationTextChange(it)) }
-    )
-    AppTextField(
-        placeholder = stringResource(Res.string.enter_registration_number),
+        onTextChange = { onEvent(UserDetailsUiEvents.OnDesignationTextChange(it)) })
+    AppTextField(placeholder = stringResource(Res.string.enter_registration_number),
         text = registrationNumber ?: "",
-        onTextChange = { onEvent(UserDetailsUiEvents.OnRegistrationNumberTextChange(it)) }
-    )
+        onTextChange = { onEvent(UserDetailsUiEvents.OnRegistrationNumberTextChange(it)) })
 }
 

@@ -17,9 +17,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -31,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.Screen
+import com.sspl.core.ApiStates
 import com.sspl.resources.Res
 import com.sspl.resources.already_have_an_account
 import com.sspl.resources.app_logo
@@ -58,37 +63,53 @@ import org.koin.compose.viewmodel.koinViewModel
 fun SignUpScreen(
     navController: NavController, viewModel: SignUpViewModel = koinViewModel()
 ) {
+
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-
-    SignUpScreenContent(
-        modifier = Modifier,
-        email = uiState.email,
-        isSignUpEnabled = uiState.isSignUpEnabled,
-        firstName = uiState.firstName,
-        lastName = uiState.lastName,
-        reEnterPassword = uiState.retypedPassword,
-        reEnterPasswordErrorMsg = uiState.retypedPasswordError,
-        isReEnteredVisible = uiState.isReenteredPasswordVisible,
-        isLoading = uiState.isLoading,
-        passwordErrorMsg = uiState.passwordError,
-        password = uiState.password,
-        isPasswordVisible = uiState.isPasswordVisible,
-        showCountryChooser = uiState.showCountryChooser,
-        country = uiState.country,
-        emailErrorMsg = uiState.emailError, firstNameErrorMsg = uiState.firstNameError,
-        lastNameErrorMsg = uiState.lastNameError,
-        phoneNo = uiState.phoneNo,
-        onSignUp = {
-            navController.navigate(Screen.UserDetailsScreen.route)
-        },
-        loginScreen = {
-            navController.navigate(Screen.SignInScreen.route)
-        },
-        onEvent = viewModel::onEvent,
-    )
+    val scaffoldState = remember { SnackbarHostState() }
 
 
+    LaunchedEffect(Unit) {
+        viewModel.networkState.collect { event ->
+            when (event) {
+                is ApiStates.Failure -> {
+                    scaffoldState.showSnackbar(event.msg ?: "Something went wrong")
+                }
+
+                is ApiStates.Success -> {
+                    navController.navigate(Screen.UserDetailsScreen.route)
+                }
+
+                else -> Unit
+            }
+        }
+    }
+    Scaffold(snackbarHost = { SnackbarHost(scaffoldState) }) { _ ->
+        SignUpScreenContent(
+            modifier = Modifier,
+            email = uiState.email,
+            isSignUpEnabled = uiState.isSignUpEnabled,
+            firstName = uiState.firstName,
+            lastName = uiState.lastName,
+            reEnterPassword = uiState.retypedPassword,
+            reEnterPasswordErrorMsg = uiState.retypedPasswordError,
+            isReEnteredVisible = uiState.isReenteredPasswordVisible,
+            isLoading = uiState.isLoading,
+            passwordErrorMsg = uiState.passwordError,
+            password = uiState.password,
+            isPasswordVisible = uiState.isPasswordVisible,
+            showCountryChooser = uiState.showCountryChooser,
+            country = uiState.country,
+            emailErrorMsg = uiState.emailError, firstNameErrorMsg = uiState.firstNameError,
+            lastNameErrorMsg = uiState.lastNameError,
+            phoneNo = uiState.phoneNo,
+            loginScreen = {
+                navController.navigate(Screen.SignInScreen.route)
+            },
+            onEvent = viewModel::onEvent,
+        )
+
+    }
 }
 
 @Composable
@@ -112,8 +133,7 @@ fun SignUpScreenContent(
     emailErrorMsg: String?,
     phoneNo: String,
     loginScreen: () -> Unit,
-    onSignUp: () -> Unit,
-    onEvent: (UserEvents) -> Unit
+     onEvent: (UserEvents) -> Unit
 ) {
     Box(modifier.fillMaxSize()) {
         Image(
@@ -123,20 +143,17 @@ fun SignUpScreenContent(
         )
 
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.15f)
-                .background(
-                    brush = Brush.verticalGradient(
-                        listOf(
-                            MaterialTheme.colorScheme.primary,
-                            MaterialTheme.colorScheme.primary.copy(alpha = .8F),
-                            MaterialTheme.colorScheme.primary.copy(alpha = .5F),
-                            MaterialTheme.colorScheme.primary.copy(alpha = .1F),
-                            Color.Transparent
-                        )
+            modifier = Modifier.fillMaxWidth().fillMaxHeight(0.15f).background(
+                brush = Brush.verticalGradient(
+                    listOf(
+                        MaterialTheme.colorScheme.primary,
+                        MaterialTheme.colorScheme.primary.copy(alpha = .8F),
+                        MaterialTheme.colorScheme.primary.copy(alpha = .5F),
+                        MaterialTheme.colorScheme.primary.copy(alpha = .1F),
+                        Color.Transparent
                     )
                 )
+            )
         )
 
         Column(
@@ -179,8 +196,7 @@ fun SignUpScreenContent(
                 modifier = Modifier.imePadding()
             ) {
                 onEvent(UserEvents.Submit)
-                onSignUp()
-            }
+             }
 
             AlreadyHaveAccountSection(loginScreen)
 
