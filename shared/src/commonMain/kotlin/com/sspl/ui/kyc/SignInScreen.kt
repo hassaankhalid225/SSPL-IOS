@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.Screen
+import com.sspl.core.ApiStates
 import com.sspl.resources.Res
 import com.sspl.resources.app_logo
 import com.sspl.resources.create_new_account
@@ -84,7 +85,17 @@ fun LoginScreen(
     LaunchedEffect(Unit) {
         viewModel.oneTimeEvents.collect { event ->
             when (event) {
-                OneTimeEvents.LoginSuccess -> {
+                OneTimeEvents.NavigateToOtpScreen -> {
+                    navController.navigate(Screen.OtpScreen.route)
+                }
+            }
+        }
+    }
+    LaunchedEffect(Unit) {
+        viewModel.networkState.collect { result ->
+            when (result) {
+                is ApiStates.Failure -> scaffoldState.showSnackbar(result.msg.toString())
+                is ApiStates.Success -> {
                     navController.navigate(Screen.MainScreen.route) {
                         popUpTo(Screen.SignInScreen.route) {
                             inclusive = true
@@ -92,14 +103,7 @@ fun LoginScreen(
                         launchSingleTop = true
                     }
                 }
-
-                OneTimeEvents.NavigateToOtpScreen -> {
-                    navController.navigate(Screen.OtpScreen.route)
-                }
-
-                is OneTimeEvents.ShowError -> {
-                    scaffoldState.showSnackbar(event.message)
-                }
+                else ->Unit
             }
         }
     }
