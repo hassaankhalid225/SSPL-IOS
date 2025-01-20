@@ -3,11 +3,13 @@ package com.sspl.ui.kyc
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sspl.core.ApiStates
+import com.sspl.core.models.User
 import com.sspl.core.usecases.EmailValidationUseCase
 import com.sspl.core.usecases.PasswordValidationUseCase
 import com.sspl.core.usecases.PhoneNumberValidationUseCase
 import com.sspl.core.usecases.SignUpUserUseCase
 import com.sspl.core.usecases.ValidateUserNameUseCase
+import com.sspl.di.viewModelModules
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,8 +32,9 @@ class SignUpViewModel(
     private val _uiState = MutableStateFlow(UserUiState())
     val uiState: StateFlow<UserUiState> = _uiState.asStateFlow()
 
-    private val _networkState = MutableSharedFlow<ApiStates<String>>()
-    val networkState: SharedFlow<ApiStates<String>> = _networkState.asSharedFlow()
+    private val _networkState = MutableSharedFlow<ApiStates<Any>>()
+    val networkState: SharedFlow<ApiStates<Any>> = _networkState.asSharedFlow()
+
 
 
     fun onEvent(event: UserEvents) {
@@ -114,24 +117,17 @@ class SignUpViewModel(
 
                 UserEvents.Submit -> {
                     if (_uiState.value.isSignUpEnabled && !_uiState.value.isLoading) {
-                        _uiState.update { it.copy(isLoading = true) }
-                        delay(1000)
-                        val signUpResult = signUpUserUseCase.signUpUser(
+                signUpUserUseCase.signUpUser(
                             firstName = _uiState.value.firstName,
                             lastName = _uiState.value.lastName,
                             email = _uiState.value.email,
                             password = _uiState.value.password,
                             phoneNumber = _uiState.value.phoneNo
-                        )
-                        signUpResult.fold(onSuccess = { response ->
-                            _networkState.emit(ApiStates.Success(response))
-                        }, onFailure = { error ->
-                            _networkState.emit(ApiStates.Failure("Sign-up failed due to $error"))
-                        })
-
-                        _uiState.update {
-                            it.copy(isLoading = false)
+                        ).collect{state->
+                            _uiState.update { it.copy(isLoading = state is ApiStates.Loading) }
+                            _networkState.emit(state)
                         }
+
                     }
                 }
             }

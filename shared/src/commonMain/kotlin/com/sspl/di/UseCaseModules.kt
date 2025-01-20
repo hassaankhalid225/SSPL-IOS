@@ -5,6 +5,7 @@ import com.sspl.core.usecases.DislikePostUseCase
 import com.sspl.core.usecases.EmailValidationUseCase
 import com.sspl.core.usecases.GetPostsUseCase
 import com.sspl.core.usecases.LikePostUseCase
+import com.sspl.core.usecases.LoginUserUseCase
 import com.sspl.core.usecases.PasswordValidationUseCase
 import com.sspl.core.usecases.PhoneNumberValidationUseCase
 import com.sspl.core.usecases.SignUpUserUseCase
@@ -43,5 +44,6 @@ internal val useCaseModules = module {
     single { ValidateUserDesignationUseCase() }
     single { ValidateUserPmdcNoUseCase() }
     single { SignUpUserUseCase(get()) }
+    single { LoginUserUseCase(get()) }
 
 }
