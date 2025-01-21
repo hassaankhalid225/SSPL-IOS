@@ -14,7 +14,7 @@ data class Post(
 val dummyPostList = listOf(
     Post(
         postId = 1,
-        userName = "JohnDoe",
+        userName = "John Doe",
         userProfileUrl = "https://example.com/john_doe.jpg",
         description = "Enjoying a beautiful day!",
         images = listOf("https://example.com/image1.jpg", "https://example.com/image2.jpg"),
@@ -25,7 +25,7 @@ val dummyPostList = listOf(
     ),
     Post(
         postId = 2,
-        userName = "JaneSmith",
+        userName = "Jane Smith",
         userProfileUrl = "https://example.com/jane_smith.jpg",
         description = "Weekend vibes!",
         images = listOf("https://example.com/image3.jpg"),
@@ -38,8 +38,8 @@ val dummyPostList = listOf(
         postId = 3,
         userName = "JaneSmith",
         userProfileUrl = "https://example.com/jane_smith.jpg",
-        description = null,
-        images = listOf("https://example.com/image3.jpg"),
+        description = "Hello Lorem Is not Just a text Hello Lorem Is not Just a text Hello Lorem Is not Just a text",
+        images = listOf(),
         likes = 50,
         dislikes = 2,
         commentCount = 15,

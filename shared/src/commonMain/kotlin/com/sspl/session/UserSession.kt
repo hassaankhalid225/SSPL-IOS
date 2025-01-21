@@ -23,7 +23,7 @@ class UserSession(private val storage: Storage) {
             return field
         }
 
-    suspend fun getToken(): String? = storage.getString(TOKEN_KEY)
+    private suspend fun getToken(): String? = storage.getString(TOKEN_KEY)
     suspend fun setToken(token: String) {
         println(">>>Token: Saving $token")
         this.token = token

@@ -15,6 +15,8 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import com.sspl.theme.AppFontFamily
 import com.sspl.theme.textColor
+import androidx.compose.ui.text.AnnotatedString
+
 
 /**
  * Created by M Imran
@@ -177,6 +179,20 @@ fun PppTextStyle(color: Color = textColor, fontSize: TextUnit = 14.sp) =
 @Composable
 fun AppTextSmall(
     text: String,
+    modifier: Modifier = Modifier,
+    style: TextStyle = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
+    color: Color = MaterialTheme.colorScheme.onSurface
+) {
+    Text(
+        modifier = modifier,
+        text = text,
+        style = style,
+        color = color
+    )
+}
+@Composable
+fun AppTextSmall(
+    text: AnnotatedString,
     modifier: Modifier = Modifier,
     style: TextStyle = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
     color: Color = MaterialTheme.colorScheme.onSurface

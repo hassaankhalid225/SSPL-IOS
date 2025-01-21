@@ -24,9 +24,3 @@ data class User(
 )
 
 
-@Serializable
-data class AuthResponse(
-    @SerialName("access_token")
-    val token: String?,
-    val user: User
-)
