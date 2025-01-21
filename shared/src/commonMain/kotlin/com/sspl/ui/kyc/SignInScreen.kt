@@ -94,7 +94,7 @@ fun LoginScreen(
     LaunchedEffect(Unit) {
         viewModel.networkState.collect { result ->
             when (result) {
-                is ApiStates.Failure -> scaffoldState.showSnackbar(result.msg.toString())
+                is ApiStates.Failure -> scaffoldState.showSnackbar(result.error.message)
                 is ApiStates.Success -> {
                     navController.navigate(Screen.MainScreen.route) {
                         popUpTo(Screen.SignInScreen.route) {

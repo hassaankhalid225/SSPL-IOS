@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import com.sspl.IosStorage
 import com.sspl.core.getBaseClient
+import com.sspl.session.UserSession
 import com.sspl.storage.Storage
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
@@ -23,8 +24,8 @@ class IOSPlatform : Platform {
         UIDevice.currentDevice.systemName() + " " + UIDevice.currentDevice.systemVersion
 }
 
-actual fun getClient(): HttpClient {
-    return getBaseClient(Darwin) {
+actual suspend fun getClient(userSession: UserSession): HttpClient {
+    return getBaseClient(userSession = userSession, engineFactory = Darwin) {
         engine {
             configureRequest {
                 setAllowsCellularAccess(true)

@@ -43,7 +43,7 @@ internal val useCaseModules = module {
     single { ValidateUserInstitutionUseCase() }
     single { ValidateUserDesignationUseCase() }
     single { ValidateUserPmdcNoUseCase() }
-    single { SignUpUserUseCase(get()) }
+    single { SignUpUserUseCase(get(), get()) }
     single { LoginUserUseCase(get()) }
 
 }

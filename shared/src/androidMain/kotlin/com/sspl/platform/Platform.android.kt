@@ -18,6 +18,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.sspl.core.getBaseClient
+import com.sspl.session.UserSession
 import com.sspl.storage.Storage
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
@@ -30,8 +31,8 @@ class AndroidPlatform : Platform {
     override val name: String = "Android ${android.os.Build.VERSION.SDK_INT}"
 }
 
-actual fun getClient(): HttpClient {
-    return getBaseClient(OkHttp) {
+actual suspend fun getClient(userSession: UserSession): HttpClient {
+    return getBaseClient(userSession = userSession, engineFactory = OkHttp) {
         engine {
             config {
                 followRedirects(true)

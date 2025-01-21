@@ -1,5 +1,6 @@
 package com.sspl.di
 
+import com.sspl.core.repositories.AuthRepository
 import com.sspl.core.repositories.PostRepositoryImpl
 import com.sspl.core.repositories.PostsRepository
 import org.koin.core.module.dsl.singleOf
@@ -14,7 +15,6 @@ import org.koin.dsl.module
  */
 
 internal val repositoryModules = module {
-//    single { AuthenticationRepository(get(), get()) }
-//    single { StreamRepository(get()) }
+    singleOf(::AuthRepository)
     singleOf(::PostRepositoryImpl).bind<PostsRepository>()
 }

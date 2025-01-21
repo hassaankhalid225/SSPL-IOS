@@ -2,6 +2,7 @@ package com.sspl.di
 
 
 import com.sspl.platform.getClient
+import com.sspl.session.UserSession
 
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.defaultRequest
@@ -14,7 +15,9 @@ import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.http.URLProtocol
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
@@ -49,7 +52,19 @@ var cacheSize: Long = 5 * 1024 * 1024 // 5MB
 //        .build()
 //}
 //
-private fun provideHttpClient(): HttpClient = getClient()
+private fun provideHttpClient(userSession: UserSession): HttpClient =
+    HttpClientFactory(userSession = userSession).getClient()
+
+class HttpClientFactory(private val userSession: UserSession) {
+    private val httpClient by lazy {
+        runBlocking {
+            getClient(userSession = userSession)
+        }
+    }
+
+    fun getClient(): HttpClient = httpClient
+}
+
 //
 //
 //private fun provideRetrofit(

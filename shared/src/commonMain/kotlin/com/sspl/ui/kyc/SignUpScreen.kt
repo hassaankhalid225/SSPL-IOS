@@ -73,7 +73,7 @@ fun SignUpScreen(
         viewModel.networkState.collect { event ->
             when (event) {
                 is ApiStates.Failure -> {
-                    scaffoldState.showSnackbar(event.msg ?: "Something went wrong")
+                    scaffoldState.showSnackbar(event.error.message ?: "Something went wrong")
                 }
 
                 is ApiStates.Success -> {
@@ -135,7 +135,7 @@ fun SignUpScreenContent(
     emailErrorMsg: String?,
     phoneNo: String,
     loginScreen: () -> Unit,
-     onEvent: (UserEvents) -> Unit
+    onEvent: (UserEvents) -> Unit
 ) {
     Box(modifier.fillMaxSize()) {
         Image(
@@ -199,7 +199,7 @@ fun SignUpScreenContent(
                 modifier = Modifier.imePadding()
             ) {
                 onEvent(UserEvents.Submit)
-             }
+            }
 
             AlreadyHaveAccountSection(loginScreen)
 

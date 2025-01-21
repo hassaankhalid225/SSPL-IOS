@@ -1,5 +1,6 @@
 package com.sspl.core
 
+import com.sspl.session.UserSession
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngineConfig
@@ -11,6 +12,7 @@ import io.ktor.client.plugins.logging.DEFAULT
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.plugins.logging.SIMPLE
 import io.ktor.http.ContentType
 import io.ktor.client.plugins.resources.Resources
 import io.ktor.client.request.header
@@ -28,26 +30,36 @@ import kotlinx.serialization.json.Json
  */
 
 
-fun <T : HttpClientEngineConfig> getBaseClient(
+suspend fun <T : HttpClientEngineConfig> getBaseClient(
+    userSession: UserSession,
     engineFactory: HttpClientEngineFactory<T>,
     config: HttpClientConfig<T>.() -> Unit
 ): HttpClient {
+    val token = userSession.getToken()
     return HttpClient(engineFactory) {
         install(Resources)
-            install(ContentNegotiation) {
-                json(Json {
-                    ignoreUnknownKeys=true
-                    prettyPrint = true
-                    isLenient = true
-                })
-            }
-            defaultRequest {
-                url("http://188.245.244.112:3000/")
-                contentType(ContentType.Application.Json)
-            }
-            config() // Apply additional configuration
+        install(ContentNegotiation) {
+            json(Json {
+                ignoreUnknownKeys = true
+                prettyPrint = true
+                isLenient = true
+            })
         }
+        install(Logging) {
+            logger = Logger.SIMPLE
+            level = LogLevel.ALL
+            sanitizeHeader { header -> header == HttpHeaders.Authorization }
+        }
+        defaultRequest {
+            url("http://188.245.244.112:3000")
+            contentType(ContentType.Application.Json)
+            println(">>>Token: $token")
+            header(HttpHeaders.Authorization, "Bearer $token")
+            header(HttpHeaders.UserAgent, "SSPL Application")
+        }
+        config() // Apply additional configuration
     }
+}
 //}
 //}
 //        install(ContentNegotiation) {

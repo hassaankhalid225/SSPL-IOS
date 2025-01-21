@@ -1,6 +1,5 @@
 package com.sspl.core.models
 
-import io.ktor.resources.Resource
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -27,13 +26,7 @@ data class User(
 
 @Serializable
 data class AuthResponse(
-   @SerialName("access_token")
+    @SerialName("access_token")
     val token: String?,
     val user: User
-)
-
-@Serializable
-data class ErrorResponse(
-    val error: String,
-    val message: String,
 )

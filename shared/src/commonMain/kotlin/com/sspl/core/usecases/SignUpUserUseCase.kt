@@ -2,24 +2,24 @@ package com.sspl.core.usecases
 
 
 import com.sspl.core.ApiStates
-import com.sspl.core.models.ErrorResponse
-import com.sspl.core.models.SignUpRequest
+import com.sspl.core.apis.AuthRequest
+import com.sspl.core.models.ApiError
+import com.sspl.core.models.AuthResponse
 import com.sspl.core.models.User
+import com.sspl.core.repositories.AuthRepository
+import com.sspl.session.UserSession
 import io.ktor.client.HttpClient
-import io.ktor.client.statement.bodyAsText
 import io.ktor.client.call.body
 import io.ktor.client.plugins.resources.post
-import io.ktor.client.plugins.resources.preparePost
-import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.HttpResponse
 import io.ktor.http.isSuccess
-
-
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
-class SignUpUserUseCase(private val client: HttpClient) {
+class SignUpUserUseCase(
+    private val authRepository: AuthRepository,
+    private val userSession: UserSession
+) {
 
     fun signUpUser(
         firstName: String,
@@ -27,7 +27,7 @@ class SignUpUserUseCase(private val client: HttpClient) {
         email: String,
         password: String,
         phoneNumber: String
-    ): Flow<ApiStates<User>> = flow {
+    ): Flow<ApiStates<AuthResponse>> = flow {
         emit(ApiStates.Loading)
         try {
             val requestBody = mapOf(
@@ -38,21 +38,19 @@ class SignUpUserUseCase(private val client: HttpClient) {
                 "phone_number" to phoneNumber
             )
 
-            val response = client.post(SignUpRequest()) {
-                setBody(requestBody)
-            }
+            val response = authRepository.signUp(body = requestBody)
 
             if (response.status.isSuccess()) {
-                val user = response.body<User>()
-                println(user.toString())
-                emit(ApiStates.Success(user))
+                val result = response.body<AuthResponse>()
+                result.token?.let { userSession.setToken(result.token) }
+                emit(ApiStates.Success(result))
             } else {
-                val errorResponse = response.body<ErrorResponse>()
-                emit(ApiStates.Failure("Error: ${errorResponse.message}"))
+                val errorResponse = response.body<ApiError>()
+                emit(ApiStates.Failure(error = errorResponse))
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            emit(ApiStates.Failure(e.message))
+            emit(ApiStates.Failure(ApiError(message = e.message.orEmpty())))
         }
     }
 }

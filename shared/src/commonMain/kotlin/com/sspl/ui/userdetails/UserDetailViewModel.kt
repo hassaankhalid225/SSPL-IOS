@@ -3,6 +3,7 @@ package com.sspl.ui.userdetails
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sspl.core.ApiStates
+import com.sspl.core.models.ApiError
 import com.sspl.core.usecases.ValidateUserCityUseCase
 import com.sspl.core.usecases.ValidateUserCountryUseCase
 import com.sspl.core.usecases.ValidateUserDesignationUseCase
@@ -104,7 +105,7 @@ class UserDetailViewModel(
                         if (true) {
                             _networkState.emit(ApiStates.Success(Unit))
                         } else {
-                            _networkState.emit(ApiStates.Failure("Something went wrong"))
+                            _networkState.emit(ApiStates.Failure(ApiError(message = "Something went wrong")))
                         }
 
                         _uiState.update {

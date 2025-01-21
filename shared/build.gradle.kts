@@ -74,7 +74,7 @@ kotlin {
 
                 //Ktor
                 implementation(libs.ktor.client.core)
-implementation(libs.ktor.client.resources)
+                implementation(libs.ktor.client.resources)
                 implementation(libs.ktor.serialization.kotlinx.json)
                 implementation(libs.ktor.client.logging)
                 implementation(libs.kotlinx.coroutines.core)
@@ -112,6 +112,7 @@ implementation(libs.ktor.client.resources)
 
 
                 //implementation(libs.compose.ui.tooling)
+//                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
             }
         }
         commonTest.dependencies {
