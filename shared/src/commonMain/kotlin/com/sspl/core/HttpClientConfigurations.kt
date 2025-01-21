@@ -15,6 +15,7 @@ import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.logging.SIMPLE
 import io.ktor.http.ContentType
 import io.ktor.client.plugins.resources.Resources
+import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
@@ -35,7 +36,6 @@ suspend fun <T : HttpClientEngineConfig> getBaseClient(
     engineFactory: HttpClientEngineFactory<T>,
     config: HttpClientConfig<T>.() -> Unit
 ): HttpClient {
-    val token = userSession.getToken()
     return HttpClient(engineFactory) {
         install(Resources)
         install(ContentNegotiation) {
@@ -53,8 +53,11 @@ suspend fun <T : HttpClientEngineConfig> getBaseClient(
         defaultRequest {
             url("http://188.245.244.112:3000")
             contentType(ContentType.Application.Json)
+            val token = userSession.token
+            token?.let {
+                bearerAuth(it)
+            }
             println(">>>Token: $token")
-            header(HttpHeaders.Authorization, "Bearer $token")
             header(HttpHeaders.UserAgent, "SSPL Application")
         }
         config() // Apply additional configuration

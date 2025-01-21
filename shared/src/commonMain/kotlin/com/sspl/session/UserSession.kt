@@ -1,6 +1,7 @@
 package com.sspl.session
 
 import com.sspl.storage.Storage
+import kotlinx.coroutines.runBlocking
 
 /**
  * Created by M Imran
@@ -13,9 +14,19 @@ class UserSession(private val storage: Storage) {
         private const val TOKEN_KEY = "user_token_key"
     }
 
+    var token: String? = null
+        private set
+        get() {
+            if (field == null) {
+                runBlocking { field = getToken() }
+            }
+            return field
+        }
+
     suspend fun getToken(): String? = storage.getString(TOKEN_KEY)
-    suspend fun setToken(token: String){
+    suspend fun setToken(token: String) {
         println(">>>Token: Saving $token")
+        this.token = token
         storage.putString(TOKEN_KEY, token)
     }
 }
