@@ -24,6 +24,7 @@ import com.sspl.ui.conferencescreen.ConferenceDetailScreen
 import com.sspl.ui.conferencescreen.ConferenceScreen
 import com.sspl.ui.kyc.LoginScreen
 import com.sspl.ui.kyc.SignUpScreen
+import com.sspl.ui.location.LocationScreen
 import com.sspl.ui.otp.OtpScreen
 import com.sspl.ui.postcreation.CreatePostScreen
 import com.sspl.ui.posts.PostScreen
@@ -85,6 +86,10 @@ sealed class Screen(
         title = Res.string.log_in,
         route = "SignInScreen",
     )
+    data object GetLocation : Screen(
+        title = Res.string.log_in,
+        route = "Location",
+    )
 
     data object UserDetailsScreen : Screen(
         title = Res.string.user_details,
@@ -129,5 +134,7 @@ fun kycScreens(): List<NavItem> = listOf(
     NavItem(screen = Screen.SignUpScreen, component = { SignUpScreen(navController = it) }),
     NavItem(screen = Screen.SignInScreen, component = { LoginScreen(navController = it) }),
     NavItem(screen = Screen.OtpScreen, component = { OtpScreen(navController = it) }),
+    NavItem(screen = Screen.GetLocation, component = { LocationScreen() }),
+
     NavItem(screen = Screen.UserDetailsScreen, component = { UserDetailsScreen(navController = it) }),
 )

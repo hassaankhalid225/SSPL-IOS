@@ -4,6 +4,10 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+    <string>Using to get coordinates of user to mark down attendance while checking whether is user in range of told coordinates</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>Using to get coordinates of user to mark down attendance while checking whether is user in range of told coordinates</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>

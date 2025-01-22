@@ -65,6 +65,14 @@ kotlin {
 // Compose Multiplatform
                 api("dev.icerock.moko:geo-compose:0.7.0")
                 api("dev.icerock.moko:permissions-compose:0.18.1")
+
+                //compass
+                // Geolocation
+                implementation(libs.compass.geolocation)
+                implementation(libs.compass.geolocation.mobile)
+                // Location permissions for mobile
+                implementation(libs.compass.permissions.mobile)
+
                 //Navigation
                 implementation(libs.navigation.compose)
                 //Koin

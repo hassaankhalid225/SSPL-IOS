@@ -87,16 +87,7 @@ fun LoginScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scaffoldState = remember { SnackbarHostState() }
-    val factory: PermissionsControllerFactory = rememberPermissionsControllerFactory()
-    val controller: PermissionsController = remember(factory) { factory.createPermissionsController() }
-    val facotry = rememberLocationTrackerFactory(LocationTrackerAccuracy.Best)
-    val locationTracker = facotry.createLocationTracker(controller)
-    BindLocationTrackerEffect(locationTracker)
 
-
-    LaunchedEffect(locationTracker) {
-        viewModel.init(locationTracker)
-    }
 
     LaunchedEffect(Unit) {
         viewModel.oneTimeEvents.collect { event ->
@@ -142,7 +133,9 @@ fun LoginScreen(
             createNewAccount = {
                 navController.navigate(Screen.SignUpScreen.route)
             },
-            modifier = modifier
+            modifier = modifier.clickable{
+                navController.navigate(Screen.GetLocation.route)
+            }
         )
     }
 

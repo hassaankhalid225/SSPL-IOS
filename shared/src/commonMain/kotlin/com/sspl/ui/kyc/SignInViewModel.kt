@@ -29,7 +29,6 @@ class SignInViewModel(
     private val passwordValidationUseCase: PasswordValidationUseCase,
     private val loginUserUseCase: LoginUserUseCase
 ) : ViewModel() {
-    private var locationTracker: LocationTracker? = null
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -179,21 +178,6 @@ class SignInViewModel(
         }
     }
 
-    suspend fun init(locationTracker: LocationTracker) {
-        this.locationTracker = locationTracker
-        locationTracker.startTracking()
-        startListening()
-    }
 
-    override fun onCleared() {
-        locationTracker?.stopTracking()
-    }
-    private fun startListening(){
-        viewModelScope.launch {
-            locationTracker?.getLocationsFlow()?.collect{
-                println("the location is lat:${it.latitude} and lon:${it.longitude}")
-            }
-        }
-    }
 }
 

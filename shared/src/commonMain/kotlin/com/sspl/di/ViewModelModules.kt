@@ -3,6 +3,7 @@ package com.sspl.di
 import com.sspl.ui.conferencescreen.ConferenceViewModel
 import com.sspl.ui.kyc.SignInViewModel
 import com.sspl.ui.kyc.SignUpViewModel
+
 import com.sspl.ui.otp.OtpViewModel
 import com.sspl.ui.postcreation.PostCreationViewModel
 import com.sspl.ui.posts.PostViewModel
@@ -36,6 +37,7 @@ internal val viewModelModules = module {
     viewModelOf(::OtpViewModel)
     viewModelOf(::UserDetailViewModel)
     viewModelOf(::PostCreationViewModel)
+
 //    viewModelOf(::PlayerScreenViewModel)
 //    viewModelOf(::SearchScreenViewModel)
 }
