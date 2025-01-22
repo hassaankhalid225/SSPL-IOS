@@ -61,9 +61,16 @@ import com.sspl.ui.components.PasswordTextField
 import com.sspl.ui.components.PhoneWithCountrySelector
 import com.sspl.ui.components.countrypicker.Country
 import com.sspl.utils.IconResource
+import dev.icerock.moko.geo.compose.BindLocationTrackerEffect
+import dev.icerock.moko.geo.compose.LocationTrackerAccuracy
+import dev.icerock.moko.geo.compose.rememberLocationTrackerFactory
+import dev.icerock.moko.permissions.PermissionsController
+import dev.icerock.moko.permissions.compose.PermissionsControllerFactory
+import dev.icerock.moko.permissions.compose.rememberPermissionsControllerFactory
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import shared.createPermissionsManager
 
 /**
  * Created by M Imran
@@ -80,7 +87,16 @@ fun LoginScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scaffoldState = remember { SnackbarHostState() }
+    val factory: PermissionsControllerFactory = rememberPermissionsControllerFactory()
+    val controller: PermissionsController = remember(factory) { factory.createPermissionsController() }
+    val facotry = rememberLocationTrackerFactory(LocationTrackerAccuracy.Best)
+    val locationTracker = facotry.createLocationTracker(controller)
+    BindLocationTrackerEffect(locationTracker)
 
+
+    LaunchedEffect(locationTracker) {
+        viewModel.init(locationTracker)
+    }
 
     LaunchedEffect(Unit) {
         viewModel.oneTimeEvents.collect { event ->

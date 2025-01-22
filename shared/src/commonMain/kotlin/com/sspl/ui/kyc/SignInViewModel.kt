@@ -8,7 +8,7 @@ import com.sspl.core.usecases.EmailValidationUseCase
 import com.sspl.core.usecases.LoginUserUseCase
 import com.sspl.core.usecases.PasswordValidationUseCase
 import com.sspl.core.usecases.PhoneNumberValidationUseCase
-import kotlinx.coroutines.delay
+import dev.icerock.moko.geo.LocationTracker
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -28,9 +28,8 @@ class SignInViewModel(
     private val phoneNumberValidationUseCase: PhoneNumberValidationUseCase,
     private val passwordValidationUseCase: PasswordValidationUseCase,
     private val loginUserUseCase: LoginUserUseCase
-) :
-    ViewModel() {
-
+) : ViewModel() {
+    private var locationTracker: LocationTracker? = null
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -47,8 +46,7 @@ class SignInViewModel(
             is LoginScreenUiEvents.OnEmailTextChange -> {
                 _uiState.update {
                     it.copy(
-                        email = event.emailText,
-                        emailError = null
+                        email = event.emailText, emailError = null
                     )
                 }
                 validateEmail()
@@ -57,8 +55,7 @@ class SignInViewModel(
             is LoginScreenUiEvents.OnPasswordTextChange -> {
                 _uiState.update {
                     it.copy(
-                        password = event.passwordText,
-                        passwordError = null
+                        password = event.passwordText, passwordError = null
                     )
                 }
                 validatePassword()
@@ -73,7 +70,8 @@ class SignInViewModel(
                 it.copy(
                     isOtpMode = !it.isOtpMode,
                     phoneNo = "",
-                    email = "", isLoginEnabled = false,
+                    email = "",
+                    isLoginEnabled = false,
                     password = ""
                 )
             }
@@ -87,8 +85,7 @@ class SignInViewModel(
 
             is LoginScreenUiEvents.OnCountryChange -> _uiState.update {
                 it.copy(
-                    country = event.country,
-                    showCountryChooser = false
+                    country = event.country, showCountryChooser = false
                 )
             }
 
@@ -152,7 +149,7 @@ class SignInViewModel(
         if (phoneNumberValidationUseCase(phoneNo)) {
             _oneTimeEvents.emit(OneTimeEvents.NavigateToOtpScreen)
         } else {
-            _uiState.update { it.copy(phoneNoError = "Invalid phone number",) }
+            _uiState.update { it.copy(phoneNoError = "Invalid phone number") }
         }
     }
 
@@ -162,7 +159,7 @@ class SignInViewModel(
 
         if (!isEmailValid || !isPasswordValid) {
             if (!isEmailValid) {
-                _uiState.update { it.copy( emailError = "Invalid email address") }
+                _uiState.update { it.copy(emailError = "Invalid email address") }
             }
             if (!isPasswordValid) {
                 _uiState.update {
@@ -175,11 +172,27 @@ class SignInViewModel(
             return
         }
         loginUserUseCase.signInUserViaEmail(
-            email = _uiState.value.email,
-            password = _uiState.value.password
+            email = _uiState.value.email, password = _uiState.value.password
         ).collect { state ->
             _uiState.update { it.copy(isLoading = state is ApiStates.Loading) }
             _networkState.emit(state)
+        }
+    }
+
+    suspend fun init(locationTracker: LocationTracker) {
+        this.locationTracker = locationTracker
+        locationTracker.startTracking()
+        startListening()
+    }
+
+    override fun onCleared() {
+        locationTracker?.stopTracking()
+    }
+    private fun startListening(){
+        viewModelScope.launch {
+            locationTracker?.getLocationsFlow()?.collect{
+                println("the location is lat:${it.latitude} and lon:${it.longitude}")
+            }
         }
     }
 }

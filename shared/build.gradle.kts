@@ -62,7 +62,9 @@ kotlin {
                 // peekaboo-image-picker
                 implementation(libs.peekaboo.image.picker)
                 //
-
+// Compose Multiplatform
+                api("dev.icerock.moko:geo-compose:0.7.0")
+                api("dev.icerock.moko:permissions-compose:0.18.1")
                 //Navigation
                 implementation(libs.navigation.compose)
                 //Koin
