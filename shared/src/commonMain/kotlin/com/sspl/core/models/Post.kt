@@ -16,7 +16,7 @@ val dummyPostList = listOf(
         postId = 1,
         userName = "John Doe",
         userProfileUrl = "https://example.com/john_doe.jpg",
-        description = "Enjoying a beautiful day!",
+        description = "Enjoying a beautiful day! Enjoying a beautiful day! Enjoying a beautiful day!",
         images = listOf("https://example.com/image1.jpg", "https://example.com/image2.jpg"),
         likes = 100,
         dislikes = 5,
@@ -27,7 +27,9 @@ val dummyPostList = listOf(
         postId = 2,
         userName = "Jane Smith",
         userProfileUrl = "https://example.com/jane_smith.jpg",
-        description = "Weekend vibes!",
+        description = "Weekend vibes!\n" +
+                "Enjoying a beautiful day!\n" +
+                "Enjoying a beautiful day!",
         images = listOf("https://example.com/image3.jpg"),
         likes = 50,
         dislikes = 2,
@@ -38,7 +40,8 @@ val dummyPostList = listOf(
         postId = 3,
         userName = "JaneSmith",
         userProfileUrl = "https://example.com/jane_smith.jpg",
-        description = "Hello Lorem Is not Just a text Hello Lorem Is not Just a text Hello Lorem Is not Just a text",
+        description = "Hello Lorem Is not Just a text Hello \n" +
+                "Enjoying a beautiful day!Lorem Is not Just a text Hello Lorem Is not Just a text",
         images = listOf(),
         likes = 50,
         dislikes = 2,
@@ -49,7 +52,8 @@ val dummyPostList = listOf(
         postId = 4,
         userName = "AwesomeUser",
         userProfileUrl = "https://example.com/awesome_user.jpg",
-        description = "Just chilling...",
+        description = "Just chilling...\n" +
+                "Enjoying a beautiful day!",
         images = emptyList(),
         likes = 200,
         dislikes = 10,
@@ -61,7 +65,8 @@ val dummyPostList = listOf(
         postId = 5,
         userName = "MarkTwain",
         userProfileUrl = "https://example.com/mark_twain.jpg",
-        description = "Writing a new chapter...",
+        description = "Writing a\n" +
+                "Enjoying a beautiful day! new chapter...",
         images = listOf("https://example.com/image4.jpg", "https://example.com/image5.jpg"),
         likes = 350,
         dislikes = 15,
@@ -72,7 +77,8 @@ val dummyPostList = listOf(
         postId = 6,
         userName = "EmilyDavis",
         userProfileUrl = "https://example.com/emily_davis.jpg",
-        description = "Springtime in the city!",
+        description = "Springtime in the city!\n" +
+                "Enjoying a beautiful day!",
         images = listOf("https://example.com/image6.jpg"),
         likes = 500,
         dislikes = 10,
@@ -83,7 +89,8 @@ val dummyPostList = listOf(
         postId = 7,
         userName = "TechGuru",
         userProfileUrl = "https://example.com/tech_guru.jpg",
-        description = "Exploring the latest gadgets!",
+        description = "Exploring the\n" +
+                "Enjoying a beautiful day! latest gadgets!",
         images = listOf("https://example.com/image7.jpg"),
         likes = 150,
         dislikes = 8,

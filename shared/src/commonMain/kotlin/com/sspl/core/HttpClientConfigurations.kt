@@ -60,6 +60,7 @@ suspend fun <T : HttpClientEngineConfig> getBaseClient(
             println(">>>Token: $token")
             header(HttpHeaders.UserAgent, "SSPL Application")
         }
+
         config() // Apply additional configuration
     }
 }

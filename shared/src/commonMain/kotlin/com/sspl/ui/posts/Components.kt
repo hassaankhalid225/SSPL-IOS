@@ -57,16 +57,17 @@ fun PostItem(
     onCommentPost: () -> Unit
 ) {
     Card(
-        modifier = modifier.fillMaxWidth().padding(8.dp),
+        modifier = modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         shape = RoundedCornerShape(4)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp).fillMaxWidth()
+            modifier = Modifier.padding(vertical = 16.dp).fillMaxWidth()
         ) {
             // User info
             Row(
-                verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
             ) {
                 Image(
                     painter = (painterResource(Res.drawable.place_holder)),
@@ -80,11 +81,11 @@ fun PostItem(
             }
             Spacer(modifier = Modifier.height(8.dp))
 
-            HorizontalDivider()
+            HorizontalDivider(modifier.fillMaxWidth())
             Spacer(modifier = Modifier.height(8.dp))
             post.description?.let {
                 AppTextBody(
-                    text = post.description
+                    text = post.description, modifier.padding(horizontal = 10.dp)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
@@ -99,10 +100,9 @@ fun PostItem(
                     Image(
                         painter = painterResource(Res.drawable.demo1) /*(post.images[0])*/,
                         contentDescription = "Post image 1",
-                        modifier = Modifier
-                            .fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
                             .aspectRatio(1f) // Adjust this ratio as needed
-                            .clip(RoundedCornerShape(5)),
+                            .clip(RoundedCornerShape(3)),
                         contentScale = ContentScale.Crop
                     )
                 }
@@ -110,15 +110,15 @@ fun PostItem(
                 else -> {
                     // Two images side by side
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Image(
                             painter = painterResource(Res.drawable.demo2) /*(post.images[0])*/,
                             contentDescription = "Post image 1",
-                            modifier = Modifier
-                                .weight(1f).aspectRatio(1f) // Square aspect ratio for side-by-side images
-                                .clip(RoundedCornerShape(5)),
+                            modifier = Modifier.weight(1f)
+                                .aspectRatio(1f) // Square aspect ratio for side-by-side images
+                                .clip(RoundedCornerShape(4)),
                             contentScale = ContentScale.Crop
                         )
                         VerticalDivider(
@@ -127,10 +127,9 @@ fun PostItem(
                         Image(
                             painter = painterResource(Res.drawable.demo1) /*(post.images[1])*/,
                             contentDescription = "Post image 2",
-                            modifier = Modifier
-                                .weight(1f)
+                            modifier = Modifier.weight(1f)
                                 .aspectRatio(1f) // Square aspect ratio for side-by-side images
-                                .clip(RoundedCornerShape(5)),
+                                .clip(RoundedCornerShape(4)),
                             contentScale = ContentScale.Crop
                         )
                     }
@@ -148,7 +147,6 @@ fun PostItem(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PostInteractions(
     post: Post,
@@ -158,7 +156,7 @@ fun PostInteractions(
     onCommentPost: () -> Unit
 ) {
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().padding(horizontal = 12.dp),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -192,23 +190,22 @@ fun InteractionButton(
     imageRes: DrawableResource, count: Int?, contentDescription: String, onClick: () -> Unit
 ) {
     Row(
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(5.dp)
     ) {
         Image(
-                painter = painterResource(imageRes),
-                contentDescription = contentDescription,
-                modifier = Modifier.size(24.dp).clickable(onClick = onClick), // Adjust size as needed
-                contentScale = ContentScale.Fit // Adjust scale as needed
-            )
+            painter = painterResource(imageRes),
+            contentDescription = contentDescription,
+            modifier = Modifier.size(24.dp).clickable(onClick = onClick), // Adjust size as needed
+            contentScale = ContentScale.Fit // Adjust scale as needed
+        )
         AppTextSmall(
             text = buildAnnotatedString {
                 append(count?.toString() ?: "0")
-            },
-            modifier = Modifier.wrapContentWidth()
+            }, modifier = Modifier.wrapContentWidth()
         )
     }
 }
-
 
 
 fun LazyListScope.posts(
@@ -218,12 +215,10 @@ fun LazyListScope.posts(
     onCommentPost: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) = itemsIndexed(items = items, key = { index, _ -> index }, itemContent = { _, item ->
-    PostItem(
-        post = item,
+    PostItem(post = item,
         modifier = modifier,
         onLikePost = { onLikePost(item.postId) },
         onDislikePost = { onDislikePost(item.postId) },
-        onCommentPost = { onCommentPost(item.postId) }
-    )
+        onCommentPost = { onCommentPost(item.postId) })
 })
 
