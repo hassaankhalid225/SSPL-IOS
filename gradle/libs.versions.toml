@@ -13,6 +13,7 @@ navigationCompose = "2.7.0-alpha07"
 coil3 = "3.0.4"
 okhttpBom = "4.12.0"
 peekabooImagePicker = "0.5.2"
+permissionsCompose = "0.18.1"
 serialization = "1.7.3"
 coreSplash = "1.0.1"
 playServices = "4.4.2"
@@ -88,6 +89,7 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist-permissions" }
 peekaboo-image-picker = { module = "io.github.onseok:peekaboo-image-picker", version.ref = "peekabooImagePicker" }
 androidx-foundation-layout-android = { group = "androidx.compose.foundation", name = "foundation-layout-android", version.ref = "foundationLayoutAndroid" }
+permissions-compose = { module = "dev.icerock.moko:permissions-compose", version.ref = "permissionsCompose" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

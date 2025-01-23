@@ -61,16 +61,11 @@ kotlin {
 
                 // peekaboo-image-picker
                 implementation(libs.peekaboo.image.picker)
-                //
-// Compose Multiplatform
-                api("dev.icerock.moko:geo-compose:0.7.0")
-                api("dev.icerock.moko:permissions-compose:0.18.1")
-
-                //compass
                 // Geolocation
                 implementation(libs.compass.geolocation)
                 implementation(libs.compass.geolocation.mobile)
                 // Location permissions for mobile
+             api(libs.permissions.compose)
                 implementation(libs.compass.permissions.mobile)
 
                 //Navigation

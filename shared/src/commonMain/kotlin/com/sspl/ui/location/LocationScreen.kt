@@ -26,6 +26,9 @@ import com.sspl.ui.components.AppTextBody
 import com.sspl.ui.components.AppTextSubTitle
 import com.sspl.ui.components.AppTextTitle
 import com.sspl.ui.postcreation.CameraPermissionDeniedDialog
+import dev.icerock.moko.permissions.PermissionsController
+import dev.icerock.moko.permissions.compose.PermissionsControllerFactory
+import dev.icerock.moko.permissions.compose.rememberPermissionsControllerFactory
 import dev.jordond.compass.Coordinates
 import dev.jordond.compass.Priority
 import dev.jordond.compass.geolocation.GeolocatorResult
@@ -55,7 +58,8 @@ fun LocationScreen() {
     val allowedRadius = 50 // meters
     val scope = rememberCoroutineScope()
     val scaffoldState = remember { SnackbarHostState() }
-
+    val factory: PermissionsControllerFactory = rememberPermissionsControllerFactory()
+    val controller: PermissionsController = remember(factory) { factory.createPermissionsController() }
 
     val locationPermissionController = remember { LocationPermissionController() }
     val geoLocation = remember { MobileGeolocator(locationPermissionController) }
@@ -168,7 +172,7 @@ fun LocationScreen() {
             onDismiss = { locationState = locationState.copy(isPermissionDeniedForever = false) },
             onGoToSettings = {
                 locationState = locationState.copy(isPermissionDeniedForever = false)
-                LocationPermissionController.openSettings()
+                controller.openAppSettings()
             }
         )
     }

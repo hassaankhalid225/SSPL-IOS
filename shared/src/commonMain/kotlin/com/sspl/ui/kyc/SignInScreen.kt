@@ -24,7 +24,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -61,16 +60,9 @@ import com.sspl.ui.components.PasswordTextField
 import com.sspl.ui.components.PhoneWithCountrySelector
 import com.sspl.ui.components.countrypicker.Country
 import com.sspl.utils.IconResource
-import dev.icerock.moko.geo.compose.BindLocationTrackerEffect
-import dev.icerock.moko.geo.compose.LocationTrackerAccuracy
-import dev.icerock.moko.geo.compose.rememberLocationTrackerFactory
-import dev.icerock.moko.permissions.PermissionsController
-import dev.icerock.moko.permissions.compose.PermissionsControllerFactory
-import dev.icerock.moko.permissions.compose.rememberPermissionsControllerFactory
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import shared.createPermissionsManager
 
 /**
  * Created by M Imran
