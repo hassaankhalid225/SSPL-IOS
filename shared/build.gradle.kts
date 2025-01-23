@@ -65,7 +65,6 @@ kotlin {
                 implementation(libs.compass.geolocation)
                 implementation(libs.compass.geolocation.mobile)
                 // Location permissions for mobile
-             api(libs.permissions.compose)
                 implementation(libs.compass.permissions.mobile)
 
                 //Navigation

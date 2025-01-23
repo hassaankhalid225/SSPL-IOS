@@ -14,9 +14,13 @@ import platform.AVFoundation.AVCaptureDevice
 import platform.AVFoundation.AVMediaTypeVideo
 import platform.AVFoundation.authorizationStatusForMediaType
 import platform.AVFoundation.requestAccessForMediaType
+import platform.CoreLocation.CLLocationManager
 import platform.Foundation.NSDateFormatter
 import platform.Foundation.NSLocale
+import platform.Foundation.NSURL
 import platform.Foundation.localeWithLocaleIdentifier
+import platform.UIKit.UIApplication
+import platform.UIKit.UIApplicationOpenSettingsURLString
 import platform.UIKit.UIDevice
 
 class IOSPlatform : Platform {
@@ -119,6 +123,26 @@ actual fun formatDateTime(dateTime: String, inFormat: String, outFormat: String)
 }
 
 actual fun getStorage(): Storage = IosStorage()
+
+
+class IosGpsChecker : GpsChecker {
+    override fun hasGps(): Boolean {
+        return CLLocationManager.locationServicesEnabled()
+    }
+    override fun requestEnableLocationServices() {
+        val settingsUrl = NSURL.URLWithString(UIApplicationOpenSettingsURLString)
+        settingsUrl?.let {
+            if (UIApplication.sharedApplication.canOpenURL(it)) {
+                UIApplication.sharedApplication.openURL(it)
+            }
+        }
+    }
+}
+
+@Composable
+actual fun createGpsChecker(): GpsChecker {
+    return IosGpsChecker()
+}
 
 
 actual fun ByteArray.toBitmap() = Image.makeFromEncoded(this).toComposeImageBitmap()

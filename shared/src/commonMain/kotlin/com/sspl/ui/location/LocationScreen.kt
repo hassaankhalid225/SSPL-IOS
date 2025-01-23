@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -22,23 +24,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.sspl.platform.GpsChecker
+import com.sspl.platform.createGpsChecker
 import com.sspl.ui.components.AppTextBody
 import com.sspl.ui.components.AppTextSubTitle
 import com.sspl.ui.components.AppTextTitle
 import com.sspl.ui.postcreation.CameraPermissionDeniedDialog
-import dev.icerock.moko.permissions.PermissionsController
-import dev.icerock.moko.permissions.compose.PermissionsControllerFactory
-import dev.icerock.moko.permissions.compose.rememberPermissionsControllerFactory
 import dev.jordond.compass.Coordinates
 import dev.jordond.compass.Priority
 import dev.jordond.compass.geolocation.GeolocatorResult
 import dev.jordond.compass.geolocation.MobileGeolocator
 import dev.jordond.compass.permissions.LocationPermissionController
 import dev.jordond.compass.permissions.PermissionState
-import dev.jordond.compass.permissions.mobile.openSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koin.compose.koinInject
 import shared.PermissionCallback
 import shared.PermissionStatus
 import shared.PermissionType
@@ -53,18 +54,13 @@ import kotlin.math.sqrt
 
 @Composable
 fun LocationScreen() {
-
     val apiCoordinates = Coordinates(26.4767636, 74.2738066)
     val allowedRadius = 50 // meters
     val scope = rememberCoroutineScope()
     val scaffoldState = remember { SnackbarHostState() }
-    val factory: PermissionsControllerFactory = rememberPermissionsControllerFactory()
-    val controller: PermissionsController = remember(factory) { factory.createPermissionsController() }
-
     val locationPermissionController = remember { LocationPermissionController() }
     val geoLocation = remember { MobileGeolocator(locationPermissionController) }
-
-
+    val gpsChecker= createGpsChecker()
     var launchCamera by remember { mutableStateOf(value = false) }
     var launchSetting by remember { mutableStateOf(value = false) }
     var permissionRationalDialog by remember { mutableStateOf(value = false) }
@@ -99,6 +95,9 @@ fun LocationScreen() {
         }
     }
 
+
+
+
     if (launchCamera) {
         if (permissionsManager.isPermissionGranted(PermissionType.CAMERA)) {
             cameraManager.launch()
@@ -128,51 +127,72 @@ fun LocationScreen() {
 
     LaunchedEffect(locationState.isPermissionGranted) {
         if (locationState.isPermissionGranted) {
-            locationState = locationState.copy(isLocationOn = geoLocation.isAvailable())
-        }
-    }
-    LaunchedEffect(locationState.isLocationOn) {
-        if (locationState.isLocationOn) {
-            isGettingLocation = true
-            when (val result = geoLocation.current(Priority.HighAccuracy)) {
-                is GeolocatorResult.Error -> {
-                    println(result.message)
-                    scaffoldState.showSnackbar(result.message)
-                    isGettingLocation = false
+            if (gpsChecker.hasGps()) {
+                scaffoldState.showSnackbar("Device Location Is On")
+
+
+                    isGettingLocation = true
+                    when (val result = geoLocation.current(Priority.HighAccuracy)) {
+                        is GeolocatorResult.Error -> {
+                            println(result.message)
+                            scaffoldState.showSnackbar(result.message)
+                            isGettingLocation = false
+                        }
+
+                        is GeolocatorResult.Success -> {
+                            locationState = locationState.copy(
+                                latitude = result.data.coordinates.latitude.toString(),
+                                longitude = result.data.coordinates.longitude.toString()
+                            )
+                            val distance = calculateDistance(
+                                apiCoordinates, Coordinates(
+                                    result.data.coordinates.latitude,
+                                    result.data.coordinates.longitude
+                                )
+                            )
+                            val isWithinRadius = distance <= allowedRadius
+
+
+                            if (isWithinRadius) {
+                                scaffoldState.showSnackbar("You are within the allowed radius.")
+                            } else {
+                                scaffoldState.showSnackbar("You are outside the allowed radius. Distance: ${distance.roundToInt()} meters")
+                            }
+                            isGettingLocation = false
+
+                        }
+
                 }
+            } else {
+                 val snackbarResult = scaffoldState.showSnackbar(
+                    message = "Device Location Off",
+                    actionLabel = "Enable",
+                    duration = SnackbarDuration.Indefinite,
+                    withDismissAction = true
+                )
+                when (snackbarResult) {
+                    SnackbarResult.ActionPerformed -> {
+                        gpsChecker.requestEnableLocationServices()
+                        locationState=locationState.copy(isPermissionGranted = false)
 
-                is GeolocatorResult.Success -> {
-                    locationState = locationState.copy(
-                        latitude = result.data.coordinates.latitude.toString(),
-                        longitude = result.data.coordinates.longitude.toString()
-                    )
-                    val distance = calculateDistance(apiCoordinates, Coordinates(
-                        result.data.coordinates.latitude,
-                        result.data.coordinates.longitude
-                    ))
-                    val isWithinRadius = distance <= allowedRadius
-
-
-                    if (isWithinRadius) {
-                        scaffoldState.showSnackbar("You are within the allowed radius.")
-                    } else {
-                        scaffoldState.showSnackbar("You are outside the allowed radius. Distance: ${distance.roundToInt()} meters")
                     }
-                    isGettingLocation = false
+                    SnackbarResult.Dismissed -> {
+                        locationState=locationState.copy(isPermissionGranted = false)
 
+                        // The user explicitly dismissed the Snackbar
+                    }
                 }
             }
-        } else {
-            scaffoldState.showSnackbar("Turn on devices Location")
-            // TODO: go to mobile settings to turn device location on (not App permission)
+
         }
     }
+
     if (locationState.isPermissionDeniedForever) {
         PermissionDeniedDialog(
             onDismiss = { locationState = locationState.copy(isPermissionDeniedForever = false) },
             onGoToSettings = {
                 locationState = locationState.copy(isPermissionDeniedForever = false)
-                controller.openAppSettings()
+                launchSetting = true
             }
         )
     }
@@ -252,8 +272,7 @@ fun PermissionDeniedDialog(onDismiss: () -> Unit, onGoToSettings: () -> Unit) {
 data class LocationState(
     val latitude: String? = null,
     val longitude: String? = null,
-    val isLocationOn: Boolean = false,
-    val isPermissionGranted: Boolean = false,
+     val isPermissionGranted: Boolean = false,
     val hasPhoneNoLocation: Boolean = false,
     val isPermissionDenied: Boolean = false,
     val isPermissionDeniedForever: Boolean = false
@@ -275,8 +294,9 @@ suspend fun requestPermissions(
         PermissionState.DeniedForever -> onPermissionDeniedForever()
     }
 }
+
 suspend fun calculateDistance(coord1: Coordinates, coord2: Coordinates): Double {
-    return withContext(Dispatchers.Default){
+    return withContext(Dispatchers.Default) {
 
         val R = 6371e3 // Earth's radius in meters
         val φ1 = coord1.latitude * PI / 180
@@ -289,6 +309,6 @@ suspend fun calculateDistance(coord1: Coordinates, coord2: Coordinates): Double 
                 sin(Δλ / 2) * sin(Δλ / 2)
         val c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
-         R * c // Distance in meters
+        R * c // Distance in meters
     }
 }
