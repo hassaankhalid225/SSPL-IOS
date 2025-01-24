@@ -61,7 +61,11 @@ kotlin {
 
                 // peekaboo-image-picker
                 implementation(libs.peekaboo.image.picker)
-                //
+                // Geolocation
+                implementation(libs.compass.geolocation)
+                implementation(libs.compass.geolocation.mobile)
+                // Location permissions for mobile
+                implementation(libs.compass.permissions.mobile)
 
                 //Navigation
                 implementation(libs.navigation.compose)

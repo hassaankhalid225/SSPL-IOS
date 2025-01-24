@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
+import android.location.LocationManager
 import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -60,6 +61,23 @@ actual fun formatDateTime(dateTime: String, inFormat: String, outFormat: String)
 
 actual fun getStorage(): Storage {
     TODO("Not yet implemented")
+}
+
+class AndroidGpsChecker(private val context: Context) : GpsChecker {
+    override fun hasGps(): Boolean {
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+    }
+    override fun requestEnableLocationServices() {
+        val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        context.startActivity(intent)
+    }
+}
+@Composable
+actual fun createGpsChecker(): GpsChecker {
+    val androidGpsChecker :AndroidGpsChecker = koinInject()
+    return androidGpsChecker
 }
 
 actual fun ByteArray.toBitmap() = BitmapFactory.decodeByteArray(this, 0, size).asImageBitmap()

@@ -20,4 +20,10 @@ expect fun formatDateTime(dateTime: String, inFormat: String, outFormat: String)
 
 expect fun ByteArray.toBitmap(): ImageBitmap
 
+interface GpsChecker {
+    fun hasGps(): Boolean
+    fun requestEnableLocationServices()
+}
+@Composable
+expect fun createGpsChecker(): GpsChecker
 

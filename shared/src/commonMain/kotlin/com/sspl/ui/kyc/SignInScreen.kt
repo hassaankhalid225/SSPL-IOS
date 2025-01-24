@@ -24,7 +24,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -126,7 +125,9 @@ fun LoginScreen(
             createNewAccount = {
                 navController.navigate(Screen.SignUpScreen.route)
             },
-            modifier = modifier
+            modifier = modifier.clickable{
+                navController.navigate(Screen.GetLocation.route)
+            }
         )
     }
 
