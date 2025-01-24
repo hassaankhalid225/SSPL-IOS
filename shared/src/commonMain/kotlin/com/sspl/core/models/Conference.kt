@@ -3,21 +3,14 @@ package com.sspl.core.models
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/**
- * Created by M Imran
- * Senior Software Engineer at
- * BhimSoft on 05/01/2025.
- * se.muhammadimran@gmail.com
- */
 @Serializable
 data class Conference(
-    val title: String,
-    val address: String,
-    @SerialName("short_message")
-    val shortMessage: String,
-    @SerialName("start_at")
-    val startAt: String,
-    @SerialName("end_at")
-    val endAt: String,
-    val schedule: List<Schedule>
+    val id: Int?,
+    val title: String?,
+    val summary: String?,
+    @SerialName("start_date") val startDate: String?,
+    @SerialName("end_date") val endDate: String?,
+    @SerialName("created_at") val createdAt: String?,
+    @SerialName("updated_at") val updatedAt: String?,
+    val days: List<Day>
 )

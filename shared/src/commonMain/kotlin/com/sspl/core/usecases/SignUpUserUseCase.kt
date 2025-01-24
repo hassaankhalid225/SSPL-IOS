@@ -5,7 +5,6 @@ import com.sspl.core.ApiStates
 import com.sspl.core.apis.AuthRequest
 import com.sspl.core.models.ApiError
 import com.sspl.core.models.AuthResponse
-import com.sspl.core.models.User
 import com.sspl.core.repositories.AuthRepository
 import com.sspl.session.UserSession
 import io.ktor.client.HttpClient
@@ -17,16 +16,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 class SignUpUserUseCase(
-    private val authRepository: AuthRepository,
-    private val userSession: UserSession
+    private val authRepository: AuthRepository, private val userSession: UserSession
 ) {
 
     fun signUpUser(
-        firstName: String,
-        lastName: String,
-        email: String,
-        password: String,
-        phoneNumber: String
+        firstName: String, lastName: String, email: String, password: String, phoneNumber: String
     ): Flow<ApiStates<AuthResponse>> = flow {
         emit(ApiStates.Loading)
         try {
@@ -42,7 +36,8 @@ class SignUpUserUseCase(
 
             if (response.status.isSuccess()) {
                 val result = response.body<AuthResponse>()
-                result.token?.let { userSession.setToken(result.token) }
+                result.accessToken?.let { userSession.setToken(it) }
+                println("the result is $result")
                 emit(ApiStates.Success(result))
             } else {
                 val errorResponse = response.body<ApiError>()

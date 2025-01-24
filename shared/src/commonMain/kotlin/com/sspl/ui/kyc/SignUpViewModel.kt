@@ -3,7 +3,6 @@ package com.sspl.ui.kyc
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sspl.core.ApiStates
-import com.sspl.core.models.User
 import com.sspl.core.usecases.EmailValidationUseCase
 import com.sspl.core.usecases.PasswordValidationUseCase
 import com.sspl.core.usecases.PhoneNumberValidationUseCase
