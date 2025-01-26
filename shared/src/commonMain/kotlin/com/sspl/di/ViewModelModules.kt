@@ -1,5 +1,6 @@
 package com.sspl.di
 
+import com.sspl.ui.conferencescreen.ConferenceDetailViewModel
 import com.sspl.ui.conferencescreen.ConferenceViewModel
 import com.sspl.ui.kyc.SignInViewModel
 import com.sspl.ui.kyc.SignUpViewModel
@@ -29,6 +30,7 @@ import org.koin.dsl.module
 
 internal val viewModelModules = module {
     singleOf(::ConferenceViewModel)
+    viewModelOf(::ConferenceDetailViewModel)
     viewModelOf(::SignInViewModel)
     viewModelOf(::SignUpViewModel)
     viewModelOf( ::PostViewModel)

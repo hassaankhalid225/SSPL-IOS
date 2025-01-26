@@ -5,13 +5,14 @@ import com.sspl.core.ApiStates
 import com.sspl.core.models.ApiError
 import com.sspl.core.models.AuthResponse
 import com.sspl.core.repositories.AuthRepository
+import com.sspl.session.UserSession
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import io.ktor.client.call.*
 import io.ktor.http.isSuccess
 
-class LoginUserUseCase(private val authRepository: AuthRepository) {
+class LoginUserUseCase(private val authRepository: AuthRepository,private val userSession: UserSession) {
 
     fun signInUserViaEmail(
         email: String,
@@ -30,6 +31,8 @@ class LoginUserUseCase(private val authRepository: AuthRepository) {
             if (response.status.isSuccess()) {
                 val user = response.body<AuthResponse>()
                 println(user.toString())
+                user.accessToken?.let { userSession.setToken(it) }
+
                 emit(ApiStates.Success(user))
             } else {
                 val errorResponse = response.body<ApiError>()

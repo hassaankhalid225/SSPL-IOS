@@ -1,7 +1,8 @@
 package com.sspl.core.repositories
 
 import com.sspl.core.models.Post
-import com.sspl.core.models.dummyPostList
+
+import com.sspl.utils.dummyPostList
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow

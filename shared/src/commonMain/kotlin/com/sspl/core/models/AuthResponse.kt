@@ -11,23 +11,3 @@ data class AuthResponse(
     @SerialName("account")
     val account: Account?
 )
-@Serializable
-data class Account(
-    val email: String?,
-    val user: User?
-)
-
-@Serializable
-data class User(
-    @SerialName("first_name")
-    val firstName: String?,
-
-    @SerialName("gender")
-    val gender: String?,
-
-    @SerialName("id")
-    val id: Int?,
-
-    @SerialName("last_name")
-    val lastName: String?
-)

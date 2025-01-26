@@ -36,7 +36,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.core.ApiStates
-import com.sspl.core.models.SingleConference
+import com.sspl.core.models.Conference
 import com.sspl.platform.formatDateTime
 import com.sspl.theme.boxColor
 import com.sspl.theme.columnColor
@@ -87,7 +87,7 @@ fun ConferenceScreen(
         }
 
         is ApiStates.Success -> {
-            (uiState as ApiStates.Success<List<SingleConference>>).data?.let {
+            (uiState as ApiStates.Success<List<Conference>>).data?.let {
                 ConferenceList(
                     conferences = it,
                     navController = navController
@@ -110,7 +110,7 @@ fun LoadingScreen() {
 
 @Composable
 fun ConferenceList(
-    conferences: List<SingleConference>,
+    conferences: List<Conference>,
     navController: NavController
 ) {
     LazyColumn(
@@ -135,7 +135,7 @@ fun ConferenceList(
 
 @Composable
 fun ConferenceItem(
-    item: SingleConference, position: Int, showDivider: Boolean = true, onClick: () -> Unit
+    item: Conference, position: Int, showDivider: Boolean = true, onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth().let {
