@@ -10,7 +10,8 @@ sealed class ConferenceRequest {
     @Serializable
     @Resource("/conferences/{conferenceId}")
     data class ById(
-        val conferenceId: Int
+        val conferenceId: Int,
+        val format:String="days"
     ) : ConferenceRequest()
 
     @Serializable
