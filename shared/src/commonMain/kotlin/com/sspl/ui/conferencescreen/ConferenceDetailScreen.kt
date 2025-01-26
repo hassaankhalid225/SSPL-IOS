@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.sspl.core.models.SingleConference
 import com.sspl.platform.formatDateTime
 import com.sspl.theme.boxColor
 import com.sspl.theme.columnColor
@@ -30,7 +31,10 @@ import com.sspl.theme.orange
 import com.sspl.ui.components.AppTextBody
 import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.AppTextSubTitle
+import com.sspl.utils.FORMAT_DAY_MONTH
+import com.sspl.utils.FORMAT_DEFAULT_DATE_TIME
 import kotlinx.serialization.json.Json
+import kotlin.test.todo
 
 /**
  * Created by M Imran
@@ -40,57 +44,59 @@ import kotlinx.serialization.json.Json
  */
 
 @Composable
-fun ConferenceDetailScreen(navController: NavController) {}
-//    val data = navController.previousBackStackEntry?.savedStateHandle?.get<String>(
-//        "data"
-//    )
-//    if (data == null) return
-//
-//    val conference: Conference = Json.decodeFromString<Conference>(data)
-//    Column(
-//        modifier = Modifier.fillMaxWidth().wrapContentHeight(align = Alignment.Top)
-//            .padding(start = 16.dp, end = 16.dp, top = 16.dp)
-//            .clip(
-//                shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp)
-//            )
-//            .background(boxColor)
-//
-//    ) {
-//        Column(
-//            modifier = Modifier
-//                .background(columnColor)
-//                .clip(
-//                    shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp)
-//                )
-//                .padding(all = 12.dp)
-//
-//        ) {
-//            AppTextSubTitle(
-//                text = conference.title
-//            )
-//            Spacer(modifier = Modifier.size(4.dp))
-//            AppTextLabel(
-//                text = "${
-//                    formatDateTime(
-//                        dateTime = conference.startAt,
-//                        inFormat = "dd/MM/yyyy",
-//                        outFormat = "dd MMM"
-//                    )
-//                } \u2014 ${
-//                    formatDateTime(
-//                        dateTime = conference.endAt,
-//                        inFormat = "dd/MM/yyyy",
-//                        outFormat = "dd MMM"
-//                    )
-//                }"
-//            )
-//            Spacer(modifier = Modifier.size(8.dp))
-//
-//            AppTextBody(
-//                text = conference.shortMessage
-//            )
-//
-//        }
+fun ConferenceDetailScreen(navController: NavController) {
+    val data = navController.previousBackStackEntry?.savedStateHandle?.get<String>(
+        "data"
+    )
+    if (data == null) return
+
+    val conference: SingleConference = Json.decodeFromString<SingleConference>(data)
+    Column(
+        modifier = Modifier.fillMaxWidth().wrapContentHeight(align = Alignment.Top)
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp)
+            .clip(
+                shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp)
+            )
+            .background(boxColor)
+
+    ) {
+        Column(
+            modifier = Modifier
+                .background(columnColor)
+                .fillMaxWidth()
+                .clip(
+                    shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp)
+                )
+                .padding(all = 12.dp)
+
+        ) {
+            AppTextSubTitle(
+                text = conference.title
+            )
+            Spacer(modifier = Modifier.size(4.dp))
+            AppTextLabel(
+                text = "${
+                    formatDateTime(
+                        dateTime = conference.startDate,
+                        inFormat = FORMAT_DEFAULT_DATE_TIME,
+                        outFormat = FORMAT_DAY_MONTH
+                    )
+                } \u2014 ${
+                    formatDateTime(
+                        dateTime = conference.endDate,
+                        inFormat = FORMAT_DEFAULT_DATE_TIME,
+                        outFormat = FORMAT_DAY_MONTH
+                    )
+                }"
+            )
+            Spacer(modifier = Modifier.size(8.dp))
+
+            AppTextBody(
+                text = conference.summary
+            )
+
+        }
+        todo { "Below will go list of session" }
 //        conference.schedule.let {
 //            LazyColumn(contentPadding = PaddingValues(start = 12.dp, end = 12.dp, bottom = 12.dp)) {
 //                itemsIndexed(it, key = { i, _ -> i }) { i, item ->
@@ -103,9 +109,9 @@ fun ConferenceDetailScreen(navController: NavController) {}
 //                }
 //            }
 //        }
-//    }
-//}
-//
+    }
+}
+
 //@Composable
 //private fun Schedule(item: Schedule, showDivider: Boolean) {
 //    val grouped = item.sessions.groupBy {

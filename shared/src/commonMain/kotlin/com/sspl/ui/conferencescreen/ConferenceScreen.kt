@@ -16,18 +16,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
+
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,7 +36,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.core.ApiStates
-import com.sspl.core.models.Conference
 import com.sspl.core.models.SingleConference
 import com.sspl.platform.formatDateTime
 import com.sspl.theme.boxColor
@@ -52,6 +45,8 @@ import com.sspl.theme.orange
 import com.sspl.ui.components.AppTextBody
 import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.AppTextSubTitle
+import com.sspl.utils.FORMAT_DAY_MONTH
+import com.sspl.utils.FORMAT_DEFAULT_DATE_TIME
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.koin.compose.viewmodel.koinViewModel
@@ -75,17 +70,22 @@ fun ConferenceScreen(
         is ApiStates.Loading -> {
             LoadingScreen()
         }
+
         is ApiStates.Failure -> {
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Error: ${(uiState as ApiStates.Failure).error.message}", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    text = "Error: ${(uiState as ApiStates.Failure).error.message}",
+                    style = MaterialTheme.typography.bodyLarge
+                )
                 Spacer(modifier = Modifier.height(16.dp))
 
             }
         }
+
         is ApiStates.Success -> {
             (uiState as ApiStates.Success<List<SingleConference>>).data?.let {
                 ConferenceList(
@@ -137,7 +137,8 @@ fun ConferenceList(
 fun ConferenceItem(
     item: SingleConference, position: Int, showDivider: Boolean = true, onClick: () -> Unit
 ) {
-    Row(modifier = Modifier.fillMaxWidth().let {
+    Row(
+        modifier = Modifier.fillMaxWidth().let {
             if (position == 0) {
                 it.then(
                     Modifier.clip(
@@ -168,9 +169,9 @@ fun ConferenceItem(
                     append(
                         "${
                             formatDateTime(
-                                dateTime = item.startDate?:"",
-                                inFormat = "dd/MM/yyyy",
-                                outFormat = "dd MMM"
+                                dateTime = item.startDate,
+                                inFormat = FORMAT_DEFAULT_DATE_TIME,
+                                outFormat = FORMAT_DAY_MONTH
                             ).uppercase()
                         }\n"
                     )
@@ -191,7 +192,9 @@ fun ConferenceItem(
                 ) {
                     append(
                         formatDateTime(
-                            dateTime = item.endDate?:"", inFormat = "dd/MM/yyyy", outFormat = "dd MMM"
+                            dateTime = item.endDate,
+                            inFormat = FORMAT_DEFAULT_DATE_TIME,
+                            outFormat = FORMAT_DAY_MONTH
                         ).uppercase()
                     )
                 }
@@ -205,22 +208,23 @@ fun ConferenceItem(
         }
         Column(
             modifier = Modifier.fillMaxWidth(1F).clip(
-                    shape = RoundedCornerShape(0.dp, 16.dp, 16.dp, 0.dp)
-                ).background(color = boxColor)
+                shape = RoundedCornerShape(0.dp, 16.dp, 16.dp, 0.dp)
+            ).background(color = boxColor)
 
         ) {
-            Column(modifier = Modifier.padding(all = 8.dp)) {
+            Column(modifier = Modifier.fillMaxWidth().padding(all = 8.dp)) {
                 AppTextSubTitle(
-                    text = item.title?:""
+                    text = item.title
                 )
                 Spacer(modifier = Modifier.size(8.dp))
 
                 AppTextBody(
-                    text = item.summary?:""
+                    text = item.summary
                 )
                 Spacer(modifier = Modifier.size(16.dp))
                 AppTextLabel(
-                    text = "MORE DETAILS", modifier = Modifier.align(alignment = Alignment.End)
+                    text = "MORE DETAILS",
+                    modifier = Modifier.padding(top = 8.dp).align(alignment = Alignment.End)
                 )
             }
             if (showDivider) {

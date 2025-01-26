@@ -45,6 +45,7 @@ import com.sspl.resources.enter_your_mail
 import com.sspl.resources.enter_your_password
 import com.sspl.resources.login
 import com.sspl.resources.login_screen_background
+import com.sspl.resources.sign_up
 import com.sspl.ui.components.AppTextField
 import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.ButtonWithProgress
@@ -195,7 +196,7 @@ fun SignUpScreenContent(
             ButtonWithProgress(
                 isEnabled = isSignUpEnabled,
                 isLoading = isLoading,
-                buttonText = stringResource(Res.string.login),
+                buttonText = stringResource(Res.string.sign_up),
                 modifier = Modifier.imePadding()
             ) {
                 onEvent(UserEvents.Submit)
