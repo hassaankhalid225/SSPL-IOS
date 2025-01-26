@@ -3,6 +3,7 @@ package com.sspl.di
 import com.sspl.core.usecases.CommentOnPostUseCase
 import com.sspl.core.usecases.DislikePostUseCase
 import com.sspl.core.usecases.EmailValidationUseCase
+import com.sspl.core.usecases.GetConferenceByIdUseCase
 import com.sspl.core.usecases.GetPostsUseCase
 import com.sspl.core.usecases.LikePostUseCase
 import com.sspl.core.usecases.LoginUserUseCase
@@ -45,5 +46,6 @@ internal val useCaseModules = module {
     single { ValidateUserPmdcNoUseCase() }
     single { SignUpUserUseCase(get(), get()) }
     single { LoginUserUseCase(get()) }
+    single { GetConferenceByIdUseCase(get()) }
 
 }

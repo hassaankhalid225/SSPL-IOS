@@ -2,6 +2,8 @@ package com.sspl.ui.conferencescreen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -14,11 +16,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,7 +41,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.Screen
+import com.sspl.core.ApiStates
 import com.sspl.core.models.Conference
+import com.sspl.core.models.SingleConference
 import com.sspl.platform.formatDateTime
 import com.sspl.theme.boxColor
 import com.sspl.theme.columnColor
@@ -51,13 +62,57 @@ import org.koin.compose.viewmodel.koinViewModel
  * BhimSoft on 05/01/2025.
  * se.muhammadimran@gmail.com
  */
+
+
 @Composable
 fun ConferenceScreen(
     navController: NavController,
     viewModel: ConferenceViewModel = koinViewModel()
 ) {
-    val conferences by viewModel.conferences.collectAsStateWithLifecycle()
-    println("conferences: ${conferences.size}")
+    val uiState by viewModel.conferences.collectAsStateWithLifecycle()
+
+    when (uiState) {
+        is ApiStates.Loading -> {
+            LoadingScreen()
+        }
+        is ApiStates.Failure -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Error: ${(uiState as ApiStates.Failure).error.message}", style = MaterialTheme.typography.bodyLarge)
+                Spacer(modifier = Modifier.height(16.dp))
+
+            }
+        }
+        is ApiStates.Success -> {
+            (uiState as ApiStates.Success<List<SingleConference>>).data?.let {
+                ConferenceList(
+                    conferences = it,
+                    navController = navController
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun LoadingScreen() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
+    }
+}
+
+
+@Composable
+fun ConferenceList(
+    conferences: List<SingleConference>,
+    navController: NavController
+) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(all = 16.dp)
@@ -80,32 +135,25 @@ fun ConferenceScreen(
 
 @Composable
 fun ConferenceItem(
-    item: Conference,
-    position: Int,
-    showDivider: Boolean = true,
-    onClick: () -> Unit
+    item: SingleConference, position: Int, showDivider: Boolean = true, onClick: () -> Unit
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth()
-            .let {
-                if (position == 0) {
-                    it.then(
-                        Modifier.clip(
-                            shape = RoundedCornerShape(16.dp, 16.dp, 16.dp, 0.dp)
-                        )
-                    )
-                } else {
+    Row(modifier = Modifier.fillMaxWidth().let {
+            if (position == 0) {
+                it.then(
                     Modifier.clip(
-                        shape = RoundedCornerShape(0.dp, 16.dp, 16.dp, 0.dp)
+                        shape = RoundedCornerShape(16.dp, 16.dp, 16.dp, 0.dp)
                     )
-                }
+                )
+            } else {
+                Modifier.clip(
+                    shape = RoundedCornerShape(0.dp, 16.dp, 16.dp, 0.dp)
+                )
             }
-            .background(
-                color = columnColor
-            )
-            .clickable {
-                onClick.invoke()
-            }) {
+        }.background(
+            color = columnColor
+        ).clickable {
+            onClick.invoke()
+        }) {
         Column(
             modifier = Modifier.fillMaxWidth(.22F)
         ) {
@@ -120,7 +168,7 @@ fun ConferenceItem(
                     append(
                         "${
                             formatDateTime(
-                                dateTime = item.startAt,
+                                dateTime = item.startDate?:"",
                                 inFormat = "dd/MM/yyyy",
                                 outFormat = "dd MMM"
                             ).uppercase()
@@ -129,9 +177,7 @@ fun ConferenceItem(
                 }
                 withStyle(
                     style = SpanStyle(
-                        color = orange,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
+                        color = orange, fontSize = 18.sp, fontWeight = FontWeight.Bold
                     )
                 ) {
                     append("⋮\n")
@@ -145,9 +191,7 @@ fun ConferenceItem(
                 ) {
                     append(
                         formatDateTime(
-                            dateTime = item.endAt,
-                            inFormat = "dd/MM/yyyy",
-                            outFormat = "dd MMM"
+                            dateTime = item.endDate?:"", inFormat = "dd/MM/yyyy", outFormat = "dd MMM"
                         ).uppercase()
                     )
                 }
@@ -160,27 +204,23 @@ fun ConferenceItem(
             )
         }
         Column(
-            modifier = Modifier.fillMaxWidth(1F)
-                .clip(
+            modifier = Modifier.fillMaxWidth(1F).clip(
                     shape = RoundedCornerShape(0.dp, 16.dp, 16.dp, 0.dp)
-                )
-                .background(color = boxColor)
+                ).background(color = boxColor)
 
         ) {
             Column(modifier = Modifier.padding(all = 8.dp)) {
                 AppTextSubTitle(
-                    text = item.title
+                    text = item.title?:""
                 )
                 Spacer(modifier = Modifier.size(8.dp))
 
                 AppTextBody(
-                    text =
-                    item.shortMessage
+                    text = item.summary?:""
                 )
                 Spacer(modifier = Modifier.size(16.dp))
                 AppTextLabel(
-                    text = "MORE DETAILS",
-                    modifier = Modifier.align(alignment = Alignment.End)
+                    text = "MORE DETAILS", modifier = Modifier.align(alignment = Alignment.End)
                 )
             }
             if (showDivider) {
