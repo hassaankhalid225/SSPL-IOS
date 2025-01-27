@@ -16,7 +16,7 @@ import platform.Foundation.setValue
 class IosStorage : Storage {
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default
     private val defaults = NSUserDefaults.standardUserDefaults
-    override suspend fun putString(key: String, value: String): Boolean =
+    override suspend fun putString(key: String, value: String?): Boolean =
         withContext(dispatcher) {
             defaults.setValue(value, key)
 //        defaults.setObject(value, key)

@@ -37,6 +37,8 @@ class SignUpUserUseCase(
             if (response.status.isSuccess()) {
                 val result = response.body<AuthResponse>()
                 result.accessToken?.let { userSession.setToken(it) }
+               result.account?.user?.let { userSession.setUser(it) }
+
                 println("the result is $result")
                 emit(ApiStates.Success(result))
             } else {

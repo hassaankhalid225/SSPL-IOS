@@ -32,6 +32,7 @@ class LoginUserUseCase(private val authRepository: AuthRepository,private val us
                 val user = response.body<AuthResponse>()
                 println(user.toString())
                 user.accessToken?.let { userSession.setToken(it) }
+                user.account?.user?.let { userSession.setUser(it) }
 
                 emit(ApiStates.Success(user))
             } else {

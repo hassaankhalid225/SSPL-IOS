@@ -16,6 +16,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -23,6 +24,9 @@ import androidx.navigation.compose.rememberNavController
 import com.sspl.theme.windowBackGround
 import com.sspl.ui.components.AppBottomBar
 import com.sspl.ui.components.MyTopAppBar
+import com.sspl.ui.userdetails.ProfileScreen
+import com.sspl.ui.userdetails.ProfileViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 /**
  * Created by M Imran
@@ -32,9 +36,10 @@ import com.sspl.ui.components.MyTopAppBar
  */
 
 @Composable
-fun MainScreen(paddingValues: PaddingValues) {
+fun MainScreen(paddingValues: PaddingValues, viewModel: ProfileViewModel,onParentGraph: () -> Unit) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
+    val user by viewModel.user.collectAsStateWithLifecycle()
 
     val currentScreen = screenByRoute(backStackEntry?.destination?.route) ?: Screen.HomeScreen
     val navItems = navItems()
@@ -45,6 +50,7 @@ fun MainScreen(paddingValues: PaddingValues) {
         containerColor = windowBackGround,
         topBar = {
             MyTopAppBar(
+                userName = (user?.firstName + " " + user?.lastName) ?: "",
                 currentScreen = currentScreen,
                 onHamburgClicked = { navController.navigate(route = Screen.ProfileScreen.route) },
                 canNavigateBack = navController.previousBackStackEntry != null,
@@ -80,8 +86,18 @@ fun MainScreen(paddingValues: PaddingValues) {
                 .padding(it)
         ) {
             (otherScreens() + navItems).forEach { navItem ->
-                composable(route = navItem.screen.route) {
-                    navItem.component.invoke(navController)
+                when (navItem.screen.route) {
+                    (Screen.ProfileScreen.route) ->{
+                        composable(route = navItem.screen.route) {
+                            ProfileScreen(navController, viewModel, onParentGraph = onParentGraph)
+                        }
+                    }
+
+                    else ->{
+                        composable(route = navItem.screen.route) {
+                            navItem.component.invoke(navController)
+                        }
+                    }
                 }
             }
 

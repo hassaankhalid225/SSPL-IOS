@@ -29,7 +29,7 @@ class AndroidStorage(context: Context) : Storage {
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
     )
 
-    override suspend fun putString(key: String, value: String) =
+    override suspend fun putString(key: String, value: String?) =
         withContext(dispatcher) {
             sharedPreferences.edit().putString(key, value).commit()
         }
