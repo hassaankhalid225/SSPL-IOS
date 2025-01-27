@@ -32,7 +32,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.core.ApiStates
 import com.sspl.core.models.Conference
-import com.sspl.core.models.ConferenceDetails
 import com.sspl.core.models.Day
 import com.sspl.core.models.Session
 import com.sspl.platform.formatDateTime
@@ -119,7 +118,7 @@ fun ConferenceDetailScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     AppTextBody(
-                        text = (details as ApiStates.Failure).error.message ?: "An error occurred",
+                        text = (details as ApiStates.Failure).error.message,
                         color = Color.Red,
                     )
                 }
@@ -136,8 +135,9 @@ fun ConferenceDetailScreen(
                     )
                 }
             }
+
             is ApiStates.Success -> {
-                (details as ApiStates.Success<ConferenceDetails>).data?.days.let { listOfDays ->
+                (details as ApiStates.Success<Conference>).data?.days.let { listOfDays ->
                     if (listOfDays != null) {
                         LazyColumn(
                             contentPadding = PaddingValues(
@@ -162,6 +162,7 @@ fun ConferenceDetailScreen(
 
     }
 }
+
 @Composable
 private fun Schedule(item: Day, showDivider: Boolean) {
     val groupedSessions = item.sessions.groupBy {
@@ -207,8 +208,8 @@ private fun Schedule(item: Day, showDivider: Boolean) {
 }
 
 @Composable
-private fun TimeRangeText(startTime: String, endTime: String,isBold:Boolean=false) {
-    if (isBold){
+private fun TimeRangeText(startTime: String, endTime: String, isBold: Boolean = false) {
+    if (isBold) {
         AppTextLabel(
             text = formatTimeRange(
                 dateTimeStart = startTime,
@@ -216,17 +217,19 @@ private fun TimeRangeText(startTime: String, endTime: String,isBold:Boolean=fals
                 inFormat = FORMAT_DEFAULT_DATE_TIME,
                 outFormat = FORMAT_TIME_12HOUR
 
-            ))
-    }else{
-    AppTextBody(
-        text = formatTimeRange(
-            dateTimeStart = startTime,
-            dateTimeEnd = endTime,
-            inFormat = FORMAT_DEFAULT_DATE_TIME,
-            outFormat = FORMAT_TIME_12HOUR
+            )
         )
-    )
-}}
+    } else {
+        AppTextBody(
+            text = formatTimeRange(
+                dateTimeStart = startTime,
+                dateTimeEnd = endTime,
+                inFormat = FORMAT_DEFAULT_DATE_TIME,
+                outFormat = FORMAT_TIME_12HOUR
+            )
+        )
+    }
+}
 
 private fun formatTimeRange(
     dateTimeStart: String,
@@ -234,8 +237,15 @@ private fun formatTimeRange(
     inFormat: String = "dd:MM:yyyy HH:mm:ss",
     outFormat: String = "HH:mm"
 ): String {
-    return "${formatDateTime(dateTimeStart, inFormat, outFormat)} \u2014 ${formatDateTime(dateTimeEnd, inFormat, outFormat)}"
+    return "${formatDateTime(dateTimeStart, inFormat, outFormat)} \u2014 ${
+        formatDateTime(
+            dateTimeEnd,
+            inFormat,
+            outFormat
+        )
+    }"
 }
+
 @Composable
 private fun Sessions(items: List<Session>) {
     LazyRow(
@@ -246,7 +256,7 @@ private fun Sessions(items: List<Session>) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.padding(end = 8.dp)) {
                     AppTextLabel(text = item.title)
-                    AppTextBody(text = item.speakers.joinToString(separator = "\n") { it.prefix + " "+ it.firstName+" " + it.lastName })
+                    AppTextBody(text = item.speakers.joinToString(separator = "\n") { it.prefix + " " + it.firstName + " " + it.lastName })
                     AppTextBody(text = item.summary ?: "")
                     AppTextBody(text = item.venue?.title ?: "", color = orange)
                 }

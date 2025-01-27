@@ -19,6 +19,7 @@ import com.sspl.resources.sign_up
 import com.sspl.resources.user_details
 import com.sspl.resources.verify_otp
 import com.sspl.ui.HomeScreen
+import com.sspl.ui.SplashScreen
 import com.sspl.ui.userdetails.ProfileScreen
 import com.sspl.ui.conferencescreen.ConferenceDetailScreen
 import com.sspl.ui.conferencescreen.ConferenceScreen
@@ -50,6 +51,7 @@ sealed class Screen(
         route = "none",
     )
 
+    data object SplashScreen : Screen(route = "SplashScreen")
     data object MainScreen : Screen(route = "MainScreen")
 
     data object HomeScreen : Screen(
@@ -86,6 +88,7 @@ sealed class Screen(
         title = Res.string.log_in,
         route = "SignInScreen",
     )
+
     data object GetLocation : Screen(
         title = Res.string.log_in,
         route = "Location",
@@ -100,6 +103,7 @@ sealed class Screen(
         title = Res.string.sign_up,
         route = "SignUpScreen",
     )
+
     data object CreatePostScreen : Screen(
         title = Res.string.create_post,
         route = "CreatePostScreen",
@@ -115,14 +119,18 @@ fun screenByRoute(route: String?): Screen? =
     (navItems() + otherScreens()).firstOrNull { it.screen.route == route }?.screen
 
 fun navItems(): List<NavItem> =
-    listOf(NavItem(screen = Screen.HomeScreen, component = { HomeScreen(navController = it) }),
-        NavItem(screen = Screen.ForumScreen, component = { PostScreen(navController = it) }))
+    listOf(
+        NavItem(screen = Screen.HomeScreen, component = { HomeScreen(navController = it) }),
+        NavItem(screen = Screen.ForumScreen, component = { PostScreen(navController = it) })
+    )
 
 fun otherScreens(): List<NavItem> = listOf(
-    NavItem(screen = Screen.ProfileScreen,
+    NavItem(
+        screen = Screen.ProfileScreen,
         component = { ProfileScreen(navController = it) }),
     NavItem(screen = Screen.ConferenceScreen, component = { ConferenceScreen(navController = it) }),
-    NavItem(screen = Screen.ConferenceDetailScreen,
+    NavItem(
+        screen = Screen.ConferenceDetailScreen,
         component = { ConferenceDetailScreen(navController = it) }),
     NavItem(
         screen = Screen.UserDetailsScreen,
@@ -131,10 +139,13 @@ fun otherScreens(): List<NavItem> = listOf(
 )
 
 fun kycScreens(): List<NavItem> = listOf(
+    NavItem(screen = Screen.SplashScreen, component = { SplashScreen(navController = it) }),
     NavItem(screen = Screen.SignUpScreen, component = { SignUpScreen(navController = it) }),
     NavItem(screen = Screen.SignInScreen, component = { LoginScreen(navController = it) }),
     NavItem(screen = Screen.OtpScreen, component = { OtpScreen(navController = it) }),
     NavItem(screen = Screen.GetLocation, component = { LocationScreen() }),
 
-    NavItem(screen = Screen.UserDetailsScreen, component = { UserDetailsScreen(navController = it) }),
+    NavItem(
+        screen = Screen.UserDetailsScreen,
+        component = { UserDetailsScreen(navController = it) }),
 )

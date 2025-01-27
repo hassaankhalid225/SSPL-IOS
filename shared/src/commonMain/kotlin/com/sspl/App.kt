@@ -6,6 +6,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -13,12 +19,10 @@ import androidx.navigation.compose.rememberNavController
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.compose.setSingletonImageLoaderFactory
+import com.sspl.session.UserSession
 import com.sspl.theme.MyApplicationTheme
-import com.sspl.ui.HomeScreen
-import com.sspl.ui.kyc.LoginScreen
-import com.sspl.ui.kyc.SignUpScreen
-import com.sspl.ui.otp.OtpScreen
 import org.koin.compose.KoinContext
+import org.koin.compose.koinInject
 
 /**
  * Created by M Imran
@@ -45,11 +49,22 @@ fun App() {
 }
 
 @Composable
-private fun MainScreenContent(paddingValues: PaddingValues) {
+private fun MainScreenContent(
+    paddingValues: PaddingValues,
+    userSession: UserSession = koinInject()
+) {
     val navController = rememberNavController()
+    var currentScree by remember {
+        mutableStateOf<Screen>(Screen.SplashScreen)
+    }
+    LaunchedEffect(Unit) {
+        currentScree = userSession.token?.let {
+            Screen.MainScreen
+        } ?: Screen.SignInScreen
+    }
     NavHost(
         navController = navController,
-        startDestination = Screen.SignInScreen.route,
+        startDestination = currentScree.route,
         modifier = Modifier
             .fillMaxSize()
             .padding(paddingValues)
