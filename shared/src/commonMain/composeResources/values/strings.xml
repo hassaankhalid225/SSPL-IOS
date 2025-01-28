@@ -13,6 +13,7 @@
     <string name="log_in">Log In</string>
     <string name="login">Login</string>
     <string name="post">Post</string>
+    <string name="sign_out">Sign Out</string>
     <string name="camera_permission_required">Camera Permission Required</string>
     <string name="warning">Warning</string>
     <string name="open_setting">Settings</string>

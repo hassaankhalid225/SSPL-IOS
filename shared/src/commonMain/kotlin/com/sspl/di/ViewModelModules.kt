@@ -7,8 +7,10 @@ import com.sspl.ui.kyc.SignUpViewModel
 import com.sspl.ui.otp.OtpViewModel
 import com.sspl.ui.postcreation.PostCreationViewModel
 import com.sspl.ui.posts.PostViewModel
+import com.sspl.ui.userdetails.ProfileViewModel
 import com.sspl.ui.userdetails.UserDetailViewModel
 import org.koin.core.module.dsl.singleOf
+import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
@@ -30,6 +32,7 @@ import org.koin.dsl.module
 
 internal val viewModelModules = module {
     singleOf(::ConferenceViewModel)
+    viewModel { ProfileViewModel(get()) }
     viewModelOf(::ConferenceDetailViewModel)
     viewModelOf(::SignInViewModel)
     viewModelOf(::SignUpViewModel)

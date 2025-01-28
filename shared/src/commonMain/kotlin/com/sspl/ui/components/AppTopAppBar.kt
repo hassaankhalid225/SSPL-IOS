@@ -35,6 +35,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun MyTopAppBar(
     modifier: Modifier = Modifier,
+    userName: String,
     currentScreen: Screen,
     canNavigateBack: Boolean,
     navigateUp: () -> Unit,
@@ -65,7 +66,7 @@ fun MyTopAppBar(
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     AppTextSubTitle(
-                        text = "Umar Awais",
+                        text = userName,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,

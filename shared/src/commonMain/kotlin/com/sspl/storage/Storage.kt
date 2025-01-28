@@ -7,7 +7,7 @@ package com.sspl.storage
  * se.muhammadimran@gmail.com
  */
 interface Storage {
-    suspend fun putString(key: String, value: String): Boolean
+    suspend fun putString(key: String, value: String?): Boolean
     suspend fun getString(key: String, default: String): String
     suspend fun getString(key: String): String?
     suspend fun putLong(key: String, value: Long): Boolean
