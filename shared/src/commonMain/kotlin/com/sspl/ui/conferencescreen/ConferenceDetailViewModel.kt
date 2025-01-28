@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sspl.core.ApiStates
 import com.sspl.core.models.Conference
+import com.sspl.core.models.ConferenceDetail
 import com.sspl.core.usecases.GetConferencesDetailsUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -18,7 +19,7 @@ class ConferenceDetailViewModel(
     private val conferenceRepository: GetConferencesDetailsUseCase
 ) : ViewModel() {
 
-    private val _conferences = MutableStateFlow<ApiStates<Conference>>(ApiStates.Loading)
+    private val _conferences = MutableStateFlow<ApiStates<ConferenceDetail>>(ApiStates.Loading)
     val conferences = _conferences.asStateFlow()
 
     //

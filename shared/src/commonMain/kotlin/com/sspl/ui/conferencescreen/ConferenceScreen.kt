@@ -169,7 +169,7 @@ fun ConferenceItem(
                     append(
                         "${
                             formatDateTime(
-                                dateTime = item.startDate,
+                                dateTime = item.startDate?:"",
                                 inFormat = FORMAT_DEFAULT_DATE_TIME,
                                 outFormat = FORMAT_DAY_MONTH
                             ).uppercase()
@@ -192,7 +192,7 @@ fun ConferenceItem(
                 ) {
                     append(
                         formatDateTime(
-                            dateTime = item.endDate,
+                            dateTime = item.endDate?:"",
                             inFormat = FORMAT_DEFAULT_DATE_TIME,
                             outFormat = FORMAT_DAY_MONTH
                         ).uppercase()
@@ -214,12 +214,12 @@ fun ConferenceItem(
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(all = 8.dp)) {
                 AppTextSubTitle(
-                    text = item.title
+                    text = item.title?:""
                 )
                 Spacer(modifier = Modifier.size(8.dp))
 
                 AppTextBody(
-                    text = item.summary
+                    text = item.summary?:""
                 )
                 Spacer(modifier = Modifier.size(16.dp))
                 AppTextLabel(

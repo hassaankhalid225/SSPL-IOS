@@ -29,12 +29,12 @@ class LoginUserUseCase(private val authRepository: AuthRepository,private val us
             val response = authRepository.login(body = requestBody)
 
             if (response.status.isSuccess()) {
-                val user = response.body<AuthResponse>()
-                println(user.toString())
-                user.accessToken?.let { userSession.setToken(it) }
-                user.account?.user?.let { userSession.setUser(it) }
+                val authResponse = response.body<AuthResponse>()
+                println(authResponse.toString())
+                authResponse.accessToken?.let { userSession.setToken(it) }
+                authResponse.user?.let { userSession.setUser(it) }
 
-                emit(ApiStates.Success(user))
+                emit(ApiStates.Success(authResponse))
             } else {
                 val errorResponse = response.body<ApiError>()
                 emit(ApiStates.Failure(error = errorResponse))
