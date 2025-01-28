@@ -137,12 +137,13 @@ private fun ProfileImage(onChangeProfilePicture: () -> Unit = {}) {
 @Composable
 private fun BasicInformationSection(user: User?) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        SectionTitle("Basic Information")
+
         Spacer(Modifier.height(4.dp))
         InfoCard {
+            SectionTitle("Personal Details")
             InfoRow("Name", user?.firstName + " " + user?.lastName)
-            InfoRow("Email", user?.gender ?: "")
-            InfoRow("Phone", user?.id?.toString() ?: "")
+            InfoRow("Email", user?.email ?: "")
+            InfoRow("Phone", user?.phone?.toString() ?: "")
         }
     }
 }
@@ -150,9 +151,9 @@ private fun BasicInformationSection(user: User?) {
 @Composable
 private fun PersonalDetailsSection() {
     Column(modifier = Modifier.fillMaxWidth()) {
-        SectionTitle("Personal Details")
         Spacer(Modifier.height(4.dp))
         InfoCard {
+            SectionTitle("Professional Details")
             InfoRow("PMDC No", "17BS25054")
             InfoRow("Institute", "Institute Of Pakistan")
             InfoRow("City", "Lahore")

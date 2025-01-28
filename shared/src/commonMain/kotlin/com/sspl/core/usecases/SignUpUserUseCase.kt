@@ -29,7 +29,7 @@ class SignUpUserUseCase(
                 "last_name" to lastName,
                 "email" to email,
                 "password" to password,
-                "phone_number" to phoneNumber
+                "phone" to phoneNumber
             )
 
             val response = authRepository.signUp(body = requestBody)
@@ -37,7 +37,7 @@ class SignUpUserUseCase(
             if (response.status.isSuccess()) {
                 val result = response.body<AuthResponse>()
                 result.accessToken?.let { userSession.setToken(it) }
-               result.account?.user?.let { userSession.setUser(it) }
+               result?.user?.let { userSession.setUser(it) }
 
                 println("the result is $result")
                 emit(ApiStates.Success(result))

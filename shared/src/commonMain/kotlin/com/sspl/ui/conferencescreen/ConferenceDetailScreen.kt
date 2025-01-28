@@ -31,7 +31,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.core.ApiStates
+import com.sspl.core.models.AddOn
+import com.sspl.core.models.AddOnSet
 import com.sspl.core.models.Conference
+import com.sspl.core.models.ConferenceDetail
 import com.sspl.core.models.Day
 import com.sspl.core.models.Session
 import com.sspl.platform.formatDateTime
@@ -46,7 +49,6 @@ import com.sspl.utils.FORMAT_DEFAULT_DATE_TIME
 import com.sspl.utils.FORMAT_TIME_12HOUR
 import kotlinx.serialization.json.Json
 import org.koin.compose.viewmodel.koinViewModel
-import kotlin.test.todo
 
 /**
  * Created by M Imran
@@ -84,29 +86,29 @@ fun ConferenceDetailScreen(
                 .clip(
                     shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp)
                 )
-                .padding(all = 12.dp)
+                .padding(start = 12.dp,end = 12.dp,top = 12.dp, bottom = 6.dp)
         ) {
             AppTextSubTitle(
-                text = conference.title
+                text = conference.title ?:""
             )
             Spacer(modifier = Modifier.size(4.dp))
             AppTextLabel(
                 text = "${
                     formatDateTime(
-                        dateTime = conference.startDate,
+                        dateTime = conference.startDate?:"",
                         inFormat = FORMAT_DEFAULT_DATE_TIME,
                         outFormat = FORMAT_DAY_MONTH
                     )
                 } \u2014 ${
                     formatDateTime(
-                        dateTime = conference.endDate, inFormat = FORMAT_DEFAULT_DATE_TIME,
+                        dateTime = conference.endDate?:"", inFormat = FORMAT_DEFAULT_DATE_TIME,
                         outFormat = FORMAT_DAY_MONTH
                     )
                 }"
             )
             Spacer(modifier = Modifier.size(8.dp))
             AppTextBody(
-                text = conference.summary
+                text = conference.summary?:""
             )
         }
         when (details) {
@@ -137,8 +139,18 @@ fun ConferenceDetailScreen(
             }
 
             is ApiStates.Success -> {
-                (details as ApiStates.Success<Conference>).data?.days.let { listOfDays ->
-                    if (listOfDays != null) {
+                (details as ApiStates.Success<ConferenceDetail>).data.let { conferenceDetails ->
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth().background(columnColor)
+                                .clip(
+                                    shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp)
+                                )
+                                .padding(start = 12.dp,end = 12.dp,bottom = 12.dp)
+                        ){
+                            ConferenceAddOns(conferenceDetails?.addOnSets)
+                        }
+                    conferenceDetails?.days?.let {listOfDays->
                         LazyColumn(
                             contentPadding = PaddingValues(
                                 start = 12.dp,
@@ -165,31 +177,33 @@ fun ConferenceDetailScreen(
 
 @Composable
 private fun Schedule(item: Day, showDivider: Boolean) {
-    val groupedSessions = item.sessions.groupBy {
-        formatTimeRange(it.startsAt, it.endsAt)
+    val groupedSessions = item.sessions?.groupBy {
+        formatTimeRange(it.startsAt?:"", it.endsAt?:"")
     }
-    val groupedBreaks = item.breaks.groupBy {
-        formatTimeRange(it.startsAt, it.endsAt)
+    val groupedBreaks = item.breaks?.groupBy {
+        formatTimeRange(it.startsAt?:"", it.endsAt?:"")
     }
 
-    groupedSessions.keys.forEachIndexed { index, key ->
+    groupedSessions?.keys?.forEachIndexed { index, key ->
         Column {
-            Spacer(modifier = Modifier.size(8.dp))
+            Spacer(modifier = Modifier.size(4.dp))
 
-            groupedBreaks[key]?.let { breaks ->
+            groupedBreaks?.get(key)?.let { breaks ->
                 groupedSessions[key]?.let { sessions ->
                     val breakInfo = breaks.firstOrNull()
                     val sessionInfo = sessions.firstOrNull()
 
                     sessionInfo?.let {
-                        TimeRangeText(it.startsAt, it.endsAt, isBold = true)
+                        TimeRangeText(it.startsAt?:"", it.endsAt?:"",)
                     }
+                    Spacer(Modifier.size(4.dp))
                     breakInfo?.summary?.let { summary ->
                         AppTextBody(text = summary)
                     }
                     breakInfo?.let {
-                        TimeRangeText(it.startsAt, it.endsAt)
+                        TimeRangeText(it.startsAt?:"", it.endsAt?:"")
                     }
+                    Spacer(Modifier.size(8.dp))
                     Sessions(sessions)
                 }
             }
@@ -208,8 +222,8 @@ private fun Schedule(item: Day, showDivider: Boolean) {
 }
 
 @Composable
-private fun TimeRangeText(startTime: String, endTime: String, isBold: Boolean = false) {
-    if (isBold) {
+private fun TimeRangeText(startTime: String, endTime: String) {
+
         AppTextLabel(
             text = formatTimeRange(
                 dateTimeStart = startTime,
@@ -219,16 +233,7 @@ private fun TimeRangeText(startTime: String, endTime: String, isBold: Boolean = 
 
             )
         )
-    } else {
-        AppTextBody(
-            text = formatTimeRange(
-                dateTimeStart = startTime,
-                dateTimeEnd = endTime,
-                inFormat = FORMAT_DEFAULT_DATE_TIME,
-                outFormat = FORMAT_TIME_12HOUR
-            )
-        )
-    }
+
 }
 
 private fun formatTimeRange(
@@ -255,8 +260,8 @@ private fun Sessions(items: List<Session>) {
         itemsIndexed(items, key = { i, _ -> i }) { index, item ->
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.padding(end = 8.dp)) {
-                    AppTextLabel(text = item.title)
-                    AppTextBody(text = item.speakers.joinToString(separator = "\n") { it.prefix + " " + it.firstName + " " + it.lastName })
+                    AppTextLabel(text = item.title?:"")
+                    AppTextBody(text = item.speakers.joinToString(separator = "\n") { it.name.toString() })
                     AppTextBody(text = item.summary ?: "")
                     AppTextBody(text = item.venue?.title ?: "", color = orange)
                 }
@@ -268,6 +273,45 @@ private fun Sessions(items: List<Session>) {
                         color = columnColor
                     )
                 }
+            }
+        }
+    }
+}
+@Composable
+fun ConferenceAddOns(addOnSet:List<AddOnSet>?) {
+        addOnSet?.let { addOnSets ->
+            LazyColumn {
+                addOnSets.forEach { addOnSet ->
+                    item {
+                        AddOnSetItem(addOnSet)
+                    }
+                }
+            }
+        }
+}
+
+@Composable
+fun AddOnSetItem(addOnSet: AddOnSet) {
+    Column {
+        Spacer(modifier = Modifier.size(4.dp))
+        AppTextSubTitle(
+            text = addOnSet.title ?: "",
+            color = orange
+        )
+        addOnSet.addOns?.forEach { addOn ->
+            Spacer(modifier = Modifier.size(4.dp))
+            AddOnItem(addOn)
+        }
+    }
+}
+
+@Composable
+fun AddOnItem(addOn: AddOn) {
+    Row(modifier = Modifier.fillMaxWidth()) {
+        Column(horizontalAlignment = Alignment.Start) {
+            AppTextLabel(text = addOn.title ?: "")
+            addOn.subtitle?.let { subtitle ->
+                AppTextBody(text = subtitle)
             }
         }
     }

@@ -121,7 +121,7 @@ class SignUpViewModel(
                             lastName = _uiState.value.lastName,
                             email = _uiState.value.email,
                             password = _uiState.value.password,
-                            phoneNumber = _uiState.value.phoneNo
+                            phoneNumber =_uiState.value.country.dialCode +_uiState.value.phoneNo
                         ).collect{state->
                             _uiState.update { it.copy(isLoading = state is ApiStates.Loading) }
                             _networkState.emit(state)

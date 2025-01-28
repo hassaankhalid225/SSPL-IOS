@@ -78,7 +78,14 @@ fun SignUpScreen(
                 }
 
                 is ApiStates.Success -> {
-                    navController.navigate(Screen.UserDetailsScreen.route)
+                    navController.navigate(Screen.UserDetailsScreen.route){
+                        popUpTo(Screen.SignUpScreen.route){
+                            inclusive = true
+                        }
+                        popUpTo(Screen.SignInScreen.route){
+                            inclusive = true
+                        }
+                    }
                 }
 
                 else -> Unit
