@@ -10,6 +10,7 @@ import com.sspl.core.usecases.LikePostUseCase
 import com.sspl.core.usecases.LoginUserUseCase
 import com.sspl.core.usecases.PasswordValidationUseCase
 import com.sspl.core.usecases.PhoneNumberValidationUseCase
+import com.sspl.core.usecases.PostUserDetailsUseCase
 import com.sspl.core.usecases.SignUpUserUseCase
 import com.sspl.core.usecases.ValidateUserCityUseCase
 import com.sspl.core.usecases.ValidateUserCountryUseCase
@@ -17,6 +18,7 @@ import com.sspl.core.usecases.ValidateUserDesignationUseCase
 import com.sspl.core.usecases.ValidateUserNameUseCase
 import com.sspl.core.usecases.ValidateUserInstitutionUseCase
 import com.sspl.core.usecases.ValidateUserPmdcNoUseCase
+import com.sspl.core.usecases.ValidateUserRegistrationNumberUseCase
 import org.koin.dsl.module
 
 /**
@@ -49,5 +51,7 @@ internal val useCaseModules = module {
     single { LoginUserUseCase(get(),get()) }
     single { GetConferencesUseCase(get()) }
     single { GetConferencesDetailsUseCase(get()) }
+    single { ValidateUserRegistrationNumberUseCase() }
+    single { PostUserDetailsUseCase(get()) }
 
 }

@@ -4,11 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sspl.core.ApiStates
 import com.sspl.core.models.ApiError
+import com.sspl.core.usecases.PostUserDetailsUseCase
 import com.sspl.core.usecases.ValidateUserCityUseCase
 import com.sspl.core.usecases.ValidateUserCountryUseCase
 import com.sspl.core.usecases.ValidateUserDesignationUseCase
 import com.sspl.core.usecases.ValidateUserInstitutionUseCase
 import com.sspl.core.usecases.ValidateUserPmdcNoUseCase
+import com.sspl.core.usecases.ValidateUserRegistrationNumberUseCase
+import com.sspl.ui.components.countrypicker.Country
 import com.sspl.ui.kyc.ValidationResult
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -24,14 +27,16 @@ class UserDetailViewModel(
     private val validateUserCountryUseCase: ValidateUserCountryUseCase,
     private val validateUserDesignationUseCase: ValidateUserDesignationUseCase,
     private val validateUserInstitutionUseCase: ValidateUserInstitutionUseCase,
+    private val validateUserRegistrationNumberUseCase: ValidateUserRegistrationNumberUseCase,
     private val validateUserPmDcNumberUseCase: ValidateUserPmdcNoUseCase,
+    private val postUserDetailsUseCase: PostUserDetailsUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(UserDetailsUiState())
     val uiState = _uiState.asStateFlow()
 
-    private val _networkState = MutableSharedFlow<ApiStates<Unit>>()
-    val networkState: SharedFlow<ApiStates<Unit>> = _networkState.asSharedFlow()
+    private val _networkState = MutableSharedFlow<ApiStates<Boolean>>()
+    val networkState: SharedFlow<ApiStates<Boolean>> = _networkState.asSharedFlow()
 
     fun onEvent(event: UserDetailsUiEvents) {
         viewModelScope.launch {
@@ -45,12 +50,22 @@ class UserDetailViewModel(
                         ).apply { updateSaveEnabledState() }
                     }
                 }
-
-                is UserDetailsUiEvents.OnCountryTextChange -> {
-                    val result = validateUserCountryUseCase(event.countryText)
+                is UserDetailsUiEvents.ToggleCountryPicker -> {
                     _uiState.update {
                         it.copy(
-                            country = event.countryText,
+                            showCountryPicker = !it.showCountryPicker
+                        )
+                    }
+                }
+
+                is UserDetailsUiEvents.OnCountryChange -> {
+                    val country= event.country.ifBlank {
+                        _uiState.value.country
+                    }
+                    val result = validateUserCountryUseCase(country)
+                    _uiState.update {
+                        it.copy(
+                            country = country, showCountryPicker = false,
                             countryError = if (result is ValidationResult.Error) "Country can't be empty" else null
                         ).apply { updateSaveEnabledState() }
                     }
@@ -87,31 +102,26 @@ class UserDetailViewModel(
                 }
 
                 is UserDetailsUiEvents.OnRegistrationNumberTextChange -> {
+                    val result = validateUserRegistrationNumberUseCase(event.registrationNumberText)
                     _uiState.update {
                         it.copy(
-                            registrationNumber = event.registrationNumberText
+                            registrationNumber = event.registrationNumberText,
+                            registrationNumberError = if (result is ValidationResult.Error) "Registration number can't be empty" else null
                         ).apply { updateSaveEnabledState() }
                     }
                 }
 
                 UserDetailsUiEvents.OnSave -> {
                     if (_uiState.value.isSaveEnabled && !_uiState.value.isLoading) {
-                        _uiState.update {
-                            it.copy(
-                                isLoading = true
-                            )
-                        }
-                        delay(2000) // Simulate network delay
-                        if (true) {
-                            _networkState.emit(ApiStates.Success(Unit))
-                        } else {
-                            _networkState.emit(ApiStates.Failure(ApiError(message = "Something went wrong")))
-                        }
-
-                        _uiState.update {
-                            it.copy(
-                                isLoading = false
-                            )
+                        postUserDetailsUseCase.postUserDetails(
+                            pmdcNo = _uiState.value.pmDcNumber,
+                            instituteName = _uiState.value.institution,
+                            country = _uiState.value.country,
+                            designation = _uiState.value.designation,
+                            registrationNo = _uiState.value.registrationNumber
+                        ).collect{state->
+                            _uiState.update { it.copy(isLoading = state is ApiStates.Loading) }
+                            _networkState.emit(state)
                         }
                     }
                 }
@@ -124,16 +134,14 @@ class UserDetailViewModel(
         _uiState.update { currentState ->
             currentState.copy(isSaveEnabled = listOf(
                 currentState.institution,
-                currentState.city,
+//                currentState.city,
                 currentState.country,
-                currentState.pmDcNumber,
-                currentState.designation
+                currentState.registrationNumber
             ).all { field -> field.isNotEmpty() } && listOf(
                 currentState.institutionError,
-                currentState.cityError,
+//                currentState.cityError,
                 currentState.countryError,
-                currentState.pmDcNumberError,
-                currentState.designationError
+                currentState.registrationNumberError,
             ).all { error -> error == null })
         }
     }
@@ -144,11 +152,12 @@ data class UserDetailsUiState(
     val institution: String = "",
     val city: String = "",
     val country: String = "",
-    val pmDcNumber: String = "",
-    val registrationNumber: String? = "",
+    val pmDcNumber: String? = "",
+    val registrationNumber: String = "",
     val designation: String = "",
     val institutionError: String? = null,
     val cityError: String? = null,
+    val showCountryPicker: Boolean = false,
     val countryError: String? = null,
     val pmDcNumberError: String? = null,
     val registrationNumberError: String? = null,
@@ -159,9 +168,10 @@ data class UserDetailsUiState(
 
 sealed interface UserDetailsUiEvents {
     data object OnSave : UserDetailsUiEvents
+    data object ToggleCountryPicker : UserDetailsUiEvents
     data class OnInstitutionTextChange(val institutionText: String) : UserDetailsUiEvents
     data class OnCityTextChange(val cityText: String) : UserDetailsUiEvents
-    data class OnCountryTextChange(val countryText: String) : UserDetailsUiEvents
+    data class OnCountryChange(val country: String) : UserDetailsUiEvents
     data class OnPmDcNumberTextChange(val pmDcNumberText: String) : UserDetailsUiEvents
     data class OnRegistrationNumberTextChange(val registrationNumberText: String) :
         UserDetailsUiEvents

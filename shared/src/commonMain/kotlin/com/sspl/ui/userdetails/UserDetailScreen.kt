@@ -17,7 +17,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -45,6 +44,9 @@ import com.sspl.resources.skip_for_now
 import com.sspl.ui.components.AppTextField
 import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.ButtonWithProgress
+import com.sspl.ui.components.CountrySelectorField
+
+import com.sspl.ui.components.countrypicker.allCountries
 import com.sspl.ui.kyc.HeaderSection
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -82,15 +84,17 @@ fun UserDetailsScreen(
     Scaffold(snackbarHost = { SnackbarHost(scaffoldState) }) { _ ->
         UserDetailsScreenContent(
             modifier = modifier,
-            pmdcNumber = uiState.pmDcNumber,
+            pmdcNumber = uiState.pmDcNumber?:"",
             pmdcNumberError = uiState.pmDcNumberError,
             isSaveEnabled = uiState.isSaveEnabled,
             isLoading = uiState.isLoading,
             city = uiState.city,
             cityError = uiState.cityError,
+            showCountryPicker = uiState.showCountryPicker,
             country = uiState.country,
             countryError = uiState.countryError,
             institution = uiState.institution,
+            registrationError = uiState.registrationNumberError,
             institutionError = uiState.institutionError,
             designation = uiState.designation,
             designationError = uiState.designationError,
@@ -114,11 +118,13 @@ fun UserDetailsScreenContent(
     pmdcNumber: String,
     pmdcNumberError: String?,
     isSaveEnabled: Boolean,
+    registrationError: String?,
     isLoading: Boolean,
     city: String,
     cityError: String?,
     country: String,
     countryError: String?,
+    showCountryPicker: Boolean,
     institution: String,
     institutionError: String?,
     designation: String,
@@ -159,6 +165,8 @@ fun UserDetailsScreenContent(
                 country = country,
                 countryError = countryError,
                 city = city,
+                registrationError = registrationError,
+                showCountryPicker = showCountryPicker,
                 cityError = cityError,
                 designation = designation,
                 designationError = designationError,
@@ -192,10 +200,12 @@ fun UserDetailFields(
     pmdcNumberError: String?,
     institution: String,
     institutionError: String?,
+    showCountryPicker: Boolean,
     country: String,
     countryError: String?,
     city: String,
     cityError: String?,
+    registrationError: String?,
     designation: String,
     designationError: String?,
     registrationNumber: String?,
@@ -210,20 +220,26 @@ fun UserDetailFields(
         text = institution,
         errorMessage = institutionError,
         onTextChange = { onEvent(UserDetailsUiEvents.OnInstitutionTextChange(it)) })
-    AppTextField(placeholder = stringResource(Res.string.country),
-        text = country,
-        errorMessage = countryError,
-        onTextChange = { onEvent(UserDetailsUiEvents.OnCountryTextChange(it)) })
-    AppTextField(placeholder = stringResource(Res.string.city),
-        text = city,
-        errorMessage = cityError,
-        onTextChange = { onEvent(UserDetailsUiEvents.OnCityTextChange(it)) })
+    CountrySelectorField(
+        country = country,
+        onCountryChange = { onEvent.invoke(UserDetailsUiEvents.OnCountryChange(it?.name?:"")) },
+        errorMessage = countryError, toggleCountryPicker = {
+            onEvent.invoke(UserDetailsUiEvents.ToggleCountryPicker)
+        },
+        showCountryChooser = showCountryPicker
+    )
+
+//    AppTextField(placeholder = stringResource(Res.string.city),
+//        text = city,
+//        errorMessage = cityError,
+//        onTextChange = { onEvent(UserDetailsUiEvents.OnCityTextChange(it)) })
     AppTextField(placeholder = stringResource(Res.string.designation),
         text = designation,
         errorMessage = designationError,
         onTextChange = { onEvent(UserDetailsUiEvents.OnDesignationTextChange(it)) })
     AppTextField(placeholder = stringResource(Res.string.enter_registration_number),
         text = registrationNumber ?: "",
+        errorMessage = registrationError,
         onTextChange = { onEvent(UserDetailsUiEvents.OnRegistrationNumberTextChange(it)) })
 }
 
