@@ -7,6 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,10 +21,12 @@ import coil3.PlatformContext
 import coil3.compose.setSingletonImageLoaderFactory
 import com.sspl.session.UserSession
 import com.sspl.theme.MyApplicationTheme
+import com.sspl.ui.SplashScreen
 import com.sspl.ui.userdetails.ProfileViewModel
 import org.koin.compose.KoinContext
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import kotlin.contracts.Effect
 
 /**
  * Created by M Imran
@@ -53,7 +56,6 @@ fun App() {
 private fun MainScreenContent(
     paddingValues: PaddingValues,
     userSession: UserSession = koinInject(),
-    viewModel: ProfileViewModel = koinViewModel()
 ) {
     val navController = rememberNavController()
     val currentScreen = remember {
@@ -69,25 +71,29 @@ private fun MainScreenContent(
         println("Fuckingggg Screen2:${currentScreen.value}")
     }
     println("Fuckingggg Screen3:${currentScreen.value}")
-    NavHost(
-        navController = navController,
-        startDestination = currentScreen.value.route,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues)
-    ) {
-        composable(route = Screen.MainScreen.route) {
-            MainScreen(paddingValues, viewModel, onParentGraph = {
-                navController.navigate(Screen.SignInScreen.route) {
-                    popUpTo(Screen.MainScreen.route) {
-                        inclusive = true
+    if(currentScreen.value==Screen.SplashScreen){
+        SplashScreen(navController)
+    }else {
+        NavHost(
+            navController = navController,
+            startDestination = currentScreen.value.route,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            composable(route = Screen.MainScreen.route) {
+                MainScreen( onParentGraph = {
+                    navController.navigate(Screen.SignInScreen.route) {
+                        popUpTo(Screen.MainScreen.route) {
+                            inclusive = true
+                        }
                     }
+                })
+            }
+            kycScreens().forEach { navItem ->
+                composable(route = navItem.screen.route) {
+                    navItem.component.invoke(navController)
                 }
-            })
-        }
-        kycScreens().forEach { navItem ->
-            composable(route = navItem.screen.route) {
-                navItem.component.invoke(navController)
             }
         }
     }

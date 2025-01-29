@@ -2,7 +2,6 @@ package com.sspl.ui.conferencescreen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,7 +23,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -38,10 +35,8 @@ import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.core.ApiStates
 import com.sspl.core.models.Conference
-import com.sspl.core.models.ConferenceType
 import com.sspl.platform.formatDateTime
 import com.sspl.theme.boxColor
-import com.sspl.theme.boxColorLight
 import com.sspl.theme.columnColor
 import com.sspl.theme.dividerColor
 import com.sspl.theme.orange
@@ -69,7 +64,7 @@ fun ConferenceScreen(
     viewModel: ConferenceViewModel = koinViewModel()
 ) {
     val savedStateHandle = navController.previousBackStackEntry?.savedStateHandle
-    val type = savedStateHandle?.get<ConferenceType>("type")
+    val type = savedStateHandle?.get<String>("type")
     if (type == null) return
     println("Type :$type")
     val uiState by viewModel.conferences.collectAsStateWithLifecycle()
@@ -84,18 +79,6 @@ fun ConferenceScreen(
                 modifier = Modifier.fillMaxSize(),
                 error = (uiState as ApiStates.Failure).error
             )
-//            Column(
-//                modifier = Modifier.fillMaxSize(),
-//                horizontalAlignment = Alignment.CenterHorizontally,
-//                verticalArrangement = Arrangement.Center
-//            ) {
-//                Text(
-//                    text = "Error: ${(uiState as ApiStates.Failure).error.message}",
-//                    style = MaterialTheme.typography.bodyLarge
-//                )
-//                Spacer(modifier = Modifier.height(16.dp))
-//
-//            }
         }
 
         is ApiStates.Success -> {
@@ -156,6 +139,10 @@ fun ConferenceItem(
                     Modifier.clip(
                         shape = RoundedCornerShape(16.dp, 16.dp, 16.dp, 0.dp)
                     )
+                )
+            } else if (!showDivider) {
+                Modifier.clip(
+                    shape = RoundedCornerShape(0.dp, 16.dp, 16.dp, 16.dp)
                 )
             } else {
                 Modifier.clip(
@@ -221,14 +208,10 @@ fun ConferenceItem(
         Column(
             modifier = Modifier.fillMaxWidth(1F).clip(
                 shape = RoundedCornerShape(0.dp, 16.dp, 16.dp, 0.dp)
-            )
-                .background(color = if (item.isWorkshop()) MaterialTheme.colorScheme.primary else boxColor)
-
+            ).background(color = boxColor)
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth()
-                    .padding(end = 4.dp)
-                    .background(color = boxColor).padding(all = 8.dp)
+                modifier = Modifier.fillMaxWidth().padding(all = 8.dp)
             ) {
                 AppTextSubTitle(
                     text = item.title ?: ""
@@ -246,7 +229,8 @@ fun ConferenceItem(
             }
             if (showDivider) {
                 Spacer(
-                    modifier = Modifier.fillMaxWidth().height(6.dp).background(color = dividerColor)
+                    modifier = Modifier.fillMaxWidth().height(2.dp).padding(end = 12.dp)
+                        .background(color = dividerColor)
                 )
             }
         }

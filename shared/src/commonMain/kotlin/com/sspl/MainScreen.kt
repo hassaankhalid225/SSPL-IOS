@@ -36,10 +36,9 @@ import org.koin.compose.viewmodel.koinViewModel
  */
 
 @Composable
-fun MainScreen(paddingValues: PaddingValues, viewModel: ProfileViewModel,onParentGraph: () -> Unit) {
+fun MainScreen(onParentGraph: () -> Unit) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val user by viewModel.user.collectAsStateWithLifecycle()
 
     val currentScreen = screenByRoute(backStackEntry?.destination?.route) ?: Screen.HomeScreen
     val navItems = navItems()
@@ -50,7 +49,6 @@ fun MainScreen(paddingValues: PaddingValues, viewModel: ProfileViewModel,onParen
         containerColor = windowBackGround,
         topBar = {
             MyTopAppBar(
-                userName = user?.fullName().orEmpty(),
                 currentScreen = currentScreen,
                 onHamburgClicked = { navController.navigate(route = Screen.ProfileScreen.route) },
                 canNavigateBack = navController.previousBackStackEntry != null,
@@ -89,7 +87,7 @@ fun MainScreen(paddingValues: PaddingValues, viewModel: ProfileViewModel,onParen
                 when (navItem.screen.route) {
                     (Screen.ProfileScreen.route) ->{
                         composable(route = navItem.screen.route) {
-                            ProfileScreen(navController, viewModel, onParentGraph = onParentGraph)
+                            ProfileScreen(navController, onParentGraph = onParentGraph)
                         }
                     }
 

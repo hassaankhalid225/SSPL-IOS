@@ -6,6 +6,7 @@ import com.sspl.core.models.User
 import com.sspl.session.UserSession
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class ProfileViewModel(
@@ -22,6 +23,9 @@ class ProfileViewModel(
         }
     }
 
+    fun updateUser(user: User){
+        _user.update { user }
+    }
     fun onSignOut(){
         viewModelScope.launch {
             userSession.resetToken()

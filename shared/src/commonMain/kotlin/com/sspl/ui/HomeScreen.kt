@@ -38,6 +38,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
@@ -114,7 +115,10 @@ fun HomeScreen(navController: NavController) {
                 showIndicator = false
             ) { modifier, item, page ->
                 Image(
-                    modifier = modifier.then(Modifier.height(100.dp)),
+                    modifier = modifier.then(Modifier.height(100.dp))
+                        .clip(
+                            shape = RoundedCornerShape(8)
+                        ),
                     contentScale = ContentScale.FillWidth,
                     painter = painterResource(item), contentDescription = ""
                 )
@@ -136,12 +140,12 @@ fun HomeScreen(navController: NavController) {
                         if (index == 0) {
                             navController.currentBackStackEntry?.savedStateHandle?.set(
                                 "type",
-                                ConferenceType.PROGRAM
+                                ConferenceType.PROGRAM.name
                             )
                         } else if (index == 1) {
                             navController.currentBackStackEntry?.savedStateHandle?.set(
                                 "type",
-                                ConferenceType.WORKSHOP
+                                ConferenceType.WORKSHOP.name
                             )
                         }
                         navController.navigate(it.toScreen.route)

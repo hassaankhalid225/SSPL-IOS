@@ -7,8 +7,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.sharp.ArrowBack
 import androidx.compose.material.icons.sharp.Add
-import androidx.compose.material.icons.sharp.Person
-import androidx.compose.material.icons.sharp.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -16,17 +14,21 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sspl.Screen
 import com.sspl.resources.Res
 import com.sspl.resources.ic_user
+import com.sspl.ui.userdetails.ProfileViewModel
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
 
 /**
  * Created by M Imran
@@ -39,7 +41,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun MyTopAppBar(
     modifier: Modifier = Modifier,
-    userName: String,
+    viewModel: ProfileViewModel = koinViewModel(),
     currentScreen: Screen,
     canNavigateBack: Boolean,
     navigateUp: () -> Unit,
@@ -47,6 +49,7 @@ fun MyTopAppBar(
     onCartClicked: () -> Unit = {},
     addButtonClick: () -> Unit = {}
 ) {
+    val user by viewModel.user.collectAsStateWithLifecycle()
     TopAppBar(
         modifier = modifier
             .clip(
@@ -72,7 +75,7 @@ fun MyTopAppBar(
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     AppTextSubTitle(
-                        text = userName,
+                        text = user?.fullName().orEmpty(),
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,

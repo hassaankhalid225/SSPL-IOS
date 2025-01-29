@@ -41,8 +41,8 @@ fun <T> AppHorizontalPager(
     val pagerState = rememberPagerState(pageCount = {
         list.size
     })
-    val horizontalPadding = 16.dp
-    val itemSpacing = horizontalPadding / 3
+    val horizontalPadding = 20.dp
+    val itemSpacing = horizontalPadding / 4
 
     Box(
         modifier = Modifier.fillMaxWidth()
@@ -53,7 +53,7 @@ fun <T> AppHorizontalPager(
             contentPadding = PaddingValues(
                 start = horizontalPadding,
                 end = horizontalPadding,
-                top = horizontalPadding
+                top = 12.dp,
             ),
             pageSpacing = itemSpacing
         ) { page ->
