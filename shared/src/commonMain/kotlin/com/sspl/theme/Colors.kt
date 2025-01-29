@@ -12,10 +12,11 @@ import androidx.compose.ui.graphics.Color
 val primary = Color(0xFF0A528F)
 val secondary = Color(0xFF053762)
 val tertiary = Color(0xFF032746)
-val windowBackGround = Color(0xFFF6F6F6)
+val windowBackGround = Color(0xFFFFFFFF)//0xFFF6F6F6
 val dividerColor = Color(0xFFF6F5F5)
 val columnColor = Color(0xFFDBE3EE)
 val boxColor = Color(0xFFEBF1F6)
+val boxColorLight = Color(0xFFF2F7FC)
 val green = Color(0xFF0A520F)
 val orange = Color(0xFFC27705)
 val textColor = Color(0xFF1E1E1E)

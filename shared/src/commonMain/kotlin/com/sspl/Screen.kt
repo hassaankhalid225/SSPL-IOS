@@ -13,6 +13,7 @@ import com.sspl.resources.create_post
 import com.sspl.resources.forum
 import com.sspl.resources.home
 import com.sspl.resources.ic_forum
+import com.sspl.resources.ic_user
 import com.sspl.resources.log_in
 import com.sspl.resources.profile
 import com.sspl.resources.sign_up
@@ -63,7 +64,7 @@ sealed class Screen(
     data object ProfileScreen : Screen(
         title = Res.string.profile,
         route = "ProfileScreen",
-        icon = IconResource.fromImageVector(imageVector = Icons.Default.Person)
+        icon = IconResource.fromDrawableResource(drawable = Res.drawable.ic_user)
     )
 
     data object ForumScreen : Screen(
@@ -74,7 +75,7 @@ sealed class Screen(
 
     data object ConferenceScreen : Screen(
         title = Res.string.conference,
-        route = "ConferenceDetailScreen",
+        route = "ConferenceScreen",
     )
 
 

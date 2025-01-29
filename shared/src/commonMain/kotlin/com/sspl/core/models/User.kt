@@ -10,6 +10,8 @@ data class User(
     val firstName: String,
     @SerialName("last_name")
     val lastName: String,
-    val phone:String,
+    val phone: String,
     val role: String
-)
+) {
+    fun fullName() = "$firstName $lastName"
+}

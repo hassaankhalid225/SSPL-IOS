@@ -23,11 +23,6 @@ import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationOpenSettingsURLString
 import platform.UIKit.UIDevice
 
-class IOSPlatform : Platform {
-    override val name: String =
-        UIDevice.currentDevice.systemName() + " " + UIDevice.currentDevice.systemVersion
-}
-
 actual suspend fun getClient(userSession: UserSession): HttpClient {
     return getBaseClient(userSession = userSession, engineFactory = Darwin) {
         engine {
@@ -36,75 +31,7 @@ actual suspend fun getClient(userSession: UserSession): HttpClient {
             }
         }
     }
-//    return HttpClient(Darwin) {
-//        install(ContentNegotiation) {
-//            json(Json {
-//                encodeDefaults = true
-//                isLenient = true
-//                coerceInputValues = true
-//                ignoreUnknownKeys = true
-//            })
-//        }
-//        install(Logging) {
-//            logger = object : Logger {
-//                override fun log(message: String) {
-//                    Napier.d("HTTP Client", null, message)
-//                }
-//            }
-//            level = LogLevel.ALL
-//        }
-//        engine {
-//            configureRequest {
-//                setAllowsCellularAccess(true)
-//            }
-//        }
-//    }.also { Napier.base(DebugAntilog()) }
 }
-
-//@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
-//internal actual class SharedFileReader {
-//    private val bundle: NSBundle = NSBundle.bundleForClass(BundleMarker)
-//
-//    actual fun loadJsonFile(fileName: String): String? {
-//        val (filename, type) = when (val lastPeriodIndex = fileName.lastIndexOf('.')) {
-//            0 -> {
-//                null to fileName.drop(1)
-//            }
-//
-//            in 1..Int.MAX_VALUE -> {
-//                fileName.take(lastPeriodIndex) to fileName.drop(lastPeriodIndex + 1)
-//            }
-//
-//            else -> {
-//                fileName to null
-//            }
-//        }
-//        val path = bundle.pathForResource(filename, type) ?: error(
-//            "Couldn't get path of $fileName (parsed as: ${
-//                listOfNotNull(
-//                    filename,
-//                    type
-//                ).joinToString(".")
-//            })"
-//        )
-//
-//        return memScoped {
-//            val errorPtr = alloc<ObjCObjectVar<NSError?>>().ptr
-//
-//            NSString.stringWithContentsOfFile(
-//                path,
-//                encoding = NSUTF8StringEncoding,
-//                error = errorPtr
-//            ) ?: run {
-//                error("Couldn't load resource: $fileName. Error: ${errorPtr.pointed.value?.localizedDescription}")
-//            }
-//        }
-//    }
-//
-//    private class BundleMarker : NSObject() {
-//        companion object : NSObjectMeta()
-//    }
-//}
 
 actual fun formatDateTime(dateTime: String, inFormat: String, outFormat: String): String {
     return try {
@@ -129,6 +56,7 @@ class IosGpsChecker : GpsChecker {
     override fun hasGps(): Boolean {
         return CLLocationManager.locationServicesEnabled()
     }
+
     override fun requestEnableLocationServices() {
         val settingsUrl = NSURL.URLWithString(UIApplicationOpenSettingsURLString)
         settingsUrl?.let {

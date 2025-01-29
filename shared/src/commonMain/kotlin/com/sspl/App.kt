@@ -52,27 +52,32 @@ fun App() {
 @Composable
 private fun MainScreenContent(
     paddingValues: PaddingValues,
-    userSession: UserSession = koinInject()
+    userSession: UserSession = koinInject(),
+    viewModel: ProfileViewModel = koinViewModel()
 ) {
     val navController = rememberNavController()
-    var currentScreen by remember {
+    val currentScreen = remember {
         mutableStateOf<Screen>(Screen.SplashScreen)
     }
     LaunchedEffect(Unit) {
-        currentScreen = userSession.token?.let {
+        println("Fuckingggg Token:${userSession.token}")
+        println("Fuckingggg Screen1:${currentScreen.value}")
+        val newScreen = userSession.token?.let {
             Screen.MainScreen
         } ?: Screen.SignInScreen
+        currentScreen.value = newScreen
+        println("Fuckingggg Screen2:${currentScreen.value}")
     }
+    println("Fuckingggg Screen3:${currentScreen.value}")
     NavHost(
         navController = navController,
-        startDestination = currentScreen.route,
+        startDestination = currentScreen.value.route,
         modifier = Modifier
             .fillMaxSize()
             .padding(paddingValues)
     ) {
         composable(route = Screen.MainScreen.route) {
-            val viewModel: ProfileViewModel = koinViewModel() //single instance till main screen graph
-            MainScreen(paddingValues,viewModel, onParentGraph = {
+            MainScreen(paddingValues, viewModel, onParentGraph = {
                 navController.navigate(Screen.SignInScreen.route) {
                     popUpTo(Screen.MainScreen.route) {
                         inclusive = true

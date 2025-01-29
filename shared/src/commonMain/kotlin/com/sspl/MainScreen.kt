@@ -50,7 +50,7 @@ fun MainScreen(paddingValues: PaddingValues, viewModel: ProfileViewModel,onParen
         containerColor = windowBackGround,
         topBar = {
             MyTopAppBar(
-                userName = (user?.firstName + " " + user?.lastName) ?: "",
+                userName = user?.fullName().orEmpty(),
                 currentScreen = currentScreen,
                 onHamburgClicked = { navController.navigate(route = Screen.ProfileScreen.route) },
                 canNavigateBack = navController.previousBackStackEntry != null,
@@ -58,32 +58,32 @@ fun MainScreen(paddingValues: PaddingValues, viewModel: ProfileViewModel,onParen
                 addButtonClick = { navController.navigate(route = Screen.CreatePostScreen.route) },
             )
         },
-        bottomBar = {
-            AnimatedVisibility(
-                navItems.any { it.screen.route == navBackStackEntry?.destination?.route },
-                enter = slideInVertically(
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioLowBouncy,
-                        stiffness = Spring.StiffnessLow
-                    ),
-                    initialOffsetY = { it }) + fadeIn(),
-                exit = slideOutVertically(
-                    animationSpec = tween(durationMillis = 300, easing = LinearEasing),
-                    targetOffsetY = { it }) + fadeOut()
-            ) {
-                AppBottomBar(
-                    bottomNavItems = navItems,
-                    navController = navController
-                )
-            }
-        }
+//        bottomBar = {
+//            AnimatedVisibility(
+//                navItems.any { it.screen.route == navBackStackEntry?.destination?.route },
+//                enter = slideInVertically(
+//                    animationSpec = spring(
+//                        dampingRatio = Spring.DampingRatioLowBouncy,
+//                        stiffness = Spring.StiffnessLow
+//                    ),
+//                    initialOffsetY = { it }) + fadeIn(),
+//                exit = slideOutVertically(
+//                    animationSpec = tween(durationMillis = 300, easing = LinearEasing),
+//                    targetOffsetY = { it }) + fadeOut()
+//            ) {
+//                AppBottomBar(
+//                    bottomNavItems = navItems,
+//                    navController = navController
+//                )
+//            }
+//        }
     ) {
         NavHost(
             navController = navController,
             startDestination = Screen.HomeScreen.route,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(it)
+                .padding(top = it.calculateTopPadding())
         ) {
             (otherScreens() + navItems).forEach { navItem ->
                 when (navItem.screen.route) {

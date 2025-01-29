@@ -8,6 +8,8 @@
     <string>Using to get coordinates of user to mark down attendance while checking whether is user in range of told coordinates</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
     <string>Using to get coordinates of user to mark down attendance while checking whether is user in range of told coordinates</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>Using to get coordinates of user to mark down attendance while checking whether is user in range of told coordinates</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -54,5 +56,7 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+    <key>CADisableMinimumFrameDurationOnPhone</key>
+        <true/>
 </dict>
 </plist>

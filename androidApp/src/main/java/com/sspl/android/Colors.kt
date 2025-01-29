@@ -20,3 +20,5 @@ val column = Color(0xFFDBE3EE)
 val box = Color(0xFFEBF1F6)//0xFFE9EDF1
 val green = Color(0xFF0A520F)//0xFFE9EDF1
 val orange = Color(0xFFC27705)//0xFFE9EDF1
+val boxColor = Color(0xFFEBF1F6)
+val boxColorLight = Color(0xFFF2F7FC)

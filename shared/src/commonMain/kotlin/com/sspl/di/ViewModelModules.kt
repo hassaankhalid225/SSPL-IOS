@@ -32,7 +32,7 @@ import org.koin.dsl.module
 
 internal val viewModelModules = module {
     singleOf(::ConferenceViewModel)
-    viewModel { ProfileViewModel(get()) }
+    singleOf (::ProfileViewModel)
     viewModelOf(::ConferenceDetailViewModel)
     viewModelOf(::SignInViewModel)
     viewModelOf(::SignUpViewModel)

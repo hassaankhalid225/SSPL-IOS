@@ -25,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -37,14 +38,17 @@ import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.core.ApiStates
 import com.sspl.core.models.Conference
+import com.sspl.core.models.ConferenceType
 import com.sspl.platform.formatDateTime
 import com.sspl.theme.boxColor
+import com.sspl.theme.boxColorLight
 import com.sspl.theme.columnColor
 import com.sspl.theme.dividerColor
 import com.sspl.theme.orange
 import com.sspl.ui.components.AppTextBody
 import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.AppTextSubTitle
+import com.sspl.ui.components.Error
 import com.sspl.utils.FORMAT_DAY_MONTH
 import com.sspl.utils.FORMAT_DEFAULT_DATE_TIME
 import kotlinx.serialization.encodeToString
@@ -64,6 +68,10 @@ fun ConferenceScreen(
     navController: NavController,
     viewModel: ConferenceViewModel = koinViewModel()
 ) {
+    val savedStateHandle = navController.previousBackStackEntry?.savedStateHandle
+    val type = savedStateHandle?.get<ConferenceType>("type")
+    if (type == null) return
+    println("Type :$type")
     val uiState by viewModel.conferences.collectAsStateWithLifecycle()
 
     when (uiState) {
@@ -72,18 +80,22 @@ fun ConferenceScreen(
         }
 
         is ApiStates.Failure -> {
-            Column(
+            Error(
                 modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "Error: ${(uiState as ApiStates.Failure).error.message}",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-
-            }
+                error = (uiState as ApiStates.Failure).error
+            )
+//            Column(
+//                modifier = Modifier.fillMaxSize(),
+//                horizontalAlignment = Alignment.CenterHorizontally,
+//                verticalArrangement = Arrangement.Center
+//            ) {
+//                Text(
+//                    text = "Error: ${(uiState as ApiStates.Failure).error.message}",
+//                    style = MaterialTheme.typography.bodyLarge
+//                )
+//                Spacer(modifier = Modifier.height(16.dp))
+//
+//            }
         }
 
         is ApiStates.Success -> {
@@ -169,7 +181,7 @@ fun ConferenceItem(
                     append(
                         "${
                             formatDateTime(
-                                dateTime = item.startDate?:"",
+                                dateTime = item.startDate ?: "",
                                 inFormat = FORMAT_DEFAULT_DATE_TIME,
                                 outFormat = FORMAT_DAY_MONTH
                             ).uppercase()
@@ -192,7 +204,7 @@ fun ConferenceItem(
                 ) {
                     append(
                         formatDateTime(
-                            dateTime = item.endDate?:"",
+                            dateTime = item.endDate ?: "",
                             inFormat = FORMAT_DEFAULT_DATE_TIME,
                             outFormat = FORMAT_DAY_MONTH
                         ).uppercase()
@@ -209,17 +221,22 @@ fun ConferenceItem(
         Column(
             modifier = Modifier.fillMaxWidth(1F).clip(
                 shape = RoundedCornerShape(0.dp, 16.dp, 16.dp, 0.dp)
-            ).background(color = boxColor)
+            )
+                .background(color = if (item.isWorkshop()) MaterialTheme.colorScheme.primary else boxColor)
 
         ) {
-            Column(modifier = Modifier.fillMaxWidth().padding(all = 8.dp)) {
+            Column(
+                modifier = Modifier.fillMaxWidth()
+                    .padding(end = 4.dp)
+                    .background(color = boxColor).padding(all = 8.dp)
+            ) {
                 AppTextSubTitle(
-                    text = item.title?:""
+                    text = item.title ?: ""
                 )
                 Spacer(modifier = Modifier.size(8.dp))
 
                 AppTextBody(
-                    text = item.summary?:""
+                    text = item.summary ?: ""
                 )
                 Spacer(modifier = Modifier.size(16.dp))
                 AppTextLabel(

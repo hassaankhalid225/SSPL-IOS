@@ -2,6 +2,7 @@ package com.sspl.ui.components
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.sharp.ArrowBack
@@ -22,6 +23,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sspl.Screen
+import com.sspl.resources.Res
+import com.sspl.resources.ic_user
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -60,7 +64,9 @@ fun MyTopAppBar(
                     AppTextSubTitle(
                         text = stringResource(it),
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        fontSize = 16.sp
+                        fontSize = 13.sp,
+                        isAllCapsStyled = true,
+                        fontSizeCap = 18.sp
                     )
                 }
             } else {
@@ -70,7 +76,9 @@ fun MyTopAppBar(
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        fontSize = 16.sp
+                        fontSize = 13.sp,
+                        isAllCapsStyled = true,
+                        fontSizeCap = 18.sp
                     )
                 }
             }
@@ -89,14 +97,14 @@ fun MyTopAppBar(
                     )
                 }
             }
-            if (currentScreen == Screen.HomeScreen) {
-                IconButton(onClick = onCartClicked) {
-                    Icon(
-                        imageVector = Icons.Sharp.Search,
-                        contentDescription = null
-                    )
-                }
-            }
+//            if (currentScreen == Screen.HomeScreen) {
+//                IconButton(onClick = onCartClicked) {
+//                    Icon(
+//                        imageVector = Icons.Sharp.Search,
+//                        contentDescription = null
+//                    )
+//                }
+//            }
         },
         navigationIcon = {
             if (canNavigateBack) {
@@ -109,7 +117,8 @@ fun MyTopAppBar(
             } else {
                 IconButton(onClick = onHamburgClicked) {
                     Icon(
-                        imageVector = Icons.Sharp.Person,
+                        modifier= Modifier.size(26.dp),
+                        painter = painterResource(Res.drawable.ic_user),
                         contentDescription = null
                     )
                 }
