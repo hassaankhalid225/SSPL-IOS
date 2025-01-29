@@ -77,7 +77,7 @@ fun HomeScreen(navController: NavController) {
     var showSheet by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    val data = listOf<Item>(
+    val data = listOf(
         Item(
             title = "Scientific Programs",
             icon = IconResource.fromDrawableResource(Res.drawable.ic_scientific_program),

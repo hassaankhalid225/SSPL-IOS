@@ -64,8 +64,7 @@ fun ConferenceScreen(
     viewModel: ConferenceViewModel = koinViewModel()
 ) {
     val savedStateHandle = navController.previousBackStackEntry?.savedStateHandle
-    val type = savedStateHandle?.get<String>("type")
-    if (type == null) return
+    val type = savedStateHandle?.get<String>("type") ?: return
     println("Type :$type")
     val uiState by viewModel.conferences.collectAsStateWithLifecycle()
 

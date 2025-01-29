@@ -5,6 +5,7 @@ import com.sspl.core.usecases.DislikePostUseCase
 import com.sspl.core.usecases.EmailValidationUseCase
 import com.sspl.core.usecases.GetConferencesDetailsUseCase
 import com.sspl.core.usecases.GetConferencesUseCase
+import com.sspl.core.usecases.GetPostDetailsUseCase
 import com.sspl.core.usecases.GetPostsUseCase
 import com.sspl.core.usecases.LikePostUseCase
 import com.sspl.core.usecases.LoginUserUseCase
@@ -53,5 +54,6 @@ internal val useCaseModules = module {
     single { GetConferencesDetailsUseCase(get()) }
     single { ValidateUserRegistrationNumberUseCase() }
     single { PostUserDetailsUseCase(get()) }
+    single { GetPostDetailsUseCase(get()) }
 
 }

@@ -30,7 +30,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.sspl.core.models.Post
 import com.sspl.resources.Res
 import com.sspl.resources.comment_outline
@@ -44,6 +46,7 @@ import com.sspl.ui.components.AppTextBody
 import com.sspl.ui.components.AppTextSmall
 import com.sspl.ui.components.AppTextSubTitle
 import com.sspl.ui.components.AppTextTitle
+import com.sspl.utils.dummyPostList
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -54,12 +57,14 @@ fun PostItem(
     post: Post,
     onLikePost: () -> Unit,
     onDislikePost: () -> Unit,
-    onCommentPost: () -> Unit
+    cardCornerPercentage:Int=4,
+    elevation:Dp=3.dp,imageAspectRatio:Float=1f,
+    onCommentPost: () -> Unit, onItemClick:()->Unit
 ) {
-    Card(
+    Card(onClick = onItemClick,
         modifier = modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        shape = RoundedCornerShape(4)
+        colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(defaultElevation = elevation),
+        shape = RoundedCornerShape(cardCornerPercentage)
     ) {
         Column(
             modifier = Modifier.padding(vertical = 16.dp).fillMaxWidth()
@@ -85,7 +90,7 @@ fun PostItem(
             Spacer(modifier = Modifier.height(8.dp))
             post.description?.let {
                 AppTextBody(
-                    text = post.description, modifier.padding(horizontal = 10.dp)
+                    text = post.description, modifier.padding(horizontal = 10.dp), fontSize = 16.sp
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
@@ -101,7 +106,7 @@ fun PostItem(
                         painter = painterResource(Res.drawable.demo1) /*(post.images[0])*/,
                         contentDescription = "Post image 1",
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
-                            .aspectRatio(1f) // Adjust this ratio as needed
+                            .aspectRatio(imageAspectRatio) // Adjust this ratio as needed
                             .clip(RoundedCornerShape(3)),
                         contentScale = ContentScale.Crop
                     )
@@ -117,18 +122,16 @@ fun PostItem(
                             painter = painterResource(Res.drawable.demo2) /*(post.images[0])*/,
                             contentDescription = "Post image 1",
                             modifier = Modifier.weight(1f)
-                                .aspectRatio(1f) // Square aspect ratio for side-by-side images
+                                .aspectRatio(imageAspectRatio) // Square aspect ratio for side-by-side images
                                 .clip(RoundedCornerShape(4)),
                             contentScale = ContentScale.Crop
                         )
-                        VerticalDivider(
-                            thickness = 5.dp,
-                        )
+                        Spacer(Modifier.width(5.dp))
                         Image(
                             painter = painterResource(Res.drawable.demo1) /*(post.images[1])*/,
                             contentDescription = "Post image 2",
                             modifier = Modifier.weight(1f)
-                                .aspectRatio(1f) // Square aspect ratio for side-by-side images
+                                .aspectRatio(imageAspectRatio) // Square aspect ratio for side-by-side images
                                 .clip(RoundedCornerShape(4)),
                             contentScale = ContentScale.Crop
                         )
@@ -208,17 +211,17 @@ fun InteractionButton(
 }
 
 
-fun LazyListScope.posts(
-    items: List<Post>,
-    onLikePost: (Long) -> Unit,
-    onDislikePost: (Long) -> Unit,
-    onCommentPost: (Long) -> Unit,
-    modifier: Modifier = Modifier
-) = itemsIndexed(items = items, key = { index, _ -> index }, itemContent = { _, item ->
-    PostItem(post = item,
-        modifier = modifier,
-        onLikePost = { onLikePost(item.postId) },
-        onDislikePost = { onDislikePost(item.postId) },
-        onCommentPost = { onCommentPost(item.postId) })
-})
+//fun LazyListScope.posts(
+//    items: List<Post>,
+//    onLikePost: (Long) -> Unit,
+//    onDislikePost: (Long) -> Unit,
+//    onCommentPost: (Long) -> Unit,
+//    modifier: Modifier = Modifier
+//) = itemsIndexed(items = items, key = { index, _ -> index }, itemContent = { _, item ->
+//    PostItem(post = item,
+//        modifier = modifier,
+//        onLikePost = { onLikePost(item.postId) },
+//        onDislikePost = { onDislikePost(item.postId) },
+//        onCommentPost = { onCommentPost(item.postId) })
+//})
 

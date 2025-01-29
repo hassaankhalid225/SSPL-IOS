@@ -6,6 +6,7 @@ import com.sspl.ui.kyc.SignInViewModel
 import com.sspl.ui.kyc.SignUpViewModel
 import com.sspl.ui.otp.OtpViewModel
 import com.sspl.ui.postcreation.PostCreationViewModel
+import com.sspl.ui.posts.PostDetailsViewModel
 import com.sspl.ui.posts.PostViewModel
 import com.sspl.ui.userdetails.ProfileViewModel
 import com.sspl.ui.userdetails.UserDetailViewModel
@@ -34,6 +35,7 @@ internal val viewModelModules = module {
     singleOf(::ConferenceViewModel)
     singleOf (::ProfileViewModel)
     viewModelOf(::ConferenceDetailViewModel)
+    viewModelOf(::PostDetailsViewModel)
     viewModelOf(::SignInViewModel)
     viewModelOf(::SignUpViewModel)
     viewModelOf( ::PostViewModel)

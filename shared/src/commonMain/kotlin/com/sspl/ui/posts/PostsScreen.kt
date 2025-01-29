@@ -1,6 +1,5 @@
 package com.sspl.ui.posts
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,6 +16,8 @@ import com.sspl.Screen
 import com.sspl.ui.components.FullScreenProgressIndicator
 import com.sspl.ui.components.LoadMoreLazyColumn
 import com.sspl.ui.components.NoItems
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -28,7 +29,9 @@ import org.koin.compose.viewmodel.koinViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostScreen(
-    navController: NavController, modifier: Modifier = Modifier, viewModel: PostViewModel = koinViewModel()
+    navController: NavController,
+    modifier: Modifier = Modifier,
+    viewModel: PostViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
@@ -55,8 +58,16 @@ fun PostScreen(
                     isLoadingMore = isLoadingMore,
                     onLoadMore = { viewModel.onEvent(PostScreenEvents.LoadMorePosts) },
                     itemContent = { post ->
-                        PostItem(post = post, modifier = Modifier,
+                        PostItem(post = post,
+                            modifier = Modifier,
                             onLikePost = { viewModel.onEvent(PostScreenEvents.LikePost(post.postId)) },
+                            onItemClick = {
+                                navController.currentBackStackEntry?.savedStateHandle?.set(
+                                    "postId",
+                                    post.postId
+                                )
+                                navController.navigate(Screen.PostDetailScreen.route)
+                            },
                             onDislikePost = { viewModel.onEvent(PostScreenEvents.DislikePost(post.postId)) },
                             onCommentPost = { viewModel.onEvent(PostScreenEvents.CommentPost(post.postId)) })
                     },
