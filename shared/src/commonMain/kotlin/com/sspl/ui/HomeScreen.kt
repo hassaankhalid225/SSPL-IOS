@@ -79,7 +79,7 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController) {
-    var showSheet by rememberSaveable { mutableStateOf(true) }
+    var showSheet by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val data = listOf<Item>(
         Item(
@@ -182,6 +182,10 @@ fun HomeScreen(navController: NavController) {
         }
     }
 
+    LaunchedEffect(Unit) {
+        delay(2000L)
+        showSheet = true
+    }
     AnimatedVisibility(visible = showSheet) {
         BetterModalBottomSheet(
             sheetState = rememberModalBottomSheetState(
