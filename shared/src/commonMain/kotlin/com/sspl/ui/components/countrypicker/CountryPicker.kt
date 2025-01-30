@@ -37,6 +37,7 @@ fun CountryCodePicker(
     modifier: Modifier = Modifier,
     countries: List<Country> = allCountries,
     onCountrySelected: (Country) -> Unit,
+    showCountryCodes: Boolean = true,
     onDismiss: () -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
@@ -66,7 +67,7 @@ fun CountryCodePicker(
                 onQueryChange = { searchQuery = it },
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
-            CountryList(countries = filteredCountries, onCountrySelected = { country ->
+            CountryList(countries = filteredCountries,showCountryCodes = showCountryCodes, onCountrySelected = { country ->
                 onCountrySelected(country)
                 coroutineScope.launch {
                     sheetState.hide()
@@ -93,18 +94,18 @@ fun SearchBar(
 
 @Composable
 fun CountryList(
-    countries: List<Country>, onCountrySelected: (Country) -> Unit
+    countries: List<Country>,showCountryCodes: Boolean, onCountrySelected: (Country) -> Unit
 ) {
     LazyColumn(modifier = Modifier.fillMaxHeight(0.5f)) {
         items(items = countries, key = { it.code }) { country ->
-            CountryItem(country = country, onClick = { onCountrySelected(country) })
+            CountryItem(country = country,showCountryCodes = showCountryCodes, onClick = { onCountrySelected(country) })
         }
     }
 }
 
 @Composable
 fun CountryItem(
-    country: Country, onClick: () -> Unit, modifier: Modifier = Modifier
+    country: Country, onClick: () -> Unit, modifier: Modifier = Modifier,showCountryCodes: Boolean
 ) {
     Row(
         modifier = modifier.fillMaxWidth().clickable(onClick = onClick)
@@ -114,9 +115,11 @@ fun CountryItem(
         Text(
             text = country.flag, modifier = Modifier.padding(end = 12.dp)
         )
-        Text(
-            text = country.dialCode, modifier = Modifier, fontWeight = FontWeight.Bold
-        )
+        if (showCountryCodes){
+            Text(
+                text = country.dialCode, modifier = Modifier, fontWeight = FontWeight.Bold
+            )
+        }
          Text(
             text = country.name, modifier = Modifier.weight(1f).padding(start =20.dp),
         )

@@ -40,14 +40,14 @@
     <string name="create_account">Create Account</string>
     <string name="enter_first_name">Enter First Name</string>
     <string name="enter_last_name">Enter Last Name</string>
-    <string name="enter_pmdc_number">Enter PMDC Number</string>
+    <string name="enter_pmdc_number">Enter PMDC Number (Optional)</string>
     <string name="enter_registration_number">Enter Registration Number</string>
     <string name="institution_name">Institute Name</string>
     <string name="city">Enter City name</string>
     <string name="country">Enter Country name</string>
     <string name="save_details">Save Details</string>
     <string name="skip_for_now">Skip for now</string>
-    <string name="designation">Enter Your Designation</string>
+    <string name="designation">Enter Your Designation (Optional)</string>
 
     <string name="already_have_an_account">Already have an account?</string>
     <string name="create_an_account_so_you_can_interact_seamlessly">Create an account so you can\ninteract seamlessly</string>
