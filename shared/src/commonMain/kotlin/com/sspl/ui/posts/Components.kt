@@ -1,52 +1,64 @@
 package com.sspl.ui.posts
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.ui.layout.*
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sspl.core.models.Post
+import com.sspl.core.usecases.Comment
 import com.sspl.resources.Res
 import com.sspl.resources.comment_outline
 import com.sspl.resources.demo1
 import com.sspl.resources.demo2
-import com.sspl.resources.demo3
 import com.sspl.resources.place_holder
 import com.sspl.resources.thumb_down_outline
 import com.sspl.resources.thumb_up_outline
+import com.sspl.theme.primary
 import com.sspl.ui.components.AppTextBody
+import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.AppTextSmall
 import com.sspl.ui.components.AppTextSubTitle
-import com.sspl.ui.components.AppTextTitle
-import com.sspl.utils.dummyPostList
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -57,9 +69,11 @@ fun PostItem(
     post: Post,
     onLikePost: () -> Unit,
     onDislikePost: () -> Unit,
+    onFirstImageClick:()->Unit={},
+    onSecondImageClick:()->Unit={},
     cardCornerPercentage:Int=4,
-    elevation:Dp=3.dp,imageAspectRatio:Float=1f,
-    onCommentPost: () -> Unit, onItemClick:()->Unit
+    elevation:Dp=3.dp, imageAspectRatio:Float=1f,
+    onLoadComments: () -> Unit, onItemClick:()->Unit
 ) {
     Card(onClick = onItemClick,
         modifier = modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
@@ -90,7 +104,7 @@ fun PostItem(
             Spacer(modifier = Modifier.height(8.dp))
             post.description?.let {
                 AppTextBody(
-                    text = post.description, modifier.padding(horizontal = 10.dp), fontSize = 16.sp
+                    text = post.description, modifier.padding(horizontal = 10.dp), fontSize = 14.sp, lineHeight = 20.sp
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
@@ -107,7 +121,7 @@ fun PostItem(
                         contentDescription = "Post image 1",
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
                             .aspectRatio(imageAspectRatio) // Adjust this ratio as needed
-                            .clip(RoundedCornerShape(3)),
+                            .clip(RoundedCornerShape(3)).clickable(onClick = onFirstImageClick),
                         contentScale = ContentScale.Crop
                     )
                 }
@@ -123,7 +137,7 @@ fun PostItem(
                             contentDescription = "Post image 1",
                             modifier = Modifier.weight(1f)
                                 .aspectRatio(imageAspectRatio) // Square aspect ratio for side-by-side images
-                                .clip(RoundedCornerShape(4)),
+                                .clip(RoundedCornerShape(4)).clickable(onClick = onFirstImageClick),
                             contentScale = ContentScale.Crop
                         )
                         Spacer(Modifier.width(5.dp))
@@ -132,7 +146,7 @@ fun PostItem(
                             contentDescription = "Post image 2",
                             modifier = Modifier.weight(1f)
                                 .aspectRatio(imageAspectRatio) // Square aspect ratio for side-by-side images
-                                .clip(RoundedCornerShape(4)),
+                                .clip(RoundedCornerShape(4)).clickable(onClick = onSecondImageClick),
                             contentScale = ContentScale.Crop
                         )
                     }
@@ -144,7 +158,7 @@ fun PostItem(
                 post,
                 onLikePost = onLikePost,
                 onDislikePost = onDislikePost,
-                onCommentPost = onCommentPost
+                onCommentPost = onLoadComments
             )
         }
     }
@@ -209,6 +223,93 @@ fun InteractionButton(
         )
     }
 }
+
+@Composable
+fun CommentItem(comment: Comment) {
+    Row(
+        modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top
+    ) {
+        Image(
+            painter = painterResource(comment.userAvatar),
+            contentDescription = "User Avatar",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.size(46.dp).aspectRatio(1f).clip(CircleShape)
+        )
+        Column(
+            modifier = Modifier.weight(1f).padding(start = 8.dp)
+        ) {
+            AppTextSubTitle(
+                text = comment.userName
+            )
+            AppTextBody(
+                text = comment.content,
+            )
+        }
+    }
+}
+
+@Composable
+fun CommentEditor(onAddComment: (String) -> Unit) {
+    var commentText by remember { mutableStateOf("") }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White)
+            .imePadding()
+            .padding(8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = Color.LightGray.copy(alpha = 0.2f),
+                    shape = RoundedCornerShape(24.dp)
+                )
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            BasicTextField(
+                value = commentText,
+                onValueChange = { commentText = it },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp),
+                textStyle = TextStyle(color = Color.Black, fontSize = 16.sp),
+                decorationBox = { innerTextField ->
+                    Box {
+                        if (commentText.isEmpty()) {
+                            AppTextBody("Write a comment...", color = Color.Gray)
+                        }
+                        innerTextField()
+                    }
+                },
+                maxLines = 3
+            )
+            IconButton(
+                onClick = {
+                    if (commentText.isNotBlank()) {
+                        onAddComment(commentText)
+                        commentText = ""
+                        keyboardController?.hide()
+                        focusManager.clearFocus()
+                    }
+                },
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Send,
+                    contentDescription = "Send Comment",
+                    tint = if (commentText.isNotBlank()) primary else Color.Gray
+                )
+            }
+        }
+    }
+}
+
+
 
 
 //fun LazyListScope.posts(

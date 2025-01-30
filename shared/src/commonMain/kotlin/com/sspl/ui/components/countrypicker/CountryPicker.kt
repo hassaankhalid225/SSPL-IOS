@@ -50,7 +50,7 @@ fun CountryCodePicker(
             }
         }
     }
-    val sheetState =    rememberModalBottomSheetState(
+    val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true,
         confirmValueChange = { it != SheetValue.Hidden })
     val coroutineScope = rememberCoroutineScope()

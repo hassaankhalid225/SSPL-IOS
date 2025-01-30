@@ -92,9 +92,9 @@ fun ConferenceScreen(
 }
 
 @Composable
-fun LoadingScreen() {
+fun LoadingScreen(modifier: Modifier=Modifier) {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         CircularProgressIndicator()
