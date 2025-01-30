@@ -1,8 +1,7 @@
 package com.sspl
 
-import com.sspl.platform.GpsChecker
 import com.sspl.platform.IosGpsChecker
-import com.sspl.platform.UrlOpener
+import com.sspl.platform.shared.UrlOpener
 import com.sspl.storage.Storage
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
@@ -17,6 +16,6 @@ import org.koin.dsl.module
 
 val iosModules = module {
     singleOf(::IosStorage).bind<Storage>()
-    singleOf(::IosUrlOpener).bind<UrlOpener>()
+    singleOf(::UrlOpener)
     single { IosGpsChecker() }
 }

@@ -1,5 +1,6 @@
 package com.sspl.platform.shared
 
+import kotlinx.cinterop.ExperimentalForeignApi
 import platform.UIKit.UIApplication
 import platform.Foundation.NSURL
 
@@ -10,12 +11,18 @@ import platform.Foundation.NSURL
  * se.muhammadimran@gmail.com
  */
 
-
+@OptIn(ExperimentalForeignApi::class)
 actual class UrlOpener {
+    @OptIn(ExperimentalForeignApi::class)
     actual fun openUrl(url: String) {
-        val nsUrl = NSURL.URLWithString(url)
-        if (nsUrl != null) {
-            UIApplication.sharedApplication.openURL(nsUrl)
-        }
+        val nsUrl = NSURL.URLWithString(url) ?: return
+        UIApplication.sharedApplication.openURL(nsUrl)
+//        val nsUrl = NSURL.URLWithString(url)
+//        nsUrl?.let {
+//            UIApplication.sharedApplication.openURL(it)
+////            if (UIApplication.sharedApplication.respondsToSelector("openURL:options:completionHandler:")) {
+////                UIApplication.sharedApplication.openURL(nsUrl)
+////            }
+//        }
     }
 }
