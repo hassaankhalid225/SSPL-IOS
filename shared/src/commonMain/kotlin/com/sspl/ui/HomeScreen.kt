@@ -181,7 +181,7 @@ fun HomeScreen(navController: NavController) {
 
         }
     }
-    
+
     AnimatedVisibility(visible = showSheet) {
         BetterModalBottomSheet(
             sheetState = rememberModalBottomSheetState(
