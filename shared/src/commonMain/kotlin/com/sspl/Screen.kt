@@ -18,7 +18,7 @@ import com.sspl.resources.profile
 import com.sspl.resources.sign_up
 import com.sspl.resources.user_details
 import com.sspl.resources.verify_otp
-import com.sspl.ui.HomeScreen
+import com.sspl.ui.homescreen.HomeScreen
 import com.sspl.ui.SplashScreen
 import com.sspl.ui.userdetails.ProfileScreen
 import com.sspl.ui.conferencescreen.ConferenceDetailScreen

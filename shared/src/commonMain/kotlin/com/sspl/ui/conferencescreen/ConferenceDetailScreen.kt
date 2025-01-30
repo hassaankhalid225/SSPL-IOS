@@ -63,9 +63,7 @@ fun ConferenceDetailScreen(
     navController: NavController,
     viewModel: ConferenceDetailViewModel = koinViewModel()
 ) {
-    val data = navController.previousBackStackEntry?.savedStateHandle?.get<String>(
-        "data"
-    )
+    val data = navController.previousBackStackEntry?.savedStateHandle?.get<String>("data")
     if (data == null) return
     val conference: Conference = Json.decodeFromString<Conference>(data)
 
@@ -99,7 +97,7 @@ fun ConferenceDetailScreen(
 private fun ConferenceDetailContent(conference: Conference, conferenceDetail: ConferenceDetail) {
     Column(
         modifier = Modifier.fillMaxWidth().wrapContentHeight(align = Alignment.Top)
-            .padding(start = 16.dp, end = 16.dp, top = 12.dp)
+            .padding(start = 12.dp, end = 12.dp, top = 12.dp)
             .clip(
                 shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp)
             )

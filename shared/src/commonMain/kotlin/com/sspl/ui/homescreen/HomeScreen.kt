@@ -1,4 +1,4 @@
-package com.sspl.ui
+package com.sspl.ui.homescreen
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
@@ -28,11 +28,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.core.models.ConferenceType
+import com.sspl.platform.shared.UrlOpener
 import com.sspl.resources.Res
 import com.sspl.resources.ad_sspl
 import com.sspl.resources.banner_five
@@ -50,15 +48,18 @@ import com.sspl.resources.banner_one
 import com.sspl.resources.banner_six
 import com.sspl.resources.banner_three
 import com.sspl.resources.banner_two
+import com.sspl.resources.exhibition
 import com.sspl.resources.forum
+import com.sspl.resources.ic_exhibition
 import com.sspl.resources.ic_forum
-import com.sspl.resources.workshops
-import com.sspl.resources.scientific_programs
 import com.sspl.resources.ic_notifications
 import com.sspl.resources.ic_scientific_program
 import com.sspl.resources.ic_user
 import com.sspl.resources.ic_workshop
+import com.sspl.resources.notifications
 import com.sspl.resources.profile
+import com.sspl.resources.scientific_programs
+import com.sspl.resources.workshops
 import com.sspl.theme.boxColor
 import com.sspl.theme.columnColor
 import com.sspl.ui.components.AppHorizontalPager
@@ -69,6 +70,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 
 /**
  * Created by M Imran
@@ -78,8 +81,9 @@ import org.jetbrains.compose.resources.stringResource
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavController) {
-    var showSheet by rememberSaveable { mutableStateOf(false) }
+fun HomeScreen(navController: NavController, homeViewModel: HomeScreenViewModel = koinViewModel()) {
+    var showSheet = homeViewModel.isAdShown.collectAsState()
+    val urlOpener = koinInject<UrlOpener>()
     val scope = rememberCoroutineScope()
     val data = listOf<Item>(
         Item(
@@ -103,8 +107,13 @@ fun HomeScreen(navController: NavController) {
             toScreen = Screen.ProfileScreen
         ),
         Item(
-            title = "Notifications",
+            title = stringResource(Res.string.notifications),
             icon = IconResource.fromDrawableResource(Res.drawable.ic_notifications),
+            toScreen = Screen.ProfileScreen
+        ),
+        Item(
+            title = stringResource(Res.string.exhibition),
+            icon = IconResource.fromDrawableResource(Res.drawable.ic_exhibition),
             toScreen = Screen.ProfileScreen
         ),
     )
@@ -174,7 +183,11 @@ fun HomeScreen(navController: NavController) {
                                 ConferenceType.WORKSHOP.name
                             )
                         }
-                        navController.navigate(it.toScreen.route)
+                        if (index == 5) {
+                            urlOpener.openUrl("https://www.google.com/")
+                        } else {
+                            navController.navigate(it.toScreen.route)
+                        }
                     }
                 }
             }
@@ -182,11 +195,7 @@ fun HomeScreen(navController: NavController) {
         }
     }
 
-    LaunchedEffect(Unit) {
-        delay(2000L)
-        showSheet = true
-    }
-    AnimatedVisibility(visible = showSheet) {
+    AnimatedVisibility(visible = showSheet.value) {
         BetterModalBottomSheet(
             sheetState = rememberModalBottomSheetState(
                 skipPartiallyExpanded = true,
@@ -196,7 +205,7 @@ fun HomeScreen(navController: NavController) {
 //            }
             ),
             onDismissRequest = {
-                scope.launch { showSheet = false }
+                scope.launch { homeViewModel.updateAdShown(false) }
             }
         ) {
             Image(

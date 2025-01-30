@@ -10,12 +10,9 @@ interface Platform {
     val name: String
 }
 
-
-expect fun getStorage(): Storage
 expect suspend fun getClient(userSession: UserSession): HttpClient
 
 expect fun formatDateTime(dateTime: String, inFormat: String, outFormat: String): String
-
 
 
 expect fun ByteArray.toBitmap(): ImageBitmap
@@ -24,6 +21,7 @@ interface GpsChecker {
     fun hasGps(): Boolean
     fun requestEnableLocationServices()
 }
+
 @Composable
 expect fun createGpsChecker(): GpsChecker
 
