@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerScope
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
@@ -35,12 +36,12 @@ import kotlin.math.absoluteValue
 fun <T> AppHorizontalPager(
     list: List<T>,
     showIndicator: Boolean = true,
+    pagerState: PagerState = rememberPagerState(pageCount = {
+        list.size
+    }),
     content: @Composable PagerScope.(modifier: Modifier, item: T, page: Int) -> Unit
 ) {
     val indicator = remember { showIndicator }
-    val pagerState = rememberPagerState(pageCount = {
-        list.size
-    })
     val horizontalPadding = 20.dp
     val itemSpacing = horizontalPadding / 4
 

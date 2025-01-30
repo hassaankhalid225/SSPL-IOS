@@ -3,7 +3,6 @@ package com.sspl
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import com.sspl.resources.Res
