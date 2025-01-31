@@ -42,6 +42,7 @@
     <string name="create_account">Create Account</string>
     <string name="enter_first_name">Enter First Name</string>
     <string name="enter_last_name">Enter Last Name</string>
+    <string name="session">Session Details</string>
     <string name="enter_pmdc_number">Enter PMDC Number (Optional)</string>
     <string name="enter_registration_number">Enter Registration Number</string>
     <string name="institution_name">Institute Name</string>
