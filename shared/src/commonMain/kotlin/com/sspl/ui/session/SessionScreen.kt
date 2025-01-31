@@ -14,19 +14,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -44,7 +39,6 @@ import com.sspl.ui.components.AppTextBody
 import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.AppTextSubTitle
 import com.sspl.ui.components.AppTextTitle
-import com.sspl.ui.conferencescreen.ConferenceAddOns
 import com.sspl.utils.FORMAT_DAY_MONTH
 import com.sspl.utils.FORMAT_DEFAULT_DATE_TIME
 import com.sspl.utils.FORMAT_TIME_12HOUR
@@ -83,54 +77,57 @@ fun SessionScreen(navController: NavController) {
             AppTextBody(
                 text = session.summary.orEmpty()
             )
-           // ConferenceAddOns(session.addOnSets)
+            // ConferenceAddOns(session.addOnSets)
         }
-Column {
-
-    session.breakdown?.let { breakdown ->
         Column {
-            AppTextTitle("Breakdown", modifier = Modifier.padding(start = 10.dp, top = 10.dp))
-            Spacer(Modifier.height(2.dp))
-            LazyColumn(
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                itemsIndexed(breakdown) { index, breakdownItem ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.Top
+            session.addOnSets?.let { adOns ->
+                Column {
+                    AppTextTitle("Ad-ons", modifier = Modifier.padding(start = 10.dp, top = 10.dp))
+                    Spacer(Modifier.height(2.dp))
+                    LazyColumn(
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
+                        itemsIndexed(adOns) { index, adOn ->
 
-Timeline(index = index, lastIndex = breakdown.lastIndex)
-                        // Breakdown Item
-                        EachBreak(breakdown = breakdownItem, index)
+                            AddOnSetItem(
+                                adOn, index
+                            )
+
+                        }
                     }
                 }
             }
-        }
-    }
+            HorizontalDivider(Modifier.fillMaxWidth().padding(vertical = 6.dp), color = columnColor)
 
-    HorizontalDivider(Modifier.fillMaxWidth().padding(vertical = 6.dp), color = columnColor)
-
-    session.addOnSets?.let { adOns ->
-        Column {
-            AppTextTitle("Ad-ons", modifier = Modifier.padding(start = 10.dp, top = 10.dp))
-            Spacer(Modifier.height(2.dp))
-            LazyColumn (
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                itemsIndexed(adOns) { index, adOn ->
-
-                    AddOnSetItem(
-                       adOn,index
+            session.breakdown?.let { breakdown ->
+                Column {
+                    AppTextTitle(
+                        "Breakdown",
+                        modifier = Modifier.padding(start = 10.dp, top = 10.dp)
                     )
+                    Spacer(Modifier.height(2.dp))
+                    LazyColumn(
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        itemsIndexed(breakdown) { index, breakdownItem ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.Top
+                            ) {
 
+                                Timeline(index = index, lastIndex = breakdown.lastIndex)
+                                // Breakdown Item
+                                EachBreak(breakdown = breakdownItem, index)
+                            }
+                        }
+                    }
                 }
             }
+
+
         }
-    }
-}
 
 
     }
@@ -140,10 +137,10 @@ Timeline(index = index, lastIndex = breakdown.lastIndex)
 
 
 @Composable
-fun Timeline(modifier: Modifier = Modifier,index: Int,lastIndex:Int) {
+fun Timeline(modifier: Modifier = Modifier, index: Int, lastIndex: Int) {
     // Timeline Indicator
     Column(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = modifier.padding(horizontal = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Draw Solid Dot
@@ -208,7 +205,7 @@ fun EachBreak(breakdown: Breakdown, index: Int) {
 }
 
 @Composable
-fun AddOnSetItem(addOnSet: AddOnSet,index: Int) {
+fun AddOnSetItem(addOnSet: AddOnSet, index: Int) {
     Column(modifier = Modifier.padding(horizontal = 8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             AppTextSubTitle(
