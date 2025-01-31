@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Card
@@ -34,19 +36,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.sspl.Screen
 import com.sspl.core.ApiStates
 import com.sspl.core.models.User
 import com.sspl.core.models.UserProfile
 import com.sspl.resources.Res
-import com.sspl.resources.demo1
 import com.sspl.resources.ic_user
 import com.sspl.resources.sign_out
 import com.sspl.ui.components.AppRoundedCornerButton
 import com.sspl.ui.components.AppTextBody
 import com.sspl.ui.components.AppTextLabel
+import com.sspl.ui.components.AppTextSubTitle
 import com.sspl.ui.components.AppTextTitle
 import com.sspl.ui.components.Error
 import com.sspl.ui.conferencescreen.LoadingScreen
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -63,7 +68,7 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = koinViewModel(),
     onParentGraph: () -> Unit = {}
 ) {
-    val user by viewModel.user.collectAsStateWithLifecycle()
+    // val user by viewModel.user.collectAsStateWithLifecycle()
     val userDetails by viewModel.userDetails.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) {
         viewModel.getUserDetails()
@@ -72,31 +77,45 @@ fun ProfileScreen(
         userDetails = userDetails, onSignOut = {
             viewModel.onSignOut()
             onParentGraph()
-        }, user = user
+        },onEditPersonalDetails = {
+            navController.currentBackStackEntry?.savedStateHandle?.set(
+                "isPersonalDetails",true
+            )
+            navController.navigate(Screen.EditProfile.route)
+        },onEditProfessionalDetails = {
+            navController.currentBackStackEntry?.savedStateHandle?.set(
+                "isPersonalDetails",false
+            )
+            navController.navigate(Screen.EditProfile.route)
+
+        }
     )
 
 
 }
 
 @Composable
-fun ProfileScreenContent(onSignOut: () -> Unit, user: User?, userDetails: ApiStates<UserProfile?>) {
+fun ProfileScreenContent(onSignOut: () -> Unit, userDetails: ApiStates<UserProfile?>,onEditPersonalDetails: () -> Unit = {},onEditProfessionalDetails: () -> Unit = {}) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
+        modifier = Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(Modifier.weight(0.1f))
-        ProfileImage()
-        Spacer(Modifier.height(20.dp))
 
-        BasicInformationSection(user)
-        Spacer(Modifier.height(16.dp))
         when (userDetails) {
             is ApiStates.Failure -> Error(
                 modifier = Modifier, userDetails.error
             )
 
             ApiStates.Loading -> LoadingScreen()
-            is ApiStates.Success -> userDetails.data?.let { PersonalDetailsSection(it) }
+            is ApiStates.Success -> userDetails.data?.let {
+                Spacer(Modifier.weight(0.1f))
+                ProfileImage()
+                Spacer(Modifier.height(20.dp))
+
+                BasicInformationSection(it,onEditPersonalDetails = onEditPersonalDetails)
+                Spacer(Modifier.height(16.dp))
+                PersonalDetailsSection(it,onEditProfessionalDetails = onEditProfessionalDetails)
+            }
         }
         Spacer(Modifier.weight(1f))
         SignOutButton(onSignOut)
@@ -133,25 +152,25 @@ private fun ProfileImage(onChangeProfilePicture: () -> Unit = {}) {
 
 
 @Composable
-private fun BasicInformationSection(user: User?) {
+private fun BasicInformationSection(user: UserProfile,onEditPersonalDetails: () -> Unit = {}) {
     Column(modifier = Modifier.fillMaxWidth()) {
 
         Spacer(Modifier.height(4.dp))
         InfoCard {
-            SectionTitle("Personal Details")
-            InfoRow("Name", user?.firstName + " " + user?.lastName)
-            InfoRow("Email", user?.email ?: "")
-            InfoRow("Phone", user?.phone?.toString() ?: "")
+            SectionTitle("Personal Details",onEdit = onEditPersonalDetails)
+            InfoRow("Name", user.title.orEmpty())
+            InfoRow("Email", user.contact?.email.orEmpty())
+            InfoRow("Phone", user.contact?.phone.orEmpty())
         }
     }
 }
 
 @Composable
-private fun PersonalDetailsSection(userProfile: UserProfile) {
+private fun PersonalDetailsSection(userProfile: UserProfile,onEditProfessionalDetails: () -> Unit = {}) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Spacer(Modifier.height(4.dp))
         InfoCard {
-            SectionTitle("Professional Details")
+            SectionTitle("Professional Details",onEdit = onEditProfessionalDetails)
             InfoRow("PMDC No", userProfile.pmdcNumber.orEmpty())
             InfoRow("Institute", userProfile.designation.orEmpty())
             InfoRow("Country", userProfile.title.orEmpty())
@@ -162,10 +181,16 @@ private fun PersonalDetailsSection(userProfile: UserProfile) {
 }
 
 @Composable
-private fun SectionTitle(title: String) {
-    AppTextTitle(
-        text = title, fontSize = 14.sp, modifier = Modifier.fillMaxWidth()
-    )
+private fun SectionTitle(title: String, onEdit: () -> Unit = {}) {
+    Row(horizontalArrangement = Arrangement.SpaceBetween) {
+        AppTextTitle(
+            text = title, fontSize = 14.sp
+        )
+        Spacer(Modifier.weight(1f))
+        AppTextSubTitle("Edit", modifier = Modifier.clickable {
+            onEdit()
+        })
+    }
 }
 
 @Composable

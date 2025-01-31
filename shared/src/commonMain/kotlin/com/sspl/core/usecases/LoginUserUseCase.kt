@@ -22,11 +22,11 @@ class LoginUserUseCase(
         emit(ApiStates.Loading)
 
         try {
+
             val requestBody = mapOf(
                 "email" to email,
                 "password" to password,
             )
-
             val response = authRepository.login(body = requestBody)
 
             if (response.status.isSuccess()) {

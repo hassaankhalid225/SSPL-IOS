@@ -9,6 +9,7 @@ import com.sspl.resources.Res
 import com.sspl.resources.conference
 import com.sspl.resources.conference_detail
 import com.sspl.resources.create_post
+import com.sspl.resources.edit_profile
 import com.sspl.resources.forum
 import com.sspl.resources.home
 import com.sspl.resources.ic_forum
@@ -29,6 +30,7 @@ import com.sspl.ui.location.LocationScreen
 import com.sspl.ui.otp.OtpScreen
 import com.sspl.ui.postcreation.CreatePostScreen
 import com.sspl.ui.posts.PostScreen
+import com.sspl.ui.userdetails.EditProfileScreen
 import com.sspl.ui.userdetails.UserDetailsScreen
 import com.sspl.utils.IconResource
 import org.jetbrains.compose.resources.StringResource
@@ -103,6 +105,10 @@ sealed class Screen(
         title = Res.string.sign_up,
         route = "SignUpScreen",
     )
+    data object EditProfile : Screen(
+        title = Res.string.edit_profile,
+        route = "EditProfileScreen",
+    )
 
     data object CreatePostScreen : Screen(
         title = Res.string.create_post,
@@ -135,6 +141,10 @@ fun otherScreens(): List<NavItem> = listOf(
     NavItem(
         screen = Screen.UserDetailsScreen,
         component = { UserDetailsScreen(navController = it) }),
+    NavItem(
+        screen = Screen.EditProfile,
+        component = { EditProfileScreen(navController = it) }),
+
     NavItem(screen = Screen.CreatePostScreen, component = { CreatePostScreen(navController = it) }),
 )
 
