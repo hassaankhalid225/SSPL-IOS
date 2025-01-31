@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sspl.core.ApiStates
 import com.sspl.core.models.ApiError
+import com.sspl.core.models.UserProfile
 import com.sspl.core.usecases.PostUserDetailsUseCase
 import com.sspl.core.usecases.ValidateUserCityUseCase
 import com.sspl.core.usecases.ValidateUserCountryUseCase
@@ -35,8 +36,8 @@ class UserDetailViewModel(
     private val _uiState = MutableStateFlow(UserDetailsUiState())
     val uiState = _uiState.asStateFlow()
 
-    private val _networkState = MutableSharedFlow<ApiStates<Boolean>>()
-    val networkState: SharedFlow<ApiStates<Boolean>> = _networkState.asSharedFlow()
+    private val _networkState = MutableSharedFlow<ApiStates<UserProfile>>()
+    val networkState: SharedFlow<ApiStates<UserProfile>> = _networkState.asSharedFlow()
 
     fun onEvent(event: UserDetailsUiEvents) {
         viewModelScope.launch {
@@ -113,8 +114,8 @@ class UserDetailViewModel(
 
                 UserDetailsUiEvents.OnSave -> {
                     if (_uiState.value.isSaveEnabled && !_uiState.value.isLoading) {
-                        postUserDetailsUseCase.postUserDetails(
-                            pmdcNo = _uiState.value.pmDcNumber,
+                        postUserDetailsUseCase.updateUserProfile(
+                            pmdcNo = _uiState.value.pmDcNumber.orEmpty(),
                             instituteName = _uiState.value.institution,
                             country = _uiState.value.country,
                             designation = _uiState.value.designation,

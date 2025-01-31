@@ -12,11 +12,12 @@ import kotlinx.coroutines.flow.flow
 import io.ktor.client.call.*
 import io.ktor.http.isSuccess
 
-class LoginUserUseCase(private val authRepository: AuthRepository,private val userSession: UserSession) {
+class LoginUserUseCase(
+    private val authRepository: AuthRepository, private val userSession: UserSession
+) {
 
     fun signInUserViaEmail(
-        email: String,
-        password: String
+        email: String, password: String
     ): Flow<ApiStates<AuthResponse>> = flow {
         emit(ApiStates.Loading)
 
