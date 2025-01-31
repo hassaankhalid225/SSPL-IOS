@@ -6,6 +6,10 @@
     <string name="favourite">Favourite</string>
     <string name="profile">Profile</string>
     <string name="forum">Forum</string>
+    <string name="workshops">Workshops</string>
+    <string name="scientific_programs">Scientific Programs</string>
+    <string name="notifications">Notifications</string>
+    <string name="exhibition">Exhibition</string>
     <string name="conference">Conference</string>"
     <string name="conference_detail">Conference Detail</string>"
     <string name="sign_up">Sign Up</string>"

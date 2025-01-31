@@ -1,28 +1,24 @@
-package com.sspl.ui
+package com.sspl.ui.homescreen
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -31,39 +27,51 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.sspl.Screen
-import com.sspl.core.models.Conference
 import com.sspl.core.models.ConferenceType
+import com.sspl.platform.shared.UrlOpener
 import com.sspl.resources.Res
 import com.sspl.resources.ad_sspl
+import com.sspl.resources.banner_five
+import com.sspl.resources.banner_four
+import com.sspl.resources.banner_one
+import com.sspl.resources.banner_six
+import com.sspl.resources.banner_three
+import com.sspl.resources.banner_two
+import com.sspl.resources.exhibition
+import com.sspl.resources.forum
+import com.sspl.resources.ic_exhibition
 import com.sspl.resources.ic_forum
 import com.sspl.resources.ic_notifications
 import com.sspl.resources.ic_scientific_program
 import com.sspl.resources.ic_user
 import com.sspl.resources.ic_workshop
+import com.sspl.resources.notifications
+import com.sspl.resources.profile
+import com.sspl.resources.scientific_programs
+import com.sspl.resources.workshops
 import com.sspl.theme.boxColor
 import com.sspl.theme.columnColor
 import com.sspl.ui.components.AppHorizontalPager
 import com.sspl.ui.components.AppTextSubTitle
 import com.sspl.ui.components.BetterModalBottomSheet
 import com.sspl.utils.IconResource
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 
 /**
  * Created by M Imran
@@ -73,52 +81,79 @@ import org.jetbrains.compose.resources.painterResource
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavController) {
-    var showSheet by rememberSaveable { mutableStateOf(false) }
+fun HomeScreen(navController: NavController, homeViewModel: HomeScreenViewModel = koinViewModel()) {
+    var showSheet = homeViewModel.isAdShown.collectAsState()
+    val urlOpener = koinInject<UrlOpener>()
     val scope = rememberCoroutineScope()
-
     val data = listOf(
         Item(
-            title = "Scientific Programs",
+            title = stringResource(Res.string.scientific_programs),
             icon = IconResource.fromDrawableResource(Res.drawable.ic_scientific_program),
             toScreen = Screen.ConferenceScreen
         ),
         Item(
-            title = "Workshops",
+            title = stringResource(Res.string.workshops),
             icon = IconResource.fromDrawableResource(Res.drawable.ic_workshop),
             toScreen = Screen.ConferenceScreen
         ),
         Item(
-            title = "Forum",
+            title = stringResource(Res.string.forum),
             icon = IconResource.fromDrawableResource(Res.drawable.ic_forum),
             toScreen = Screen.ForumScreen
         ),
         Item(
-            title = "Profile",
+            title = stringResource(Res.string.profile),
             icon = IconResource.fromDrawableResource(Res.drawable.ic_user),
             toScreen = Screen.ProfileScreen
         ),
         Item(
-            title = "Notifications",
+            title = stringResource(Res.string.notifications),
             icon = IconResource.fromDrawableResource(Res.drawable.ic_notifications),
             toScreen = Screen.ProfileScreen
         ),
+        Item(
+            title = stringResource(Res.string.exhibition),
+            icon = IconResource.fromDrawableResource(Res.drawable.ic_exhibition),
+            toScreen = Screen.ProfileScreen
+        ),
     )
+    val bannerImages = listOf(
+        Res.drawable.banner_one,
+        Res.drawable.banner_two,
+        Res.drawable.banner_three,
+        Res.drawable.banner_four,
+        Res.drawable.banner_five,
+        Res.drawable.banner_six
+    )
+    val pagerState = rememberPagerState(pageCount = {
+        bannerImages.size
+    })
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(4000L)
+            val currentPage = pagerState.currentPage
+            scope.launch {
+                if (currentPage + 1 == bannerImages.size) {
+                    pagerState.animateScrollToPage(0)
+                } else {
+                    pagerState.animateScrollToPage(currentPage + 1)
+                }
+            }
+        }
+    }
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         item {
             AppHorizontalPager(
-                list = listOf(
-                    Res.drawable.ad_sspl,
-                    Res.drawable.ad_sspl,
-                    Res.drawable.ad_sspl
-                ),
+                list = bannerImages,
+                pagerState = pagerState,
                 showIndicator = false
             ) { modifier, item, page ->
                 Image(
-                    modifier = modifier.then(Modifier.height(100.dp))
-                        .clip(
+                    modifier = modifier.then(
+                        Modifier.fillMaxWidth().clip(
                             shape = RoundedCornerShape(8)
-                        ),
+                        )
+                    ),
                     contentScale = ContentScale.FillWidth,
                     painter = painterResource(item), contentDescription = ""
                 )
@@ -148,7 +183,11 @@ fun HomeScreen(navController: NavController) {
                                 ConferenceType.WORKSHOP.name
                             )
                         }
-                        navController.navigate(it.toScreen.route)
+                        if (index == 5) {
+                            urlOpener.openUrl("https://www.google.com/")
+                        } else {
+                            navController.navigate(it.toScreen.route)
+                        }
                     }
                 }
             }
@@ -156,10 +195,7 @@ fun HomeScreen(navController: NavController) {
         }
     }
 
-//    Box(modifier = Modifier.fillMaxSize().background(color = Color.Red))
-
-//    ConferenceScreen(navController)
-    AnimatedVisibility(visible = showSheet) {
+    AnimatedVisibility(visible = showSheet.value) {
         BetterModalBottomSheet(
             sheetState = rememberModalBottomSheetState(
                 skipPartiallyExpanded = true,
@@ -169,7 +205,7 @@ fun HomeScreen(navController: NavController) {
 //            }
             ),
             onDismissRequest = {
-                scope.launch { showSheet = false }
+                scope.launch { homeViewModel.updateAdShown(false) }
             }
         ) {
             Image(

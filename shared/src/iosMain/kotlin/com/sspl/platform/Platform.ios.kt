@@ -49,7 +49,7 @@ actual fun formatDateTime(dateTime: String, inFormat: String, outFormat: String)
     }
 }
 
-actual fun getStorage(): Storage = IosStorage()
+
 
 
 class IosGpsChecker : GpsChecker {

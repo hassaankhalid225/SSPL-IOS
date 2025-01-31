@@ -23,6 +23,7 @@ import com.sspl.session.UserSession
 import com.sspl.storage.Storage
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.http.Url
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import java.text.SimpleDateFormat
@@ -59,24 +60,22 @@ actual fun formatDateTime(dateTime: String, inFormat: String, outFormat: String)
     }
 }
 
-actual fun getStorage(): Storage {
-    TODO("Not yet implemented")
-}
-
 class AndroidGpsChecker(private val context: Context) : GpsChecker {
     override fun hasGps(): Boolean {
         val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
     }
+
     override fun requestEnableLocationServices() {
         val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
         context.startActivity(intent)
     }
 }
+
 @Composable
 actual fun createGpsChecker(): GpsChecker {
-    val androidGpsChecker :AndroidGpsChecker = koinInject()
+    val androidGpsChecker: AndroidGpsChecker = koinInject()
     return androidGpsChecker
 }
 
