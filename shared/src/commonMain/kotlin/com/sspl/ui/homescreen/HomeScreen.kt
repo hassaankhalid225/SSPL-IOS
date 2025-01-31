@@ -85,7 +85,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeScreenViewModel 
     var showSheet = homeViewModel.isAdShown.collectAsState()
     val urlOpener = koinInject<UrlOpener>()
     val scope = rememberCoroutineScope()
-    val data = listOf<Item>(
+    val data = listOf(
         Item(
             title = stringResource(Res.string.scientific_programs),
             icon = IconResource.fromDrawableResource(Res.drawable.ic_scientific_program),

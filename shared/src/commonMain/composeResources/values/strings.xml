@@ -46,6 +46,7 @@
     <string name="enter_registration_number">Enter Registration Number</string>
     <string name="institution_name">Institute Name</string>
     <string name="city">Enter City name</string>
+    <string name="post_details">Post Details</string>
     <string name="country">Enter Country name</string>
     <string name="save_details">Save Details</string>
     <string name="skip_for_now">Skip for now</string>

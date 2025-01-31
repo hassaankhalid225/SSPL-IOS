@@ -14,6 +14,7 @@ import com.sspl.resources.home
 import com.sspl.resources.ic_forum
 import com.sspl.resources.ic_user
 import com.sspl.resources.log_in
+import com.sspl.resources.post_details
 import com.sspl.resources.profile
 import com.sspl.resources.sign_up
 import com.sspl.resources.user_details
@@ -28,6 +29,7 @@ import com.sspl.ui.kyc.SignUpScreen
 import com.sspl.ui.location.LocationScreen
 import com.sspl.ui.otp.OtpScreen
 import com.sspl.ui.postcreation.CreatePostScreen
+
 import com.sspl.ui.posts.PostScreen
 import com.sspl.ui.userdetails.UserDetailsScreen
 import com.sspl.utils.IconResource
@@ -89,6 +91,7 @@ sealed class Screen(
         route = "SignInScreen",
     )
 
+
     data object GetLocation : Screen(
         title = Res.string.log_in,
         route = "Location",
@@ -121,8 +124,8 @@ fun screenByRoute(route: String?): Screen? =
 fun navItems(): List<NavItem> =
     listOf(
         NavItem(screen = Screen.HomeScreen, component = { HomeScreen(navController = it) }),
-        NavItem(screen = Screen.ForumScreen, component = { PostScreen(navController = it) })
-    )
+        NavItem(screen = Screen.ForumScreen, component = { PostScreen(navController = it) }),
+        )
 
 fun otherScreens(): List<NavItem> = listOf(
     NavItem(

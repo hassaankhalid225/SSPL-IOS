@@ -64,8 +64,7 @@ fun ConferenceScreen(
     viewModel: ConferenceViewModel = koinViewModel()
 ) {
     val savedStateHandle = navController.previousBackStackEntry?.savedStateHandle
-    val type = savedStateHandle?.get<String>("type")
-    if (type == null) return
+    val type = savedStateHandle?.get<String>("type") ?: return
     println("Type :$type")
     val uiState by viewModel.conferences.collectAsStateWithLifecycle()
 
@@ -93,9 +92,9 @@ fun ConferenceScreen(
 }
 
 @Composable
-fun LoadingScreen() {
+fun LoadingScreen(modifier: Modifier=Modifier) {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         CircularProgressIndicator()
