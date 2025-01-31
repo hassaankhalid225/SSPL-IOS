@@ -94,6 +94,5 @@ data class Breakdown(
     @SerialName("starts_at") val startsAt: String?,
     @SerialName("ends_at") val endsAt: String?,
     @SerialName("is_break") val isBreak: Boolean,
-    @SerialName("session_id") val sessionId: Long,
     @SerialName("speakers") val speakers: List<Speaker>,
 )
