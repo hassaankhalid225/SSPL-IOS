@@ -75,7 +75,7 @@ data class Speaker(
     @SerialName("last_name") val lastName: String,
     @SerialName("gender") val gender: String,
 ) {
-    fun fullName() = "$firstName $lastName"
+    fun fullName() = "$prefix $firstName $lastName"
 }
 
 @Serializable
@@ -94,6 +94,5 @@ data class Breakdown(
     @SerialName("starts_at") val startsAt: String?,
     @SerialName("ends_at") val endsAt: String?,
     @SerialName("is_break") val isBreak: Boolean,
-    @SerialName("session_id") val sessionId: Long,
     @SerialName("speakers") val speakers: List<Speaker>,
 )

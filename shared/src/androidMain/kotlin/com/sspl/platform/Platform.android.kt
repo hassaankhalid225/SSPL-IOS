@@ -28,6 +28,7 @@ import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.TimeZone
 
 class AndroidPlatform : Platform {
     override val name: String = "Android ${android.os.Build.VERSION.SDK_INT}"
@@ -49,10 +50,14 @@ actual suspend fun getClient(userSession: UserSession): HttpClient {
 actual fun formatDateTime(dateTime: String, inFormat: String, outFormat: String): String {
     return try {
         println(">>>dateTime=$dateTime")
-        val inputFormat = SimpleDateFormat(inFormat, Locale.getDefault())
+        val inputFormat = SimpleDateFormat(inFormat, Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
         val date = inputFormat.parse(dateTime)
 
-        val outputFormat = SimpleDateFormat(outFormat, Locale.getDefault())
+        val outputFormat = SimpleDateFormat(outFormat, Locale.getDefault()).apply {
+            timeZone = TimeZone.getDefault()
+        }
         outputFormat.format(date!!)
     } catch (e: Exception) {
         e.printStackTrace()
@@ -80,6 +85,9 @@ actual fun createGpsChecker(): GpsChecker {
 }
 
 actual fun ByteArray.toBitmap() = BitmapFactory.decodeByteArray(this, 0, size).asImageBitmap()
+
+actual fun platformConfiguration(): PlatformConfiguration = AndroidConfiguration()
+
 
 
 

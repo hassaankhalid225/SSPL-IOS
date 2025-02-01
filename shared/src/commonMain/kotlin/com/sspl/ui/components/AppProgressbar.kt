@@ -12,8 +12,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun FullScreenProgressIndicator(modifier: Modifier = Modifier, color: Color?=null) {
-    Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+fun AppProgressBar(modifier: Modifier = Modifier.fillMaxSize(), color: Color? = null) {
+    Box(modifier, contentAlignment = Alignment.Center) {
         CircularProgressIndicator(
             modifier = Modifier.size(80.dp).align(Alignment.Center),
             color = color ?: ProgressIndicatorDefaults.circularColor

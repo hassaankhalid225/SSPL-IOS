@@ -68,7 +68,7 @@ private fun MainScreenContent(
             Screen.MainScreen
         } ?: Screen.SignInScreen
         currentScreen.value = newScreen
-        println("Fuckingggg Screen2:${currentScreen.value}")
+        println("Fuckingggg Screen2 :${currentScreen.value}")
     }
     println("Fuckingggg Screen3:${currentScreen.value}")
     if(currentScreen.value==Screen.SplashScreen){

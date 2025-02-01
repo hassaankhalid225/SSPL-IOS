@@ -14,7 +14,7 @@ expect suspend fun getClient(userSession: UserSession): HttpClient
 
 expect fun formatDateTime(dateTime: String, inFormat: String, outFormat: String): String
 
-
+expect fun platformConfiguration():PlatformConfiguration
 expect fun ByteArray.toBitmap(): ImageBitmap
 
 interface GpsChecker {

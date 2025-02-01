@@ -1,9 +1,10 @@
-package com.sspl.ui.conferencescreen
+package com.sspl.ui.conference
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sspl.core.ApiStates
 import com.sspl.core.models.Conference
+import com.sspl.core.models.ConferenceType
 import com.sspl.core.usecases.GetConferencesUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -35,13 +36,11 @@ class ConferenceViewModel(
 //            }
 //        }
 //    }
-    init {
-        getAllConferences()
-    }
 
-    private fun getAllConferences() {
+    fun getAllConferences(type: ConferenceType = ConferenceType.ALL) {
         viewModelScope.launch {
-            conferenceRepository.getAllConferences().flowOn(Dispatchers.IO)
+            println(">>>Conference Request:Type =$type")
+            conferenceRepository.getAllConferences(type = type).flowOn(Dispatchers.IO)
                 .collect { responseState ->
                     println("Conference Response is $responseState")
                     _conferences.update { responseState }

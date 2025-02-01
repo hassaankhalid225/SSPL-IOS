@@ -1,8 +1,7 @@
-package com.sspl.ui.conferencescreen
+package com.sspl.ui.conference.workshops
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -15,10 +14,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,15 +34,17 @@ import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.core.ApiStates
 import com.sspl.core.models.Conference
+import com.sspl.core.models.ConferenceType
 import com.sspl.platform.formatDateTime
 import com.sspl.theme.boxColor
 import com.sspl.theme.columnColor
 import com.sspl.theme.dividerColor
-import com.sspl.theme.orange
+import com.sspl.ui.components.AppProgressBar
 import com.sspl.ui.components.AppTextBody
 import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.AppTextSubTitle
 import com.sspl.ui.components.Error
+import com.sspl.ui.conference.ConferenceViewModel
 import com.sspl.utils.FORMAT_DAY_MONTH
 import com.sspl.utils.FORMAT_DEFAULT_DATE_TIME
 import kotlinx.serialization.encodeToString
@@ -53,25 +54,25 @@ import org.koin.compose.viewmodel.koinViewModel
 /**
  * Created by M Imran
  * Senior Software Engineer at
- * BhimSoft on 05/01/2025.
+ * BhimSoft on 31/01/2025.
  * se.muhammadimran@gmail.com
  */
 
+private const val TAG = ">>>WorkshopsScreen"
 
 @Composable
-fun ConferenceScreen(
+fun WorkshopsScreen(
     navController: NavController,
     viewModel: ConferenceViewModel = koinViewModel()
 ) {
-    val savedStateHandle = navController.previousBackStackEntry?.savedStateHandle
-    val type = savedStateHandle?.get<String>("type")
-    if (type == null) return
-    println("Type :$type")
     val uiState by viewModel.conferences.collectAsStateWithLifecycle()
-
+    LaunchedEffect(Unit) {
+        println("$TAG LaunchedEffect(Unit)")
+        viewModel.getAllConferences(ConferenceType.WORKSHOP)
+    }
     when (uiState) {
         is ApiStates.Loading -> {
-            LoadingScreen()
+            AppProgressBar()
         }
 
         is ApiStates.Failure -> {
@@ -83,7 +84,8 @@ fun ConferenceScreen(
 
         is ApiStates.Success -> {
             (uiState as ApiStates.Success<List<Conference>>).data?.let {
-                ConferenceList(
+                println("$TAG Data: $it")
+                WorkshopsList(
                     conferences = it,
                     navController = navController
                 )
@@ -93,18 +95,7 @@ fun ConferenceScreen(
 }
 
 @Composable
-fun LoadingScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        CircularProgressIndicator()
-    }
-}
-
-
-@Composable
-fun ConferenceList(
+private fun WorkshopsList(
     conferences: List<Conference>,
     navController: NavController
 ) {
@@ -113,7 +104,7 @@ fun ConferenceList(
         contentPadding = PaddingValues(all = 16.dp)
     ) {
         itemsIndexed(conferences, key = { i, _ -> i }) { i, item ->
-            ConferenceItem(
+            WorkshopItem(
                 item = item,
                 position = i,
                 showDivider = i != conferences.size - 1
@@ -122,14 +113,14 @@ fun ConferenceList(
                     "data",
                     Json.encodeToString(item)
                 )
-                navController.navigate(route = Screen.ConferenceDetailScreen.route)
+                navController.navigate(route = Screen.WorkshopDetailScreen.route)
             }
         }
     }
 }
 
 @Composable
-fun ConferenceItem(
+private fun WorkshopItem(
     item: Conference, position: Int, showDivider: Boolean = true, onClick: () -> Unit
 ) {
     Row(
@@ -166,32 +157,8 @@ fun ConferenceItem(
                     )
                 ) {
                     append(
-                        "${
-                            formatDateTime(
-                                dateTime = item.startDate ?: "",
-                                inFormat = FORMAT_DEFAULT_DATE_TIME,
-                                outFormat = FORMAT_DAY_MONTH
-                            ).uppercase()
-                        }\n"
-                    )
-                }
-                withStyle(
-                    style = SpanStyle(
-                        color = orange, fontSize = 18.sp, fontWeight = FontWeight.Bold
-                    )
-                ) {
-                    append("⋮\n")
-                }
-                withStyle(
-                    style = SpanStyle(
-                        color = MaterialTheme.colorScheme.tertiary,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                ) {
-                    append(
                         formatDateTime(
-                            dateTime = item.endDate ?: "",
+                            dateTime = item.startDate ?: "",
                             inFormat = FORMAT_DEFAULT_DATE_TIME,
                             outFormat = FORMAT_DAY_MONTH
                         ).uppercase()

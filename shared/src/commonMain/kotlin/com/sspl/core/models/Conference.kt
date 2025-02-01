@@ -19,6 +19,7 @@ data class Conference(
 
 @Serializable
 enum class ConferenceType {
+    ALL,
     WORKSHOP,
     PROGRAM
 }

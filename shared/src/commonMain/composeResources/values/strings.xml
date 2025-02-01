@@ -9,11 +9,14 @@
     <string name="edit_profile">Edit Profile</string>
     <string name="workshops">Workshops</string>
     <string name="scientific_programs">Scientific Programs</string>
+    <string name="program_detail">Program Detail</string>
+    <string name="session_detail">Session Detail</string>
     <string name="notifications">Notifications</string>
     <string name="exhibition">Exhibition</string>
     <string name="conference">Conference</string>"
     <string name="update_info">Update your details to keep your profile up to date.</string>"
     <string name="conference_detail">Conference Detail</string>"
+    <string name="workshop">Workshop</string>"
     <string name="sign_up">Sign Up</string>"
     <string name="create_new_account">Create New Account</string>"
     <string name="log_in">Log In</string>
@@ -44,10 +47,12 @@
     <string name="create_account">Create Account</string>
     <string name="enter_first_name">Enter First Name</string>
     <string name="enter_last_name">Enter Last Name</string>
+    <string name="session">Session Details</string>
     <string name="enter_pmdc_number">Enter PMDC Number (Optional)</string>
     <string name="enter_registration_number">Enter Registration Number</string>
     <string name="institution_name">Institute Name</string>
     <string name="city">Enter City name</string>
+    <string name="post_details">Post Details</string>
     <string name="country">Enter Country name</string>
     <string name="save_details">Save Details</string>
     <string name="skip_for_now">Skip for now</string>

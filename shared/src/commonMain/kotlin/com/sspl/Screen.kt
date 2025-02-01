@@ -6,8 +6,6 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import com.sspl.resources.Res
-import com.sspl.resources.conference
-import com.sspl.resources.conference_detail
 import com.sspl.resources.create_post
 import com.sspl.resources.edit_profile
 import com.sspl.resources.forum
@@ -16,14 +14,22 @@ import com.sspl.resources.ic_forum
 import com.sspl.resources.ic_user
 import com.sspl.resources.log_in
 import com.sspl.resources.profile
+import com.sspl.resources.program_detail
+import com.sspl.resources.scientific_programs
+import com.sspl.resources.session
+import com.sspl.resources.session_detail
 import com.sspl.resources.sign_up
 import com.sspl.resources.user_details
 import com.sspl.resources.verify_otp
+import com.sspl.resources.workshop
+import com.sspl.resources.workshops
 import com.sspl.ui.homescreen.HomeScreen
 import com.sspl.ui.SplashScreen
 import com.sspl.ui.userdetails.ProfileScreen
-import com.sspl.ui.conferencescreen.ConferenceDetailScreen
-import com.sspl.ui.conferencescreen.ConferenceScreen
+import com.sspl.ui.conference.programs.ProgramDetailScreen
+import com.sspl.ui.conference.programs.ScientificProgramsScreen
+import com.sspl.ui.conference.programs.SessionDetailScreen
+import com.sspl.ui.conference.workshops.WorkshopDetailScreen
 import com.sspl.ui.kyc.LoginScreen
 import com.sspl.ui.kyc.SignUpScreen
 import com.sspl.ui.location.LocationScreen
@@ -31,7 +37,9 @@ import com.sspl.ui.otp.OtpScreen
 import com.sspl.ui.postcreation.CreatePostScreen
 import com.sspl.ui.posts.PostScreen
 import com.sspl.ui.userdetails.EditProfileScreen
+import com.sspl.ui.session.SessionScreen
 import com.sspl.ui.userdetails.UserDetailsScreen
+import com.sspl.ui.conference.workshops.WorkshopsScreen
 import com.sspl.utils.IconResource
 import org.jetbrains.compose.resources.StringResource
 
@@ -62,6 +70,7 @@ sealed class Screen(
         icon = IconResource.fromImageVector(imageVector = Icons.Default.Home)
     )
 
+
     data object ProfileScreen : Screen(
         title = Res.string.profile,
         route = "ProfileScreen",
@@ -74,15 +83,30 @@ sealed class Screen(
         icon = IconResource.fromDrawableResource(drawable = Res.drawable.ic_forum)
     )
 
-    data object ConferenceScreen : Screen(
-        title = Res.string.conference,
-        route = "ConferenceScreen",
+    data object ScientificProgramsScreen : Screen(
+        title = Res.string.scientific_programs,
+        route = "ScientificPrograms",
+    )
+
+    data object WorkshopsScreen : Screen(
+        title = Res.string.workshops,
+        route = "WorkshopsScreen",
+    )
+
+    data object WorkshopDetailScreen : Screen(
+        title = Res.string.workshop,
+        route = "WorkshopDetailScreen",
     )
 
 
-    data object ConferenceDetailScreen : Screen(
-        title = Res.string.conference_detail,
-        route = "ConferenceDetailScreen",
+    data object ScientificProgramDetailScreen : Screen(
+        title = Res.string.program_detail,
+        route = "ScientificProgramDetailScreen",
+    )
+
+    data object SessionDetailScreen : Screen(
+        title = Res.string.session_detail,
+        route = "SessionDetailScreen",
     )
 
 
@@ -90,6 +114,7 @@ sealed class Screen(
         title = Res.string.log_in,
         route = "SignInScreen",
     )
+
 
     data object GetLocation : Screen(
         title = Res.string.log_in,
@@ -110,6 +135,11 @@ sealed class Screen(
         route = "EditProfileScreen",
     )
 
+    data object SessionScreen : Screen(
+        title = Res.string.session,
+        route = "SessionScreen",
+    )
+
     data object CreatePostScreen : Screen(
         title = Res.string.create_post,
         route = "CreatePostScreen",
@@ -127,17 +157,25 @@ fun screenByRoute(route: String?): Screen? =
 fun navItems(): List<NavItem> =
     listOf(
         NavItem(screen = Screen.HomeScreen, component = { HomeScreen(navController = it) }),
-        NavItem(screen = Screen.ForumScreen, component = { PostScreen(navController = it) })
+        NavItem(screen = Screen.ForumScreen, component = { PostScreen(navController = it) }),
     )
 
 fun otherScreens(): List<NavItem> = listOf(
     NavItem(
         screen = Screen.ProfileScreen,
         component = { ProfileScreen(navController = it) }),
-    NavItem(screen = Screen.ConferenceScreen, component = { ConferenceScreen(navController = it) }),
     NavItem(
-        screen = Screen.ConferenceDetailScreen,
-        component = { ConferenceDetailScreen(navController = it) }),
+        screen = Screen.ScientificProgramsScreen,
+        component = { ScientificProgramsScreen(navController = it) }),
+    NavItem(
+        screen = Screen.ScientificProgramDetailScreen,
+        component = { ProgramDetailScreen(navController = it) }),
+    NavItem(
+        screen = Screen.SessionDetailScreen,
+        component = { SessionDetailScreen(navController = it) }),
+    NavItem(
+        screen = Screen.SessionScreen,
+        component = { SessionScreen(navController = it) }),
     NavItem(
         screen = Screen.UserDetailsScreen,
         component = { UserDetailsScreen(navController = it) }),
@@ -146,6 +184,10 @@ fun otherScreens(): List<NavItem> = listOf(
         component = { EditProfileScreen(navController = it) }),
 
     NavItem(screen = Screen.CreatePostScreen, component = { CreatePostScreen(navController = it) }),
+    NavItem(screen = Screen.WorkshopsScreen, component = { WorkshopsScreen(navController = it) }),
+    NavItem(
+        screen = Screen.WorkshopDetailScreen,
+        component = { WorkshopDetailScreen(navController = it) }),
 )
 
 fun kycScreens(): List<NavItem> = listOf(

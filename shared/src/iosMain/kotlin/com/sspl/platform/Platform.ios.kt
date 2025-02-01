@@ -3,25 +3,18 @@ package com.sspl.platform
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.toComposeImageBitmap
-import com.sspl.IosStorage
 import com.sspl.core.getBaseClient
 import com.sspl.session.UserSession
-import com.sspl.storage.Storage
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
 import org.jetbrains.skia.Image
-import platform.AVFoundation.AVCaptureDevice
-import platform.AVFoundation.AVMediaTypeVideo
-import platform.AVFoundation.authorizationStatusForMediaType
-import platform.AVFoundation.requestAccessForMediaType
 import platform.CoreLocation.CLLocationManager
-import platform.Foundation.NSDateFormatter
+import platform.Foundation.*
 import platform.Foundation.NSLocale
 import platform.Foundation.NSURL
 import platform.Foundation.localeWithLocaleIdentifier
 import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationOpenSettingsURLString
-import platform.UIKit.UIDevice
 
 actual suspend fun getClient(userSession: UserSession): HttpClient {
     return getBaseClient(userSession = userSession, engineFactory = Darwin) {
@@ -37,9 +30,12 @@ actual fun formatDateTime(dateTime: String, inFormat: String, outFormat: String)
     return try {
         val dateFormatter = NSDateFormatter()
         dateFormatter.dateFormat = inFormat  // Input format
+        val utcZone = NSTimeZone.timeZoneWithAbbreviation("UTC")
+        utcZone?.let { dateFormatter.timeZone = it }
 
         val date = dateFormatter.dateFromString(dateTime)
         dateFormatter.dateFormat = outFormat  // Output format
+        dateFormatter.timeZone = NSTimeZone.defaultTimeZone()
         dateFormatter.locale = NSLocale.localeWithLocaleIdentifier("en_US")
 
         date?.let { dateFormatter.stringFromDate(it) } ?: dateTime
@@ -48,8 +44,6 @@ actual fun formatDateTime(dateTime: String, inFormat: String, outFormat: String)
         ""
     }
 }
-
-
 
 
 class IosGpsChecker : GpsChecker {
@@ -74,5 +68,7 @@ actual fun createGpsChecker(): GpsChecker {
 
 
 actual fun ByteArray.toBitmap() = Image.makeFromEncoded(this).toComposeImageBitmap()
+
+actual fun platformConfiguration(): PlatformConfiguration = IosConfiguration()
 
 
