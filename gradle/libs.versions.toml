@@ -9,6 +9,7 @@ compose-plugin = "1.7.0-alpha02"
 koin-bom = "4.0.0"
 
 lifecycleRuntimeCompose = "2.8.4"
+kotlinx-datetime = "0.5.0"
 navigationCompose = "2.7.0-alpha07"
 coil3 = "3.0.4"
 okhttpBom = "4.12.0"
@@ -40,6 +41,7 @@ compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview"
 compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "compose" }
 compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "compose-material3" }
 #KMM
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 
 lifecycle-runtime-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycleRuntimeCompose" }
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigationCompose" }

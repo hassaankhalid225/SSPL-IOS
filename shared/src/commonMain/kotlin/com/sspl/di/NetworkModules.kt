@@ -18,6 +18,7 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
@@ -32,6 +33,7 @@ internal val networkModules = module {
 //    singleOf(::provideLoggingInterceptor)
 //    singleOf(::provideCacheInterceptor)
     singleOf(::provideHttpClient)
+//    factoryOf(::provideHttpClient)
 //    singleOf(::provideRetrofit)
 //    singleOf(::provideService)
 }

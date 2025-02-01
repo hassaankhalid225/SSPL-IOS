@@ -8,12 +8,16 @@ import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.intl.PlatformLocale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sspl.platform.platformConfiguration
 
 @Composable
 fun MyApplicationTheme(
@@ -49,11 +53,25 @@ fun MyApplicationTheme(
         medium = RoundedCornerShape(4.dp),
         large = RoundedCornerShape(0.dp)
     )
-    MaterialTheme(
-        colorScheme = colors,
+    CompositionLocalProvider(
+        LocalAppConfig provides platformConfiguration,
+    ) {
+        MaterialTheme(
+            colorScheme = colors,
 //        typography = typography1,
-        typography = typography2,
-        shapes = shapes,
-        content = content
-    )
+            typography = typography2,
+            shapes = shapes,
+            content = content
+        )
+
+    }
+
 }
+
+private val platformConfiguration = platformConfiguration()
+private val LocalAppConfig = compositionLocalOf {
+    platformConfiguration
+}
+val MaterialTheme.platformConfig
+    @Composable
+    get() = LocalAppConfig.current

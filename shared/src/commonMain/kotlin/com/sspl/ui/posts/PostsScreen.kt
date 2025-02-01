@@ -13,8 +13,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -28,20 +26,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.sspl.Screen
 import com.sspl.core.ApiStates
 import com.sspl.core.usecases.Comment
 import com.sspl.resources.Res
 import com.sspl.resources.demo4
 import com.sspl.theme.dividerColor
-import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.AppTextTitle
 import com.sspl.ui.components.BetterModalBottomSheet
 import com.sspl.ui.components.Error
-import com.sspl.ui.components.FullScreenProgressIndicator
+import com.sspl.ui.components.AppProgressBar
 import com.sspl.ui.components.LoadMoreLazyColumn
 import com.sspl.ui.components.NoItems
-import com.sspl.ui.conferencescreen.LoadingScreen
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -75,7 +70,7 @@ fun PostScreen(
 
     when (uiState) {
         is ApiStates.Loading -> {
-            FullScreenProgressIndicator()
+            AppProgressBar()
         }
 
         is ApiStates.Failure -> {
@@ -154,7 +149,7 @@ fun CommentsBottomSheet(
                     }
 
                     ApiStates.Loading -> {
-                        LoadingScreen()
+                        AppProgressBar()
                     }
 
                     is ApiStates.Success -> {

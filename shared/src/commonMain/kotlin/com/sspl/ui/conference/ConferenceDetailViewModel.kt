@@ -1,9 +1,8 @@
-package com.sspl.ui.conferencescreen
+package com.sspl.ui.conference
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sspl.core.ApiStates
-import com.sspl.core.models.Conference
 import com.sspl.core.models.ConferenceDetail
 import com.sspl.core.usecases.GetConferencesDetailsUseCase
 import kotlinx.coroutines.Dispatchers

@@ -75,7 +75,7 @@ data class Speaker(
     @SerialName("last_name") val lastName: String,
     @SerialName("gender") val gender: String,
 ) {
-    fun fullName() = "$firstName $lastName"
+    fun fullName() = "$prefix $firstName $lastName"
 }
 
 @Serializable

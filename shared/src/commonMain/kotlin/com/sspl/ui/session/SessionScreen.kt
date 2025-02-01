@@ -44,6 +44,7 @@ import com.sspl.utils.FORMAT_DEFAULT_DATE_TIME
 import com.sspl.utils.FORMAT_TIME_12HOUR
 import com.sspl.utils.getJoinedDateTime
 
+@Deprecated("Not using this")
 @Composable
 fun SessionScreen(navController: NavController) {
 
@@ -274,7 +275,6 @@ val dummySession = Session(
             startsAt = "2025-01-31T11:00:00.000Z",
             endsAt = "2025-01-31T11:00:00.000Z",
             isBreak = false,
-            sessionId = 1234L,
             speakers = listOf(
                 Speaker(
                     id = 101L,
@@ -290,7 +290,6 @@ val dummySession = Session(
             startsAt = "2025-01-31T11:00:00.000Z",
             endsAt = "2025-01-31T11:00:00.000Z",
             isBreak = false,
-            sessionId = 1234L,
             speakers = listOf(
                 Speaker(
                     id = 102L,
@@ -306,7 +305,6 @@ val dummySession = Session(
             startsAt = "2025-01-31T11:00:00.000Z",
             endsAt = "2025-01-31T11:00:00.000Z",
             isBreak = false,
-            sessionId = 1234L,
             speakers = listOf(
                 Speaker(
                     id = 101L,

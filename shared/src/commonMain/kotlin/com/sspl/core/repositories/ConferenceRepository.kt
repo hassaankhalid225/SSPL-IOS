@@ -10,7 +10,8 @@ class ConferenceRepository(private val client: HttpClient) {
     suspend fun getConferenceById(conferenceId: Int): HttpResponse =
         client.get(ConferenceRequest.ById(conferenceId = conferenceId))
 
-    suspend fun getAllConferences(): HttpResponse = client.get(ConferenceRequest.GetAll)
+    suspend fun getAllConferences(type: String? = null): HttpResponse =
+        client.get(ConferenceRequest.GetAll(type = type))
 
 
 }

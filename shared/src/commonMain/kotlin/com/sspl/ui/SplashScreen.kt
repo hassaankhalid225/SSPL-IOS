@@ -9,7 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.sspl.theme.windowBackGround
-import com.sspl.ui.components.FullScreenProgressIndicator
+import com.sspl.ui.components.AppProgressBar
 
 @Composable
 fun SplashScreen(navController: NavController) {
@@ -20,6 +20,6 @@ fun SplashScreen(navController: NavController) {
             .background(color = windowBackGround),
         contentAlignment = Alignment.Center
     ) {
-        FullScreenProgressIndicator()
+        AppProgressBar()
     }
 }

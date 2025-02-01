@@ -12,8 +12,45 @@ import com.sspl.platform.formatDateTime
 const val FORMAT_DEFAULT_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
 const val FORMAT_DAY_MONTH = "dd MMM"
 
+/**
+ * MMM, yyyy EEEE
+ */
+const val FORMAT_MONTH_YEAR_WEEKDAY = "MMM, yyyy EEEE"
+
 const val FORMAT_TIME_24HOUR = "HH:mm"
 const val FORMAT_TIME_12HOUR = "hh:mm a"
+const val DASH = "\u2014"
+const val VERTICAL_DOTS = "⋮"
+
+/**
+ * @param dateTime as 2025-02-03T12:12:28.000Z
+ * and it will return 20th,1st,2nd,3rd
+ */
+fun getDayOfMonthSuffixed(dateTime: String): String {
+    return try {
+        val dayOfMonth = dateTime.split("T").first().takeLast(2)
+        val day = dayOfMonth.toInt()
+        dayOfMonth + getSuffix(day)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        ""
+    }
+}
+
+/**
+ * @param day as day of month
+ * and it will return th,st,nd,rd
+ */
+fun getSuffix(day: Int): String {
+    val suffix = when {
+        day in 11..13 -> "th"
+        day % 10 == 1 -> "st"
+        day % 10 == 2 -> "nd"
+        day % 10 == 3 -> "rd"
+        else -> "th"
+    }
+    return suffix
+}
 
 /**
  * Join to dates or time with hyphen
@@ -23,7 +60,9 @@ fun getJoinedDateTime(
     dateTime1: String,
     dateTime2: String,
     inFormat: String = FORMAT_DEFAULT_DATE_TIME,
-    outFormat: String = FORMAT_DAY_MONTH
+    outFormat: String = FORMAT_DAY_MONTH,
+    divider: String = DASH,
+    separator: String = ""
 ): String =
     "${
         formatDateTime(
@@ -31,7 +70,7 @@ fun getJoinedDateTime(
             inFormat = inFormat,
             outFormat = outFormat
         )
-    } \u2014 ${
+    }$separator $divider $separator ${
         formatDateTime(
             dateTime = dateTime2,
             inFormat = inFormat,

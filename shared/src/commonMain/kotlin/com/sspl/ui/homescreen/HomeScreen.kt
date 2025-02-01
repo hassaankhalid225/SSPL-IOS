@@ -38,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.sspl.Screen
-import com.sspl.core.models.ConferenceType
 import com.sspl.platform.shared.UrlOpener
 import com.sspl.resources.Res
 import com.sspl.resources.ad_sspl
@@ -62,6 +61,7 @@ import com.sspl.resources.scientific_programs
 import com.sspl.resources.workshops
 import com.sspl.theme.boxColor
 import com.sspl.theme.columnColor
+import com.sspl.theme.platformConfig
 import com.sspl.ui.components.AppHorizontalPager
 import com.sspl.ui.components.AppTextSubTitle
 import com.sspl.ui.components.BetterModalBottomSheet
@@ -89,12 +89,12 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeScreenViewModel 
         Item(
             title = stringResource(Res.string.scientific_programs),
             icon = IconResource.fromDrawableResource(Res.drawable.ic_scientific_program),
-            toScreen = Screen.ConferenceScreen
+            toScreen = Screen.ScientificProgramsScreen
         ),
         Item(
             title = stringResource(Res.string.workshops),
             icon = IconResource.fromDrawableResource(Res.drawable.ic_workshop),
-            toScreen = Screen.ConferenceScreen
+            toScreen = Screen.WorkshopsScreen
         ),
         Item(
             title = stringResource(Res.string.forum),
@@ -172,17 +172,6 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeScreenViewModel 
             ) {
                 itemsIndexed(data, key = { i, _ -> i }) { index, it ->
                     SquareItem(it) {
-                        if (index == 0) {
-                            navController.currentBackStackEntry?.savedStateHandle?.set(
-                                "type",
-                                ConferenceType.PROGRAM.name
-                            )
-                        } else if (index == 1) {
-                            navController.currentBackStackEntry?.savedStateHandle?.set(
-                                "type",
-                                ConferenceType.WORKSHOP.name
-                            )
-                        }
                         if (index == 5) {
                             urlOpener.openUrl("https://www.google.com/")
                         } else {
@@ -208,9 +197,13 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeScreenViewModel 
                 scope.launch { homeViewModel.updateAdShown(false) }
             }
         ) {
+
+            val screenHeight = MaterialTheme.platformConfig.screenHeight
+            val maxHeight = screenHeight * 0.85f
             Image(
-                modifier = Modifier.fillMaxWidth().fillMaxHeight(.9F).padding(all = 12.dp),
-                contentScale = ContentScale.FillBounds,
+                modifier = Modifier.fillMaxWidth().heightIn(max = maxHeight)
+                    .padding(horizontal = 12.dp),
+                contentScale = ContentScale.FillWidth,
                 painter = painterResource(Res.drawable.ad_sspl),
                 contentDescription = ""
             )
