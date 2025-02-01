@@ -74,7 +74,7 @@ class SignUpViewModel(
                     _uiState.update {
                         it.copy(
                             password = event.password,
-                            passwordError = if (!isValid) "Password must be at least 6 characters long" else null
+                            passwordError = if (!isValid) "Password must be at least 8 characters long" else null
                         )
                     }
                 }

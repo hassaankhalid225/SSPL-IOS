@@ -3,7 +3,7 @@ package com.sspl.core.usecases
 
 import com.sspl.core.ApiStates
 import com.sspl.core.models.ApiError
-import com.sspl.core.models.AuthResponse
+import com.sspl.core.models.UserResponse
 import com.sspl.core.repositories.AuthRepository
 import com.sspl.session.UserSession
 
@@ -18,7 +18,7 @@ class LoginUserUseCase(
 
     fun signInUserViaEmail(
         email: String, password: String
-    ): Flow<ApiStates<AuthResponse>> = flow {
+    ): Flow<ApiStates<UserResponse>> = flow {
         emit(ApiStates.Loading)
 
         try {
@@ -30,7 +30,7 @@ class LoginUserUseCase(
             val response = authRepository.login(body = requestBody)
 
             if (response.status.isSuccess()) {
-                val authResponse = response.body<AuthResponse>()
+                val authResponse = response.body<UserResponse>()
                 println(authResponse.toString())
                 authResponse.accessToken?.let { userSession.setToken(it) }
                 authResponse.user?.let { userSession.setUser(it) }

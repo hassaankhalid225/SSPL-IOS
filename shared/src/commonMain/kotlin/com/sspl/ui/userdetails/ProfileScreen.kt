@@ -39,10 +39,10 @@ import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.core.ApiStates
 import com.sspl.core.models.User
-import com.sspl.core.models.UserProfile
 import com.sspl.resources.Res
 import com.sspl.resources.ic_user
 import com.sspl.resources.sign_out
+import com.sspl.theme.primary
 import com.sspl.ui.components.AppRoundedCornerButton
 import com.sspl.ui.components.AppTextBody
 import com.sspl.ui.components.AppTextLabel
@@ -68,12 +68,13 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = koinViewModel(),
     onParentGraph: () -> Unit = {}
 ) {
-    // val user by viewModel.user.collectAsStateWithLifecycle()
+     val user by viewModel.user.collectAsStateWithLifecycle()
     val userDetails by viewModel.userDetails.collectAsStateWithLifecycle()
+
     LaunchedEffect(Unit) {
         viewModel.getUserDetails()
     }
-    ProfileScreenContent(
+    ProfileScreenContent(user=user,
         userDetails = userDetails, onSignOut = {
             viewModel.onSignOut()
             onParentGraph()
@@ -95,7 +96,7 @@ fun ProfileScreen(
 }
 
 @Composable
-fun ProfileScreenContent(onSignOut: () -> Unit, userDetails: ApiStates<UserProfile?>,onEditPersonalDetails: () -> Unit = {},onEditProfessionalDetails: () -> Unit = {}) {
+fun ProfileScreenContent(user: User?,onSignOut: () -> Unit, userDetails: ApiStates<User?>,onEditPersonalDetails: () -> Unit = {},onEditProfessionalDetails: () -> Unit = {}) {
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -112,7 +113,7 @@ fun ProfileScreenContent(onSignOut: () -> Unit, userDetails: ApiStates<UserProfi
                 ProfileImage()
                 Spacer(Modifier.height(20.dp))
 
-                BasicInformationSection(it,onEditPersonalDetails = onEditPersonalDetails)
+                BasicInformationSection(user,onEditPersonalDetails = onEditPersonalDetails)
                 Spacer(Modifier.height(16.dp))
                 PersonalDetailsSection(it,onEditProfessionalDetails = onEditProfessionalDetails)
             }
@@ -134,62 +135,72 @@ private fun ProfileImage(onChangeProfilePicture: () -> Unit = {}) {
             modifier = Modifier.fillMaxSize().clip(CircleShape)
         )
 
-        Box(
-            modifier = Modifier.size(30.dp).align(Alignment.BottomEnd).clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary)
-
-        ) {
-            Icon(
-                imageVector = Icons.Default.Edit,
-                contentDescription = "Edit profile picture",
-                tint = Color.White,
-                modifier = Modifier.fillMaxSize().clickable(onClick = onChangeProfilePicture)
-                    .padding(8.dp)
-            )
-        }
+//        Box(
+//            modifier = Modifier.size(30.dp).align(Alignment.BottomEnd).clip(CircleShape)
+//                .background(MaterialTheme.colorScheme.primary)
+//
+//        ) {
+//            Icon(
+//                imageVector = Icons.Default.Edit,
+//                contentDescription = "Edit profile picture",
+//                tint = Color.White,
+//                modifier = Modifier.fillMaxSize().clickable(onClick = onChangeProfilePicture)
+//                    .padding(8.dp)
+//            )
+//        }
     }
 }
 
 
 @Composable
-private fun BasicInformationSection(user: UserProfile,onEditPersonalDetails: () -> Unit = {}) {
+private fun BasicInformationSection(user: User?,onEditPersonalDetails: () -> Unit = {}) {
     Column(modifier = Modifier.fillMaxWidth()) {
 
         Spacer(Modifier.height(4.dp))
         InfoCard {
             SectionTitle("Personal Details",onEdit = onEditPersonalDetails)
-            InfoRow("Name", user.title.orEmpty())
-            InfoRow("Email", user.contact?.email.orEmpty())
-            InfoRow("Phone", user.contact?.phone.orEmpty())
+            InfoRow("Name", user?.fullName().orEmpty())
+            InfoRow("Email", user?.account?.email.orEmpty())
+            InfoRow("Phone", user?.account?.phone.orEmpty())
         }
     }
 }
 
 @Composable
-private fun PersonalDetailsSection(userProfile: UserProfile,onEditProfessionalDetails: () -> Unit = {}) {
+private fun PersonalDetailsSection(userProfile: User,onEditProfessionalDetails: () -> Unit = {}) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Spacer(Modifier.height(4.dp))
         InfoCard {
             SectionTitle("Professional Details",onEdit = onEditProfessionalDetails)
-            InfoRow("PMDC No", userProfile.pmdcNumber.orEmpty())
-            InfoRow("Institute", userProfile.designation.orEmpty())
-            InfoRow("Country", userProfile.title.orEmpty())
-            InfoRow("Designation", userProfile.designation.orEmpty())
-            InfoRow("Registration No", userProfile.orgNumber.orEmpty())
+            InfoRow("PMDC No", userProfile.profile?.pmdcNumber.orEmpty())
+            InfoRow("Institute", userProfile.profile?.institute.orEmpty())
+           InfoRow("Country", userProfile.profile?.country.orEmpty())
+            InfoRow("Designation", userProfile.profile?.title.orEmpty())
+            InfoRow("Registration No", userProfile.profile?.orgNumber.orEmpty())
         }
     }
 }
 
 @Composable
 private fun SectionTitle(title: String, onEdit: () -> Unit = {}) {
-    Row(horizontalArrangement = Arrangement.SpaceBetween) {
+    Row(horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         AppTextTitle(
             text = title, fontSize = 14.sp
         )
         Spacer(Modifier.weight(1f))
-        AppTextSubTitle("Edit", modifier = Modifier.clickable {
-            onEdit()
-        })
+       // Box(
+//            modifier = Modifier.size(30.dp).align(Alignment.BottomEnd).clip(CircleShape)
+//                .background(MaterialTheme.colorScheme.primary)
+//
+//        ) {
+            Icon(
+                imageVector = Icons.Default.Edit,
+                contentDescription = "Edit profile picture",
+                tint = primary,
+                modifier = Modifier.clickable(onClick = onEdit).size(22.dp)
+
+            )
+//        }
     }
 }
 

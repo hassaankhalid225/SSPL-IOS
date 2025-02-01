@@ -14,12 +14,12 @@ import io.ktor.client.statement.HttpResponse
  */
 
 class AuthRepository(private val client: HttpClient) {
-    suspend fun login(body: Map<String, String>): HttpResponse =
+    suspend fun login(body: Map<String, Any>): HttpResponse =
         client.post(AuthRequest.Login()) {
             setBody(body)
         }
 
-    suspend fun signUp(body: Map<String, String>): HttpResponse =
+    suspend fun signUp(body: Map<String, Any>): HttpResponse =
         client.post(AuthRequest.SignUp()) {
             setBody(body)
         }

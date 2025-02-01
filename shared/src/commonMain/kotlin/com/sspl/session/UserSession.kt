@@ -1,7 +1,6 @@
 package com.sspl.session
 
 import com.sspl.core.models.User
-import com.sspl.core.models.UserProfile
 import com.sspl.storage.Storage
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString

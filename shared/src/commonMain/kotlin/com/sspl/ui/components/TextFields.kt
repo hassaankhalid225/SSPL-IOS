@@ -65,8 +65,7 @@ fun AppTextField(
     OutlinedTextField(
         value = text,
         onValueChange = {newText ->
-            val trimmedText = newText.replace("\\s".toRegex(), "")
-            onTextChange(trimmedText)
+            onTextChange(newText)
         },
         modifier = modifier
             .fillMaxWidth()

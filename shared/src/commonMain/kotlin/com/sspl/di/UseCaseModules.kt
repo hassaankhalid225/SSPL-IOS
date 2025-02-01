@@ -13,6 +13,7 @@ import com.sspl.core.usecases.PasswordValidationUseCase
 import com.sspl.core.usecases.PhoneNumberValidationUseCase
 import com.sspl.core.usecases.PostUserDetailsUseCase
 import com.sspl.core.usecases.SignUpUserUseCase
+import com.sspl.core.usecases.UpdateUserBasicInfoUseCase
 import com.sspl.core.usecases.ValidateUserCityUseCase
 import com.sspl.core.usecases.ValidateUserCountryUseCase
 import com.sspl.core.usecases.ValidateUserDesignationUseCase
@@ -53,7 +54,8 @@ internal val useCaseModules = module {
     single { GetConferencesUseCase(get()) }
     single { GetConferencesDetailsUseCase(get()) }
     single { ValidateUserRegistrationNumberUseCase() }
-    single { PostUserDetailsUseCase(get(),get ()) }
+    single { PostUserDetailsUseCase(get()) }
     single { GetUserDetailsUseCase(get ()) }
+    single { UpdateUserBasicInfoUseCase(get()) }
 
 }

@@ -3,7 +3,7 @@ package com.sspl.ui.kyc
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sspl.core.ApiStates
-import com.sspl.core.models.AuthResponse
+import com.sspl.core.models.UserResponse
 import com.sspl.core.usecases.EmailValidationUseCase
 import com.sspl.core.usecases.LoginUserUseCase
 import com.sspl.core.usecases.PasswordValidationUseCase
@@ -35,8 +35,8 @@ class SignInViewModel(
     val oneTimeEvents = _oneTimeEvents.asSharedFlow()
 
 
-    private val _networkState = MutableSharedFlow<ApiStates<AuthResponse>>()
-    val networkState: SharedFlow<ApiStates<AuthResponse>> = _networkState.asSharedFlow()
+    private val _networkState = MutableSharedFlow<ApiStates<UserResponse>>()
+    val networkState: SharedFlow<ApiStates<UserResponse>> = _networkState.asSharedFlow()
 
 
     fun onEvent(event: LoginScreenUiEvents) {
@@ -162,8 +162,7 @@ class SignInViewModel(
             if (!isPasswordValid) {
                 _uiState.update {
                     it.copy(
-
-                        passwordError = "Password must be at least 6 characters long"
+                        passwordError = "Password must be at least 8 characters long"
                     )
                 }
             }

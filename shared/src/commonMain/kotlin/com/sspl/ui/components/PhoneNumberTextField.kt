@@ -40,7 +40,7 @@ import com.sspl.ui.components.countrypicker.CountryName
 fun PhoneWithCountrySelector(
     modifier: Modifier = Modifier,
     selectedCountry: Country,
-    phone: String,
+    phone: String,showTransformation:Boolean=true,
     errorMessage: String?,
     onPhoneNumberChange: (String) -> Unit,
     showCountryChooser: Boolean,
@@ -56,7 +56,7 @@ fun PhoneWithCountrySelector(
 
         }
         PhoneNumberTextField(selectedCountry = selectedCountry,
-            phoneNumber = phone,
+            phoneNumber = phone,showTransformation=showTransformation,
             errorMessage = errorMessage,
             onPhoneNumberChange = {
                 onPhoneNumberChange.invoke(it)
@@ -97,7 +97,7 @@ fun CountrySelectorField(
 
 @Composable
 fun PhoneNumberTextField(
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier,showTransformation: Boolean=true,
     selectedCountry: Country = Country("Pakistan", "PK", "+92", "🇵🇰", CountryName.PAKISTAN),
     phoneNumber: String,
     onPhoneNumberChange: (String) -> Unit,
@@ -172,7 +172,7 @@ fun PhoneNumberTextField(
             focusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
             unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
         ),
-        visualTransformation = PhonePrefixTransformation(selectedCountry.dialCode)
+        visualTransformation =if (showTransformation) PhonePrefixTransformation(selectedCountry.dialCode) else VisualTransformation.None
     )
 }
 

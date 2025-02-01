@@ -37,6 +37,7 @@ internal val viewModelModules = module {
     viewModelOf(::ConferenceDetailViewModel)
     viewModelOf(::SignInViewModel)
     viewModelOf(::SignUpViewModel)
+
     viewModelOf(::PostViewModel)
     viewModelOf(::OtpViewModel)
     viewModelOf(::UserDetailViewModel)

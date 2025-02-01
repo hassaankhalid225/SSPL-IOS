@@ -1,0 +1,52 @@
+package com.sspl.core.usecases
+
+import com.sspl.core.ApiStates
+import com.sspl.core.models.ApiError
+import com.sspl.core.models.User
+import com.sspl.core.repositories.UserRepository
+import io.ktor.client.call.body
+import io.ktor.http.isSuccess
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
+
+
+class UpdateUserBasicInfoUseCase(
+    private val userRepository: UserRepository
+) {
+
+    operator fun invoke(
+        firstName: String,
+        lastName: String,
+        phone: String
+    ): Flow<ApiStates<User>> = flow {
+        println("🟢 Submit enter")
+        emit(ApiStates.Loading)
+
+        try {
+            val requestBody = mapOf(
+                "first_name" to firstName,
+                "last_name" to lastName,
+                "phone" to phone
+            )
+
+            val response = userRepository.updateUserProfile(requestBody)
+            if (response.status.isSuccess()) {
+                val result = response.body<User>()
+                println("✅ API Success: $result")
+                emit(ApiStates.Success(result))
+            } else {
+                val errorResponse = response.body<ApiError>()
+                println("❌ API Failure: $errorResponse")
+                emit(ApiStates.Failure(error = errorResponse))
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            println("🔴 Exception in Flow: ${e.message}")
+            emit(ApiStates.Failure(ApiError(message = e.message.orEmpty())))
+        }
+    }.catch { e ->
+        println("🔴 Flow Caught Exception: ${e.message}")
+    }
+
+}
