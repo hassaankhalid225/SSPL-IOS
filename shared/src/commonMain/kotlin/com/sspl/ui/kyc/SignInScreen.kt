@@ -48,7 +48,7 @@ import com.sspl.resources.get_updates
 import com.sspl.resources.login
 import com.sspl.resources.login_here
 import com.sspl.resources.login_screen_background
-import com.sspl.resources.sign_in_via_email
+import com.sspl.resources.continue_as_guest
 import com.sspl.resources.sign_in_via_phone
 import com.sspl.theme.primary
 import com.sspl.ui.components.AppRoundedCornerButton
@@ -244,12 +244,21 @@ fun LoginScreenContent(
 
             // OTP/Email Sign-in Toggle Button
             Spacer(modifier = Modifier.height(10.dp))
-            AppRoundedCornerButton(
-                onClick = { onEvents(LoginScreenUiEvents.ToggleOtpMode) },
-                title = if (isOtpMode) stringResource(Res.string.sign_in_via_email) else stringResource(
-                    Res.string.sign_in_via_phone
-                )
-            )
+//            AppRoundedCornerButton(
+//                onClick = { onEvents(LoginScreenUiEvents.ToggleOtpMode) },
+//                title = if (isOtpMode) stringResource(Res.string.sign_in_via_email) else stringResource(
+//                    Res.string.sign_in_via_phone
+//                )
+//            )
+
+            ButtonWithProgress(
+                isEnabled = true,
+                isLoading = isLoading,
+                buttonText = stringResource(Res.string.continue_as_guest),
+                modifier = Modifier.imePadding()
+            ) {
+                onEvents(LoginScreenUiEvents.ContinueAsGuest)
+            }
             Spacer(Modifier.weight(0.2f))
         }
     }

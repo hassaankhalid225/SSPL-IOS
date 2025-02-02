@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -109,7 +108,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeScreenViewModel 
         Item(
             title = stringResource(Res.string.notifications),
             icon = IconResource.fromDrawableResource(Res.drawable.ic_notifications),
-            toScreen = Screen.SessionScreen
+            toScreen = Screen.NotificationsScreen
         ),
         Item(
             title = stringResource(Res.string.exhibition),
@@ -172,8 +171,10 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeScreenViewModel 
             ) {
                 itemsIndexed(data, key = { i, _ -> i }) { index, it ->
                     SquareItem(it) {
-                        if (index == 5) {
-                            urlOpener.openUrl("https://www.google.com/")
+                        if (index == 2) {
+                            println("Do nothing now")
+                        }else if (index == 5) {
+                            urlOpener.openUrl("https://www.ssplahore.com/")
                         } else {
                             navController.navigate(it.toScreen.route)
                         }

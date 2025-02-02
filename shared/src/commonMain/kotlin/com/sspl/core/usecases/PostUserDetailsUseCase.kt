@@ -1,45 +1,51 @@
 package com.sspl.core.usecases
 
 import com.sspl.core.ApiStates
+import com.sspl.core.models.Account
 import com.sspl.core.models.ApiError
-import com.sspl.core.models.AuthResponse
+import com.sspl.core.models.Profile
+import com.sspl.core.models.User
+import com.sspl.core.models.UserResponse
 import com.sspl.core.repositories.UserRepository
-import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.request.post
 import io.ktor.http.isSuccess
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
-class PostUserDetailsUseCase (
-    private val userRepository: UserRepository,
+import kotlinx.coroutines.flow.Flow
+
+class PostUserDetailsUseCase(
+    private val userRepository: UserRepository
 ) {
 
-    fun postUserDetails(
-        pmdcNo: String?, instituteName: String, country: String, designation: String?, registrationNo: String
-    ): Flow<ApiStates<Boolean>> = flow {
+    operator fun invoke(
+        pmdcNo: String? = null,
+        instituteName: String? = null,
+        country: String? = null,
+        designation: String? = null,
+        registrationNo: String? = null,
+    ): Flow<ApiStates<User>> = flow {
         emit(ApiStates.Loading)
         try {
-            val requestBody = mapOf(
-                "pmdcNo" to pmdcNo,
-                "instituteName" to instituteName,
-                "country" to country,
-                "designation" to designation,
-                "registrationNo" to registrationNo
+            val body = User(
+                profile = Profile(
+                    country = country,
+                    institute = instituteName,
+                    title = designation,
+                    pmdcNumber = pmdcNo,
+                    orgNumber = registrationNo
+                )
             )
 
-           // val response = userRepository.postPersonalInfo(body = requestBody)
-
-//            if (response.status.isSuccess()) {
-//                val result = response.body<AuthResponse>()
-//                println("the result is $result")
-//                emit(ApiStates.Success(result))
-//            } else {
-//                val errorResponse = response.body<ApiError>()
-//                emit(ApiStates.Failure(error = errorResponse))
-//            }
-            emit(ApiStates.Success(true))
-
+            val response = userRepository.updateUserProfile(body)
+            if (response.status.isSuccess()) {
+                println("the result is $response")
+                val result = response.body<User>()
+                println("the result is $result")
+                emit(ApiStates.Success(result))
+            } else {
+                val errorResponse = response.body<ApiError>()
+                emit(ApiStates.Failure(error = errorResponse))
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             emit(ApiStates.Failure(ApiError(message = e.message.orEmpty())))

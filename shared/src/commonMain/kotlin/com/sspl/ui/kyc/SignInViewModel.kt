@@ -3,18 +3,25 @@ package com.sspl.ui.kyc
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sspl.core.ApiStates
-import com.sspl.core.models.AuthResponse
+import com.sspl.core.models.UserResponse
 import com.sspl.core.usecases.EmailValidationUseCase
 import com.sspl.core.usecases.LoginUserUseCase
 import com.sspl.core.usecases.PasswordValidationUseCase
 import com.sspl.core.usecases.PhoneNumberValidationUseCase
- import kotlinx.coroutines.flow.MutableSharedFlow
+import com.sspl.core.usecases.SignUpUserUseCase
+import com.sspl.utils.EMAIL_GUEST_USER
+import com.sspl.utils.PASSWORD_GUEST_USER
+import com.sspl.utils.PHONE_GUEST_USER
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 /**
  * Created by M Imran
@@ -26,8 +33,10 @@ class SignInViewModel(
     private val emailValidationUseCase: EmailValidationUseCase,
     private val phoneNumberValidationUseCase: PhoneNumberValidationUseCase,
     private val passwordValidationUseCase: PasswordValidationUseCase,
-    private val loginUserUseCase: LoginUserUseCase
-) : ViewModel() {
+    private val loginUserUseCase: LoginUserUseCase,
+    private val signUpUseCase: SignUpUserUseCase,
+
+    ) : ViewModel() {
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -35,8 +44,8 @@ class SignInViewModel(
     val oneTimeEvents = _oneTimeEvents.asSharedFlow()
 
 
-    private val _networkState = MutableSharedFlow<ApiStates<AuthResponse>>()
-    val networkState: SharedFlow<ApiStates<AuthResponse>> = _networkState.asSharedFlow()
+    private val _networkState = MutableSharedFlow<ApiStates<UserResponse>>()
+    val networkState: SharedFlow<ApiStates<UserResponse>> = _networkState.asSharedFlow()
 
 
     fun onEvent(event: LoginScreenUiEvents) {
@@ -89,6 +98,12 @@ class SignInViewModel(
 
             LoginScreenUiEvents.ToggleCountryChooser -> _uiState.update {
                 it.copy(showCountryChooser = !it.showCountryChooser)
+            }
+
+            LoginScreenUiEvents.ContinueAsGuest -> {
+                viewModelScope.launch {
+                    continueAsGuest()
+                }
             }
 
 
@@ -162,21 +177,41 @@ class SignInViewModel(
             if (!isPasswordValid) {
                 _uiState.update {
                     it.copy(
-
-                        passwordError = "Password must be at least 6 characters long"
+                        passwordError = "Password must be at least 8 characters long"
                     )
                 }
             }
             return
         }
+        logInViaEmailPassword(
+            email = _uiState.value.email,
+            password = _uiState.value.password
+        )
+    }
+
+    private suspend fun logInViaEmailPassword(email: String, password: String) {
         loginUserUseCase.signInUserViaEmail(
-            email = _uiState.value.email, password = _uiState.value.password
+            email = email, password = password
         ).collect { state ->
             _uiState.update { it.copy(isLoading = state is ApiStates.Loading) }
             _networkState.emit(state)
         }
     }
 
-
+    private fun continueAsGuest() {
+        viewModelScope.launch {
+            val email = "${Clock.System.now().toEpochMilliseconds()}." + EMAIL_GUEST_USER
+            signUpUseCase.signUpUser(
+                firstName = "Guest",
+                lastName = "User",
+                email = email,
+                password = PASSWORD_GUEST_USER,
+                phoneNumber = PHONE_GUEST_USER
+            ).collect { state ->
+                _uiState.update { it.copy(isLoading = state is ApiStates.Loading) }
+                _networkState.emit(state)
+            }
+        }
+    }
 }
 

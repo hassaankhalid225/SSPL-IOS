@@ -3,7 +3,8 @@ package com.sspl.ui.userdetails
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sspl.core.ApiStates
-import com.sspl.core.models.ApiError
+import com.sspl.core.models.User
+
 import com.sspl.core.usecases.PostUserDetailsUseCase
 import com.sspl.core.usecases.ValidateUserCityUseCase
 import com.sspl.core.usecases.ValidateUserCountryUseCase
@@ -11,9 +12,7 @@ import com.sspl.core.usecases.ValidateUserDesignationUseCase
 import com.sspl.core.usecases.ValidateUserInstitutionUseCase
 import com.sspl.core.usecases.ValidateUserPmdcNoUseCase
 import com.sspl.core.usecases.ValidateUserRegistrationNumberUseCase
-import com.sspl.ui.components.countrypicker.Country
 import com.sspl.ui.kyc.ValidationResult
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -35,8 +34,8 @@ class UserDetailViewModel(
     private val _uiState = MutableStateFlow(UserDetailsUiState())
     val uiState = _uiState.asStateFlow()
 
-    private val _networkState = MutableSharedFlow<ApiStates<Boolean>>()
-    val networkState: SharedFlow<ApiStates<Boolean>> = _networkState.asSharedFlow()
+    private val _networkState = MutableSharedFlow<ApiStates<User>>()
+    val networkState: SharedFlow<ApiStates<User>> = _networkState.asSharedFlow()
 
     fun onEvent(event: UserDetailsUiEvents) {
         viewModelScope.launch {
@@ -50,6 +49,7 @@ class UserDetailViewModel(
                         ).apply { updateSaveEnabledState() }
                     }
                 }
+
                 is UserDetailsUiEvents.ToggleCountryPicker -> {
                     _uiState.update {
                         it.copy(
@@ -59,7 +59,7 @@ class UserDetailViewModel(
                 }
 
                 is UserDetailsUiEvents.OnCountryChange -> {
-                    val country= event.country.ifBlank {
+                    val country = event.country.ifBlank {
                         _uiState.value.country
                     }
                     val result = validateUserCountryUseCase(country)
@@ -113,13 +113,13 @@ class UserDetailViewModel(
 
                 UserDetailsUiEvents.OnSave -> {
                     if (_uiState.value.isSaveEnabled && !_uiState.value.isLoading) {
-                        postUserDetailsUseCase.postUserDetails(
-                            pmdcNo = _uiState.value.pmDcNumber,
+                        postUserDetailsUseCase(
+                            pmdcNo = _uiState.value.pmDcNumber.orEmpty(),
                             instituteName = _uiState.value.institution,
                             country = _uiState.value.country,
                             designation = _uiState.value.designation,
                             registrationNo = _uiState.value.registrationNumber
-                        ).collect{state->
+                        ).collect { state ->
                             _uiState.update { it.copy(isLoading = state is ApiStates.Loading) }
                             _networkState.emit(state)
                         }
@@ -149,9 +149,9 @@ class UserDetailViewModel(
 
 
 data class UserDetailsUiState(
-    val institution: String = "",
     val city: String = "",
     val country: String = "",
+    val institution: String = "",
     val pmDcNumber: String? = "",
     val registrationNumber: String = "",
     val designation: String = "",

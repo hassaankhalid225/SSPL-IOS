@@ -35,7 +35,6 @@ class SignUpViewModel(
     val networkState: SharedFlow<ApiStates<Any>> = _networkState.asSharedFlow()
 
 
-
     fun onEvent(event: UserEvents) {
         viewModelScope.launch {
             when (event) {
@@ -74,7 +73,7 @@ class SignUpViewModel(
                     _uiState.update {
                         it.copy(
                             password = event.password,
-                            passwordError = if (!isValid) "Password must be at least 6 characters long" else null
+                            passwordError = if (!isValid) "Password must be at least 8 characters long" else null
                         )
                     }
                 }
@@ -116,13 +115,13 @@ class SignUpViewModel(
 
                 UserEvents.Submit -> {
                     if (_uiState.value.isSignUpEnabled && !_uiState.value.isLoading) {
-                signUpUserUseCase.signUpUser(
+                        signUpUserUseCase.signUpUser(
                             firstName = _uiState.value.firstName,
                             lastName = _uiState.value.lastName,
                             email = _uiState.value.email,
                             password = _uiState.value.password,
-                            phoneNumber =_uiState.value.country.dialCode +_uiState.value.phoneNo
-                        ).collect{state->
+                            phoneNumber = _uiState.value.country.dialCode + _uiState.value.phoneNo
+                        ).collect { state ->
                             _uiState.update { it.copy(isLoading = state is ApiStates.Loading) }
                             _networkState.emit(state)
                         }

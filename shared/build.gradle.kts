@@ -42,11 +42,15 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
             implementation(libs.androidx.security.crypto)
             implementation(libs.accompanist.permissions)
+            //Pusher
+            //implementation("com.pusher:pusher-java-client:2.2.6")
 
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
             //implementation("io.github.aakira:napier:1.4.1")
+            //Pusher
+            //implementation("io.ktor:ktor-client-websockets:2.3.5")
         }
         val commonMain by getting {
             resources.srcDirs("src/commonMain/resources")
