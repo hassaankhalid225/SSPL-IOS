@@ -1,6 +1,8 @@
 package com.sspl.core.repositories
 
 import com.sspl.core.apis.AuthRequest
+import com.sspl.core.models.Account
+import com.sspl.core.models.User
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.resources.post
 import io.ktor.client.request.setBody
@@ -14,12 +16,12 @@ import io.ktor.client.statement.HttpResponse
  */
 
 class AuthRepository(private val client: HttpClient) {
-    suspend fun login(body: Map<String, Any>): HttpResponse =
+    suspend fun login(body: Account): HttpResponse =
         client.post(AuthRequest.Login()) {
             setBody(body)
         }
 
-    suspend fun signUp(body: Map<String, Any>): HttpResponse =
+    suspend fun signUp(body: User): HttpResponse =
         client.post(AuthRequest.SignUp()) {
             setBody(body)
         }

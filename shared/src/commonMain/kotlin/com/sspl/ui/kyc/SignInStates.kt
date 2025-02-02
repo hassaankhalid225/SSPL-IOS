@@ -9,6 +9,7 @@ sealed interface LoginScreenUiEvents {
     data class OnPasswordTextChange(val passwordText: String) : LoginScreenUiEvents
     data class OnPhoneNoChange(val phoneNumber: String) : LoginScreenUiEvents
     data object OnSave : LoginScreenUiEvents
+    data object ContinueAsGuest : LoginScreenUiEvents
     data object TogglePasswordVisibility : LoginScreenUiEvents
     data object ToggleOtpMode : LoginScreenUiEvents
      data class OnCountryChange(val country: Country) : LoginScreenUiEvents

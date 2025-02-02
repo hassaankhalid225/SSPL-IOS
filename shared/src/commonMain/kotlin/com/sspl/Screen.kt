@@ -13,6 +13,7 @@ import com.sspl.resources.home
 import com.sspl.resources.ic_forum
 import com.sspl.resources.ic_user
 import com.sspl.resources.log_in
+import com.sspl.resources.notifications
 import com.sspl.resources.profile
 import com.sspl.resources.program_detail
 import com.sspl.resources.scientific_programs
@@ -40,6 +41,7 @@ import com.sspl.ui.userdetails.EditProfileScreen
 import com.sspl.ui.session.SessionScreen
 import com.sspl.ui.userdetails.UserDetailsScreen
 import com.sspl.ui.conference.workshops.WorkshopsScreen
+import com.sspl.ui.notifications.NotificationsScreen
 import com.sspl.utils.IconResource
 import org.jetbrains.compose.resources.StringResource
 
@@ -130,6 +132,7 @@ sealed class Screen(
         title = Res.string.sign_up,
         route = "SignUpScreen",
     )
+
     data object EditProfile : Screen(
         title = Res.string.edit_profile,
         route = "EditProfileScreen",
@@ -148,6 +151,11 @@ sealed class Screen(
     data object OtpScreen : Screen(
         title = Res.string.verify_otp,
         route = "OtpScreen",
+    )
+
+    data object NotificationsScreen : Screen(
+        title = Res.string.notifications,
+        route = "NotificationsScreen",
     )
 }
 
@@ -188,6 +196,9 @@ fun otherScreens(): List<NavItem> = listOf(
     NavItem(
         screen = Screen.WorkshopDetailScreen,
         component = { WorkshopDetailScreen(navController = it) }),
+    NavItem(
+        screen = Screen.NotificationsScreen,
+        component = { NotificationsScreen(navController = it) }),
 )
 
 fun kycScreens(): List<NavItem> = listOf(

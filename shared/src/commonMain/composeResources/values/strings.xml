@@ -57,6 +57,7 @@
     <string name="save_details">Save Details</string>
     <string name="skip_for_now">Skip for now</string>
     <string name="designation">Enter Your Designation (Optional)</string>
+    <string name="continue_as_guest">Continue As Guest</string>
 
     <string name="already_have_an_account">Already have an account?</string>
     <string name="create_an_account_so_you_can_interact_seamlessly">Create an account so you can\ninteract seamlessly</string>

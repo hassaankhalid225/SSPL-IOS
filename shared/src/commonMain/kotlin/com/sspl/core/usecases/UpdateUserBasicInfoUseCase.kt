@@ -1,7 +1,9 @@
 package com.sspl.core.usecases
 
 import com.sspl.core.ApiStates
+import com.sspl.core.models.Account
 import com.sspl.core.models.ApiError
+import com.sspl.core.models.Profile
 import com.sspl.core.models.User
 import com.sspl.core.repositories.UserRepository
 import io.ktor.client.call.body
@@ -24,13 +26,15 @@ class UpdateUserBasicInfoUseCase(
         emit(ApiStates.Loading)
 
         try {
-            val requestBody = mapOf(
-                "first_name" to firstName,
-                "last_name" to lastName,
-                "phone" to phone
+            val body = User(
+                firstName = firstName,
+                lastName = lastName,
+                account = Account(
+                    phone = phone
+                )
             )
 
-            val response = userRepository.updateUserProfile(requestBody)
+            val response = userRepository.updateUserProfile(body)
             if (response.status.isSuccess()) {
                 val result = response.body<User>()
                 println("✅ API Success: $result")

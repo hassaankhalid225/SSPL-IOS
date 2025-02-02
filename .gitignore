@@ -11,3 +11,4 @@ xcuserdata
 /androidApp/debug
 *.klib
 /androidApp/release
+/.kotlin

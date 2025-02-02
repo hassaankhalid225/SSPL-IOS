@@ -1,9 +1,6 @@
 package com.sspl.core.usecases
 
-import androidx.compose.ui.util.trace
 import com.sspl.core.ApiStates
-import com.sspl.core.models.ApiError
-import com.sspl.core.models.AuthResponse
 import com.sspl.resources.Res
 import com.sspl.resources.demo1
 import com.sspl.resources.demo2

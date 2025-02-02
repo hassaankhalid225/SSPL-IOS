@@ -1,7 +1,7 @@
 package com.sspl.ui.userdetails
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,7 +23,6 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,15 +42,13 @@ import com.sspl.resources.Res
 import com.sspl.resources.ic_user
 import com.sspl.resources.sign_out
 import com.sspl.theme.primary
+import com.sspl.ui.components.AppProgressBar
 import com.sspl.ui.components.AppRoundedCornerButton
 import com.sspl.ui.components.AppTextBody
 import com.sspl.ui.components.AppTextLabel
-import com.sspl.ui.components.AppTextSubTitle
 import com.sspl.ui.components.AppTextTitle
 import com.sspl.ui.components.Error
-import com.sspl.ui.conferencescreen.LoadingScreen
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import com.sspl.utils.EMAIL_GUEST_USER
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -68,27 +65,27 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = koinViewModel(),
     onParentGraph: () -> Unit = {}
 ) {
-     val user by viewModel.user.collectAsStateWithLifecycle()
+    val user by viewModel.user.collectAsStateWithLifecycle()
     val userDetails by viewModel.userDetails.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.getUserDetails()
     }
-    ProfileScreenContent(user=user,
+    ProfileScreenContent(
+        user = user,
         userDetails = userDetails, onSignOut = {
             viewModel.onSignOut()
             onParentGraph()
-        },onEditPersonalDetails = {
+        }, onEditPersonalDetails = {
             navController.currentBackStackEntry?.savedStateHandle?.set(
-                "isPersonalDetails",true
+                "isPersonalDetails", true
             )
             navController.navigate(Screen.EditProfile.route)
-        },onEditProfessionalDetails = {
+        }, onEditProfessionalDetails = {
             navController.currentBackStackEntry?.savedStateHandle?.set(
-                "isPersonalDetails",false
+                "isPersonalDetails", false
             )
             navController.navigate(Screen.EditProfile.route)
-
         }
     )
 
@@ -96,7 +93,13 @@ fun ProfileScreen(
 }
 
 @Composable
-fun ProfileScreenContent(user: User?,onSignOut: () -> Unit, userDetails: ApiStates<User?>,onEditPersonalDetails: () -> Unit = {},onEditProfessionalDetails: () -> Unit = {}) {
+fun ProfileScreenContent(
+    user: User?,
+    onSignOut: () -> Unit,
+    userDetails: ApiStates<User?>,
+    onEditPersonalDetails: () -> Unit = {},
+    onEditProfessionalDetails: () -> Unit = {}
+) {
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -107,15 +110,15 @@ fun ProfileScreenContent(user: User?,onSignOut: () -> Unit, userDetails: ApiStat
                 modifier = Modifier, userDetails.error
             )
 
-            ApiStates.Loading -> LoadingScreen()
+            ApiStates.Loading -> AppProgressBar()
             is ApiStates.Success -> userDetails.data?.let {
                 Spacer(Modifier.weight(0.1f))
                 ProfileImage()
                 Spacer(Modifier.height(20.dp))
 
-                BasicInformationSection(user,onEditPersonalDetails = onEditPersonalDetails)
+                BasicInformationSection(user, onEditPersonalDetails = onEditPersonalDetails)
                 Spacer(Modifier.height(16.dp))
-                PersonalDetailsSection(it,onEditProfessionalDetails = onEditProfessionalDetails)
+                PersonalDetailsSection(it, onEditProfessionalDetails = onEditProfessionalDetails)
             }
         }
         Spacer(Modifier.weight(1f))
@@ -153,12 +156,16 @@ private fun ProfileImage(onChangeProfilePicture: () -> Unit = {}) {
 
 
 @Composable
-private fun BasicInformationSection(user: User?,onEditPersonalDetails: () -> Unit = {}) {
+private fun BasicInformationSection(user: User?, onEditPersonalDetails: () -> Unit = {}) {
     Column(modifier = Modifier.fillMaxWidth()) {
-
+        val isGuestUser = user?.account?.isGuestUser() == true
         Spacer(Modifier.height(4.dp))
         InfoCard {
-            SectionTitle("Personal Details",onEdit = onEditPersonalDetails)
+            SectionTitle(
+                "Personal Details",
+                showIcon = isGuestUser.not(),
+                onEdit = onEditPersonalDetails
+            )
             InfoRow("Name", user?.fullName().orEmpty())
             InfoRow("Email", user?.account?.email.orEmpty())
             InfoRow("Phone", user?.account?.phone.orEmpty())
@@ -167,14 +174,19 @@ private fun BasicInformationSection(user: User?,onEditPersonalDetails: () -> Uni
 }
 
 @Composable
-private fun PersonalDetailsSection(userProfile: User,onEditProfessionalDetails: () -> Unit = {}) {
+private fun PersonalDetailsSection(userProfile: User, onEditProfessionalDetails: () -> Unit = {}) {
+    val isGuestUser = userProfile.account?.isGuestUser() == true
     Column(modifier = Modifier.fillMaxWidth()) {
         Spacer(Modifier.height(4.dp))
         InfoCard {
-            SectionTitle("Professional Details",onEdit = onEditProfessionalDetails)
+            SectionTitle(
+                "Professional Details",
+                showIcon = isGuestUser.not(),
+                onEdit = onEditProfessionalDetails
+            )
             InfoRow("PMDC No", userProfile.profile?.pmdcNumber.orEmpty())
             InfoRow("Institute", userProfile.profile?.institute.orEmpty())
-           InfoRow("Country", userProfile.profile?.country.orEmpty())
+            InfoRow("Country", userProfile.profile?.country.orEmpty())
             InfoRow("Designation", userProfile.profile?.title.orEmpty())
             InfoRow("Registration No", userProfile.profile?.orgNumber.orEmpty())
         }
@@ -182,25 +194,29 @@ private fun PersonalDetailsSection(userProfile: User,onEditProfessionalDetails: 
 }
 
 @Composable
-private fun SectionTitle(title: String, onEdit: () -> Unit = {}) {
-    Row(horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+private fun SectionTitle(title: String, showIcon: Boolean = true, onEdit: () -> Unit = {}) {
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         AppTextTitle(
             text = title, fontSize = 14.sp
         )
         Spacer(Modifier.weight(1f))
-       // Box(
+        // Box(
 //            modifier = Modifier.size(30.dp).align(Alignment.BottomEnd).clip(CircleShape)
 //                .background(MaterialTheme.colorScheme.primary)
 //
 //        ) {
+        AnimatedVisibility(visible = showIcon, modifier = Modifier.clickable(onClick = onEdit)) {
             Icon(
                 imageVector = Icons.Default.Edit,
                 contentDescription = "Edit profile picture",
                 tint = primary,
-                modifier = Modifier.clickable(onClick = onEdit).size(22.dp)
+                modifier = Modifier.size(22.dp)
 
             )
-//        }
+        }
     }
 }
 

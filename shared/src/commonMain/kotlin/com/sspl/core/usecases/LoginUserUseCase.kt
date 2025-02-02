@@ -2,6 +2,7 @@ package com.sspl.core.usecases
 
 
 import com.sspl.core.ApiStates
+import com.sspl.core.models.Account
 import com.sspl.core.models.ApiError
 import com.sspl.core.models.UserResponse
 import com.sspl.core.repositories.AuthRepository
@@ -23,9 +24,9 @@ class LoginUserUseCase(
 
         try {
 
-            val requestBody = mapOf(
-                "email" to email,
-                "password" to password,
+            val requestBody = Account(
+                email = email,
+                password = password
             )
             val response = authRepository.login(body = requestBody)
 

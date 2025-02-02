@@ -1,6 +1,8 @@
 package com.sspl.core.repositories
 
 import com.sspl.core.apis.ProfileRequest
+import com.sspl.core.models.Profile
+import com.sspl.core.models.User
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.resources.get
 import io.ktor.client.plugins.resources.post
@@ -19,8 +21,8 @@ class UserRepository(private val client: HttpClient) {
 
     suspend fun getUserProfile(): HttpResponse = client.get(ProfileRequest.GetUserProfile)
 
-    suspend fun updateUserProfile(body: Map<String, String>): HttpResponse =
-        client.put(ProfileRequest.UserProfileRequest){
+    suspend fun updateUserProfile(body: User): HttpResponse =
+        client.put(ProfileRequest.UserProfileRequest) {
             setBody(body)
         }
 }

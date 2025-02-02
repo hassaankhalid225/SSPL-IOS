@@ -74,7 +74,7 @@ fun SignUpScreen(
         viewModel.networkState.collect { event ->
             when (event) {
                 is ApiStates.Failure -> {
-                    scaffoldState.showSnackbar(event.error.message ?: "Something went wrong")
+                    scaffoldState.showSnackbar(event.error.message)
                 }
 
                 is ApiStates.Success -> {

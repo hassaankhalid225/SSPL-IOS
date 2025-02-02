@@ -3,7 +3,9 @@ package com.sspl.core.usecases
 
 import com.sspl.core.ApiStates
 import com.sspl.core.apis.AuthRequest
+import com.sspl.core.models.Account
 import com.sspl.core.models.ApiError
+import com.sspl.core.models.User
 import com.sspl.core.models.UserResponse
 import com.sspl.core.repositories.AuthRepository
 import com.sspl.session.UserSession
@@ -14,6 +16,8 @@ import io.ktor.client.request.setBody
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 class SignUpUserUseCase(
     private val authRepository: AuthRepository, private val userSession: UserSession
@@ -28,37 +32,21 @@ class SignUpUserUseCase(
     ): Flow<ApiStates<UserResponse>> = flow {
         emit(ApiStates.Loading)
         try {
-            val requestBody = mapOf(
-                "first_name" to firstName.trim(),
-                "last_name" to lastName.trim(),
-                "gender" to "",
-                "account" to mapOf(
-                    "phone" to phoneNumber.trim(),
-                    "email" to email.trim(),
-                    "password" to password.trim()
-                ),
-                "profile" to mapOf(
-                    "title" to "",
-                    "overview" to "",
-                    "pmdc_number" to "",
-                    "org_number" to "",
-                    "institute" to "",
-                    "country" to "",
-                    "contact" to mapOf(
-                        "whatsapp" to "",
-                        "twitter" to "",
-                        "skype" to ""
-                    )
+            val user = User(
+                firstName = firstName.trim(),
+                lastName = lastName.trim(),
+                account = Account(
+                    email = email.trim(),
+                    password = password.trim(),
+                    phone = phoneNumber.trim()
                 )
             )
-
-
-            val response = authRepository.signUp(body = requestBody)
+            val response = authRepository.signUp(body = user)
 
             if (response.status.isSuccess()) {
                 val result = response.body<UserResponse>()
                 result.accessToken?.let { userSession.setToken(it) }
-               result?.user?.let { userSession.setUser(it) }
+                result.user?.let { userSession.setUser(it) }
 
                 println("the result is $result")
                 emit(ApiStates.Success(result))
@@ -72,3 +60,10 @@ class SignUpUserUseCase(
         }
     }
 }
+
+data class SignUpBody(
+    val first_name: String,
+    val last_name: String,
+    val gender: String?,
+    val account: Account
+)
