@@ -2,14 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-    <string>Using to get coordinates of user to mark down attendance while checking whether is user in range of told coordinates</string>
-    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string>Using to get coordinates of user to mark down attendance while checking whether is user in range of told coordinates</string>
-    <key>NSLocationAlwaysUsageDescription</key>
-    <string>Using to get coordinates of user to mark down attendance while checking whether is user in range of told coordinates</string>
+	<key>CFBundleDisplayName</key>
+	<string>SSPL</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -26,8 +24,31 @@
 	<string>1</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>188.245.244.112</key>
+			<dict>
+				<key>NSAllowsArbitraryLoads</key>
+				<true/>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>This app uses camera for capturing photos</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Using to get coordinates of user to mark down attendance while checking whether is user in range of told coordinates</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Using to get coordinates of user to mark down attendance while checking whether is user in range of told coordinates</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Using to get coordinates of user to mark down attendance while checking whether is user in range of told coordinates</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -56,27 +77,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-    <key>CADisableMinimumFrameDurationOnPhone</key>
-        <true/>
-        
-    <key>NSAppTransportSecurity</key>
-    <dict>
-        <key>NSAllowsArbitraryLoads</key>
-        <true/>
-        <key>NSExceptionDomains</key>
-        <dict>
-            <key>188.245.244.112</key>  <!-- Your API's IP Address -->
-            <dict>
-                <key>NSIncludesSubdomains</key>
-                <true/>
-                <key>NSAllowsArbitraryLoads</key>
-                <true/>
-                <key>NSExceptionAllowsInsecureHTTPLoads</key>
-                <true/>
-            </dict>
-        </dict>
-    </dict>
-    <key>CFBundleDisplayName</key>
-    <string>SSPL</string>
 </dict>
 </plist>
