@@ -89,10 +89,10 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import shared.PermissionCallback
+import com.sspl.platform.shared.PermissionCallback
 import shared.PermissionStatus
 import shared.PermissionType
-import shared.createPermissionsManager
+import com.sspl.platform.shared.createPermissionsManager
 import shared.rememberCameraManager
 
 @Composable

@@ -24,7 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.sspl.platform.GpsChecker
 import com.sspl.platform.createGpsChecker
 import com.sspl.ui.components.AppTextBody
 import com.sspl.ui.components.AppTextSubTitle
@@ -39,11 +38,10 @@ import dev.jordond.compass.permissions.PermissionState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.compose.koinInject
-import shared.PermissionCallback
+import com.sspl.platform.shared.PermissionCallback
 import shared.PermissionStatus
 import shared.PermissionType
-import shared.createPermissionsManager
+import com.sspl.platform.shared.createPermissionsManager
 import shared.rememberCameraManager
 import kotlin.math.PI
 import kotlin.math.atan2

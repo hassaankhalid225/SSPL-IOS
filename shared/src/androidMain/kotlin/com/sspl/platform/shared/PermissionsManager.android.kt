@@ -1,4 +1,4 @@
-package shared
+package com.sspl.platform.shared
 
 import android.Manifest
 import android.content.Intent
@@ -9,25 +9,29 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.launch
+import shared.PermissionHandler
+import shared.PermissionStatus
+import shared.PermissionType
 
 @Composable
-actual fun createPermissionsManager(callback: PermissionCallback): PermissionsManager {
+actual fun createPermissionsManager(callback: PermissionCallback): PermissionHandler {
     return remember { PermissionsManager(callback) }
+//    return PermissionsManager(callback=callback)
 }
 
-actual class PermissionsManager actual constructor(private val callback: PermissionCallback) :
+class PermissionsManager(private val callback: PermissionCallback) :
     PermissionHandler {
     @OptIn(ExperimentalPermissionsApi::class)
     @Composable
     override fun askPermission(permission: PermissionType) {
-        val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+        val lifecycleOwner = LocalLifecycleOwner.current
 
         when (permission) {
             PermissionType.CAMERA -> {

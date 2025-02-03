@@ -1,4 +1,4 @@
-package shared
+package com.sspl.platform.shared
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -18,13 +18,16 @@ import platform.Photos.PHAuthorizationStatusNotDetermined
 import platform.Photos.PHPhotoLibrary
 import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationOpenSettingsURLString
+import shared.PermissionHandler
+import shared.PermissionStatus
+import shared.PermissionType
 
 @Composable
-actual fun createPermissionsManager(callback: PermissionCallback): PermissionsManager {
+actual fun createPermissionsManager(callback: PermissionCallback): PermissionHandler {
     return PermissionsManager(callback)
 }
 
-actual class PermissionsManager actual constructor(private val callback: PermissionCallback) :
+class PermissionsManager(private val callback: PermissionCallback) :
     PermissionHandler {
     @Composable
     override fun askPermission(permission: PermissionType) {
