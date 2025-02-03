@@ -76,6 +76,7 @@
             </dict>
         </dict>
     </dict>
-
+    <key>CFBundleDisplayName</key>
+    <string>SSPL</string>
 </dict>
 </plist>
