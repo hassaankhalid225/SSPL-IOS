@@ -10,6 +10,8 @@ import com.sspl.core.usecases.GetPostsUseCase
 import com.sspl.core.usecases.GetUserDetailsUseCase
 import com.sspl.core.usecases.LikePostUseCase
 import com.sspl.core.usecases.LoginUserUseCase
+import com.sspl.core.usecases.MarkAttendanceViaImageUseCase
+import com.sspl.core.usecases.MarkAttendanceViaLocationUseCase
 import com.sspl.core.usecases.PasswordValidationUseCase
 import com.sspl.core.usecases.PhoneNumberValidationUseCase
 import com.sspl.core.usecases.PostUserDetailsUseCase
@@ -59,5 +61,7 @@ internal val useCaseModules = module {
     single { GetUserDetailsUseCase(get ()) }
     single { UpdateUserBasicInfoUseCase(get()) }
     single { GetPostDetailsUseCase(get()) }
+    single { MarkAttendanceViaImageUseCase(get()) }
+    single { MarkAttendanceViaLocationUseCase(get()) }
 
 }

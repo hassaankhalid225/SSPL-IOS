@@ -23,4 +23,13 @@ sealed class ConferenceRequest {
     @Serializable
     @Resource("/conferences")
     data class GetAll(val type: String? = null) : ConferenceRequest()
+
+    @Serializable
+    @Resource("/conferences/{conferenceId}/sessions/{sessionId}/attendees")
+    data class PostAttendance(
+        val conferenceId: Long,
+        val sessionId: Long,
+    ) : ConferenceRequest()
+
+
 }

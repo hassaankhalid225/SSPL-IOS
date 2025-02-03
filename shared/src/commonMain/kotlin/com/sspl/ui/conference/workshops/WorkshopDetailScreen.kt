@@ -15,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
@@ -34,9 +35,11 @@ import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.AppTextSubTitle
 import com.sspl.ui.components.ConferenceAddsOn
 import com.sspl.ui.components.Error
+import com.sspl.ui.components.MarkAttendanceButton
 import com.sspl.ui.components.SessionBreakDown
+import com.sspl.ui.conference.AttendanceViewModel
 import com.sspl.ui.conference.ConferenceDetailViewModel
-import com.sspl.utils.FORMAT_DEFAULT_DATE_TIME
+ import com.sspl.utils.FORMAT_DEFAULT_DATE_TIME
 import com.sspl.utils.FORMAT_MONTH_YEAR_WEEKDAY
 import com.sspl.utils.FORMAT_TIME_12HOUR
 import com.sspl.utils.getDayOfMonthSuffixed
@@ -55,10 +58,10 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun WorkshopDetailScreen(
     navController: NavController,
-    viewModel: ConferenceDetailViewModel = koinViewModel()
+    viewModel: ConferenceDetailViewModel = koinViewModel(),
+    attendanceViewModel: AttendanceViewModel =koinViewModel()
 ) {
-    val data = navController.previousBackStackEntry?.savedStateHandle?.get<String>("data")
-    if (data == null) return
+    val data = navController.previousBackStackEntry?.savedStateHandle?.get<String>("data") ?: return
     val conference: Conference = Json.decodeFromString<Conference>(data)
 
     LaunchedEffect(Unit) {
@@ -194,6 +197,11 @@ private fun SessionsSchedule(sessions: List<Session>) {
             if (!session.breakdown.isNullOrEmpty()) {
                 SessionBreakDown(session.breakdown)
             }
+//            MarkAttendanceButton(
+//                onMarkAttendance = {
+//
+//                }, modifier = Modifier.align(Alignment.End)
+//            )
         }
     }
 }
