@@ -15,15 +15,23 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -45,12 +53,15 @@ import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.AppTextSubTitle
 import com.sspl.ui.components.ConferenceAddsOn
 import com.sspl.ui.components.Error
+import com.sspl.ui.components.MarkAttendanceButton
+import com.sspl.ui.conference.AttendanceViewModel
 import com.sspl.ui.conference.ConferenceDetailViewModel
 import com.sspl.utils.FORMAT_DAY_MONTH
 import com.sspl.utils.FORMAT_DEFAULT_DATE_TIME
 import com.sspl.utils.FORMAT_TIME_12HOUR
 import com.sspl.utils.VERTICAL_DOTS
 import com.sspl.utils.getJoinedDateTime
+import dev.jordond.compass.Coordinates
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -66,22 +77,51 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun ProgramDetailScreen(
     navController: NavController,
-    viewModel: ConferenceDetailViewModel = koinViewModel()
+    viewModel: ConferenceDetailViewModel = koinViewModel(),
+    attendanceViewModel: AttendanceViewModel = koinViewModel()
 ) {
-    val data = navController.previousBackStackEntry?.savedStateHandle?.get<String>("data")
-    if (data == null) return
+    val data = navController.previousBackStackEntry?.savedStateHandle?.get<String>("data") ?: return
     val conference: Conference = Json.decodeFromString<Conference>(data)
+    val scaffoldState = remember { SnackbarHostState() }
+    val showLocationSuccessDialog by attendanceViewModel.showAttendanceDialogByLocation.collectAsStateWithLifecycle()
+    val showImageSuccessDialog by attendanceViewModel.showAttendanceDialogByImage.collectAsStateWithLifecycle()
+
+    if (showLocationSuccessDialog) {
+        AttendanceDialog(title = "Attendance Marked",
+            description = "Your attendance has been marked.",
+            onDismiss = { attendanceViewModel.onDismissDialogs() })
+    }
+    if (showImageSuccessDialog) {
+        AttendanceDialog(onDismiss = { attendanceViewModel.onDismissDialogs() })
+    }
 
     LaunchedEffect(Unit) {
         viewModel.getConferenceById(conference.id)
+    }
+
+    LaunchedEffect(Unit) {
+        attendanceViewModel.attendanceViaLocationStatus.collect { status ->
+            when (status) {
+                is ApiStates.Failure -> status.error.message?.let { scaffoldState.showSnackbar(it) }
+                ApiStates.Loading -> scaffoldState.showSnackbar("Please wait...")
+                is ApiStates.Success -> scaffoldState.showSnackbar("Attendance marked successfully")
+            }
+        }
+    }
+    LaunchedEffect(Unit) {
+        attendanceViewModel.attendanceViaImageStatus.collect { status ->
+            when (status) {
+                is ApiStates.Failure -> status.error.message?.let { scaffoldState.showSnackbar(it) }
+                ApiStates.Loading -> scaffoldState.showSnackbar("Uploading image...")
+                is ApiStates.Success -> scaffoldState.showSnackbar("Image uploaded for attendance approval!")
+            }
+        }
     }
     val details by viewModel.conferences.collectAsStateWithLifecycle()
     when (details) {
         is ApiStates.Failure -> {
             Error(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
+                modifier = Modifier.fillMaxSize().padding(16.dp),
                 error = (details as ApiStates.Failure).error
             )
         }
@@ -92,11 +132,28 @@ fun ProgramDetailScreen(
 
         is ApiStates.Success -> {
             (details as ApiStates.Success<ConferenceDetail>).data?.let {
-                ConferenceDetailContent(
-                    navController = navController,
-                    conference = conference,
-                    conferenceDetail = it
-                )
+                Scaffold(
+                    snackbarHost = { SnackbarHost(scaffoldState) },
+                    containerColor = Color.Transparent
+                ) { _ ->
+
+                    ConferenceDetailContent(
+                        navController = navController,
+                        conference = conference,
+                        conferenceDetail = it,
+                        onMarkAttendance = { session ->
+                            attendanceViewModel.markAttendanceViaLocation(
+                                conferenceId = conference.id.toLong(), sessionId = session
+                            )
+                        },
+                        onMarkAttendanceByImage = { sessionID, image ->
+                            attendanceViewModel.markAttendanceViaImage(
+                                conferenceId = conference.id.toLong(), sessionId = sessionID, image
+                            )
+                        },
+                        scaffoldState = scaffoldState
+                    )
+                }
             }
         }
     }
@@ -106,36 +163,31 @@ fun ProgramDetailScreen(
 private fun ConferenceDetailContent(
     navController: NavController,
     conference: Conference,
-    conferenceDetail: ConferenceDetail
+    conferenceDetail: ConferenceDetail,
+    onMarkAttendance: (sessionId: Long) -> Unit = {},
+    onMarkAttendanceByImage: (sessionId: Long, ByteArray) -> Unit,
+    scaffoldState: SnackbarHostState
 ) {
     val scope = rememberCoroutineScope()
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(all = 12.dp)
+        modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(all = 12.dp)
     ) {
         item {
             ConferenceDetail(conference, conferenceDetail)
         }
         conferenceDetail.days?.let { listOfDays ->
             itemsIndexed(listOfDays, key = { i, _ -> i }) { i, item ->
-                Column(
-                    modifier = Modifier.fillMaxWidth()
-                        .let {
-                            if (i == listOfDays.size - 1) {
-                                it.clip(
-                                    shape = RoundedCornerShape(0.dp, 0.dp, 16.dp, 16.dp)
-                                )
-                            } else {
-                                it
-                            }
-                        }
-                        .background(boxColor)
-                ) {
+                Column(modifier = Modifier.fillMaxWidth().let {
+                    if (i == listOfDays.size - 1) {
+                        it.clip(
+                            shape = RoundedCornerShape(0.dp, 0.dp, 16.dp, 16.dp)
+                        )
+                    } else {
+                        it
+                    }
+                }.background(boxColor)) {
                     HorizontalDivider(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        thickness = 2.dp,
-                        color = columnColor
+                        modifier = Modifier.fillMaxWidth(), thickness = 2.dp, color = columnColor
                     )
                     AppTextSubTitle(
                         modifier = Modifier.fillMaxWidth().background(color = columnColorLight)
@@ -146,28 +198,30 @@ private fun ConferenceDetailContent(
                     scope.launch {
 
                     }
-                    val sessionWithBreaks = (item.breaks.orEmpty() + item.sessions.orEmpty())
-                        .sortedBy {
+                    val sessionWithBreaks =
+                        (item.breaks.orEmpty() + item.sessions.orEmpty()).sortedBy {
                             if (it.isBreak) it.startsAt
                             else it.breakdown?.firstOrNull()?.startsAt
                         }
                     if (sessionWithBreaks.isNotEmpty()) {
-                        SessionsSchedule(sessionWithBreaks) { session ->
-                            navController.currentBackStackEntry?.savedStateHandle?.set(
-                                "data",
-                                Json.encodeToString(session)
-                            )
-                            navController.navigate(route = Screen.SessionDetailScreen.route)
-                        }
+                        SessionsSchedule(
+                            sessionWithBreaks,
+                            onMarkAttendance = onMarkAttendance,
+                            onMarkAttendanceByImage = onMarkAttendanceByImage,
+                            onClick = { session ->
+                                navController.currentBackStackEntry?.savedStateHandle?.set(
+                                    "data", Json.encodeToString(session)
+                                )
+                                navController.navigate(route = Screen.SessionDetailScreen.route)
+                            },
+                            scaffoldState = scaffoldState
+                        )
                     }
                 }
 
                 if (i != listOfDays.size - 1) {
                     HorizontalDivider(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        thickness = 2.dp,
-                        color = columnColor
+                        modifier = Modifier.fillMaxWidth(), thickness = 2.dp, color = columnColor
                     )
                 }
             }
@@ -178,17 +232,12 @@ private fun ConferenceDetailContent(
 
 @Composable
 private fun ConferenceDetail(
-    conference: Conference,
-    conferenceDetail: ConferenceDetail
+    conference: Conference, conferenceDetail: ConferenceDetail
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(
-                shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp)
-            )
-            .background(columnColor)
-            .padding(all = 12.dp)
+        modifier = Modifier.fillMaxWidth().clip(
+            shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp)
+        ).background(columnColor).padding(all = 12.dp)
     ) {
         AppTextSubTitle(
             text = conference.title.orEmpty().trim()
@@ -216,10 +265,22 @@ private fun ConferenceDetail(
 }
 
 @Composable
-private fun ColumnScope.SessionsSchedule(sessions: List<Session>, onClick: (Session) -> Unit) {
+private fun ColumnScope.SessionsSchedule(
+    sessions: List<Session>,
+    onClick: (Session) -> Unit,
+    onMarkAttendance: (sessionId: Long) -> Unit,
+    onMarkAttendanceByImage: (sessionId: Long, ByteArray) -> Unit,
+    scaffoldState: SnackbarHostState
+) {
     if (sessions.isEmpty()) return
     sessions.forEachIndexed { index, session ->
-        SessionItem(session, sessions.size != index + 1, onClick)
+        SessionItem(session, sessions.size != index + 1, onClick, onMarkAttendance = {
+            onMarkAttendance(
+                session.id
+            )
+        }, onMarkAttendanceByImage = {
+            onMarkAttendanceByImage(session.id, it)
+        }, scaffoldState = scaffoldState)
     }
 }
 
@@ -227,15 +288,14 @@ private fun ColumnScope.SessionsSchedule(sessions: List<Session>, onClick: (Sess
 private fun ColumnScope.SessionItem(
     session: Session,
     showDivider: Boolean,
-    onClick: (Session) -> Unit
+    onClick: (Session) -> Unit,
+    onMarkAttendance: () -> Unit,
+    onMarkAttendanceByImage: (ByteArray) -> Unit,
+    scaffoldState: SnackbarHostState
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth()
-            .clickable(!session.isBreak) {
-                onClick.invoke(session)
-            }
-            .padding(horizontal = 12.dp)
-    ) {
+    Row(modifier = Modifier.fillMaxWidth().clickable(!session.isBreak) {
+        onClick.invoke(session)
+    }.padding(horizontal = 12.dp)) {
         Column(
             modifier = Modifier.fillMaxWidth(.22F).defaultMinSize(minHeight = 68.dp)
         ) {
@@ -257,8 +317,7 @@ private fun ColumnScope.SessionItem(
                 separator = "\n"
             )
             AppTextLabel(
-                modifier = Modifier
-                    .padding(top = 8.dp, bottom = 8.dp),
+                modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.tertiary,
@@ -267,8 +326,7 @@ private fun ColumnScope.SessionItem(
             )
         }
         Column(
-            modifier = Modifier.fillMaxWidth(1F)
-                .defaultMinSize(minHeight = 68.dp)
+            modifier = Modifier.fillMaxWidth(1F).defaultMinSize(minHeight = 68.dp)
                 .padding(start = 8.dp, end = 8.dp, top = 8.dp)
 
         ) {
@@ -286,6 +344,23 @@ private fun ColumnScope.SessionItem(
                 venue.title?.let {
                     AppTextBody(text = venue.title.trim(), color = orange)
                     Spacer(modifier = Modifier.size(8.dp))
+
+                }
+                if (!session.isBreak) {
+                    MarkAttendanceButton(modifier = Modifier.align(Alignment.End),
+                        scaffoldState = scaffoldState,
+                        apiCoordinates = Coordinates(
+                            latitude = session.venue.lat ?: 0.0,
+                            longitude = session.venue.lng ?: 0.0
+                        ),
+                        onMarkAttendance = {
+                            onMarkAttendance(
+
+                            )
+                        },
+                        onMarkAttendanceByImage = {
+                            onMarkAttendanceByImage(it)
+                        })
                 }
             }
 
@@ -293,12 +368,26 @@ private fun ColumnScope.SessionItem(
     }
     if (showDivider) {
         HorizontalDivider(
-            modifier = Modifier
-                .fillMaxWidth(.78F)
-                .padding(start = 12.dp)
-                .align(alignment = Alignment.End),
-            thickness = 1.dp,
-            color = columnColor
+            modifier = Modifier.fillMaxWidth(.78F).padding(start = 12.dp)
+                .align(alignment = Alignment.End), thickness = 1.dp, color = columnColor
         )
     }
 }
+
+@Composable
+fun AttendanceDialog(
+    modifier: Modifier = Modifier,
+    description: String = "Your image has been uploaded for attendance approval.",
+    title: String = "Image Uploaded", onDismiss: () -> Unit,
+) {
+    AlertDialog(onDismissRequest = { onDismiss() },
+        title = { Text(title) },
+        text = { Text(description) },
+        confirmButton = {
+            TextButton(onClick = { onDismiss() }) {
+                Text("OK")
+            }
+        })
+}
+
+
