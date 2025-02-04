@@ -6,6 +6,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import com.sspl.resources.Res
+import com.sspl.resources.about_us
 import com.sspl.resources.create_post
 import com.sspl.resources.edit_profile
 import com.sspl.resources.forum
@@ -24,24 +25,24 @@ import com.sspl.resources.user_details
 import com.sspl.resources.verify_otp
 import com.sspl.resources.workshop
 import com.sspl.resources.workshops
-import com.sspl.ui.homescreen.HomeScreen
 import com.sspl.ui.SplashScreen
-import com.sspl.ui.userdetails.ProfileScreen
+import com.sspl.ui.about.AboutScreen
 import com.sspl.ui.conference.programs.ProgramDetailScreen
 import com.sspl.ui.conference.programs.ScientificProgramsScreen
 import com.sspl.ui.conference.programs.SessionDetailScreen
 import com.sspl.ui.conference.workshops.WorkshopDetailScreen
+import com.sspl.ui.conference.workshops.WorkshopsScreen
+import com.sspl.ui.homescreen.HomeScreen
 import com.sspl.ui.kyc.LoginScreen
 import com.sspl.ui.kyc.SignUpScreen
-import com.sspl.ui.location.LocationScreen
+import com.sspl.ui.notifications.NotificationsScreen
 import com.sspl.ui.otp.OtpScreen
 import com.sspl.ui.postcreation.CreatePostScreen
 import com.sspl.ui.posts.PostScreen
-import com.sspl.ui.userdetails.EditProfileScreen
 import com.sspl.ui.session.SessionScreen
+import com.sspl.ui.userdetails.EditProfileScreen
+import com.sspl.ui.userdetails.ProfileScreen
 import com.sspl.ui.userdetails.UserDetailsScreen
-import com.sspl.ui.conference.workshops.WorkshopsScreen
-import com.sspl.ui.notifications.NotificationsScreen
 import com.sspl.utils.IconResource
 import org.jetbrains.compose.resources.StringResource
 
@@ -152,6 +153,10 @@ sealed class Screen(
         title = Res.string.verify_otp,
         route = "OtpScreen",
     )
+    data object AboutScreen : Screen(
+        title = Res.string.about_us,
+        route = "AboutScreen",
+    )
 
     data object NotificationsScreen : Screen(
         title = Res.string.notifications,
@@ -172,6 +177,9 @@ fun otherScreens(): List<NavItem> = listOf(
     NavItem(
         screen = Screen.ProfileScreen,
         component = { ProfileScreen(navController = it) }),
+    NavItem(
+        screen = Screen.AboutScreen,
+        component = { AboutScreen(navController = it) }),
     NavItem(
         screen = Screen.ScientificProgramsScreen,
         component = { ScientificProgramsScreen(navController = it) }),
@@ -206,7 +214,8 @@ fun kycScreens(): List<NavItem> = listOf(
     NavItem(screen = Screen.SignUpScreen, component = { SignUpScreen(navController = it) }),
     NavItem(screen = Screen.SignInScreen, component = { LoginScreen(navController = it) }),
     NavItem(screen = Screen.OtpScreen, component = { OtpScreen(navController = it) }),
-    NavItem(screen = Screen.GetLocation, component = { LocationScreen() }),
+
+
 
     NavItem(
         screen = Screen.UserDetailsScreen,

@@ -108,7 +108,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeScreenViewModel 
         Item(
             title = stringResource(Res.string.notifications),
             icon = IconResource.fromDrawableResource(Res.drawable.ic_notifications),
-            toScreen = Screen.NotificationsScreen
+            toScreen = Screen.AboutScreen
         ),
         Item(
             title = stringResource(Res.string.exhibition),

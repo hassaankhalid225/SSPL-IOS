@@ -8,9 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
@@ -26,22 +24,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.sspl.platform.createGpsChecker
-import com.sspl.ui.location.LocationState
-import com.sspl.ui.location.PermissionDeniedDialog
-import com.sspl.ui.location.requestPermissions
+import com.sspl.platform.shared.PermissionCallback
+import com.sspl.platform.shared.createPermissionsManager
 import com.sspl.ui.postcreation.CameraPermissionDeniedDialog
 import dev.jordond.compass.Coordinates
 import dev.jordond.compass.Priority
 import dev.jordond.compass.geolocation.GeolocatorResult
 import dev.jordond.compass.geolocation.MobileGeolocator
 import dev.jordond.compass.permissions.LocationPermissionController
+import dev.jordond.compass.permissions.PermissionState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import shared.PermissionCallback
 import shared.PermissionStatus
 import shared.PermissionType
-import shared.createPermissionsManager
 import shared.rememberCameraManager
 import kotlin.math.PI
 import kotlin.math.atan2
@@ -355,5 +351,48 @@ fun CameraDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
                 Text("Cancel", color = Color.White)
             }
         })
+}
+data class LocationState(
+    val latitude: String? = null,
+    val longitude: String? = null,
+    val isPermissionGranted: Boolean = false,
+    val hasPhoneNoLocation: Boolean = false,
+    val isPermissionDenied: Boolean = false,
+    val isPermissionDeniedForever: Boolean = false
+)
+
+suspend fun requestPermissions(
+    locationPermissionController: LocationPermissionController,
+    onPermissionGranted: () -> Unit,
+    onPermissionDenied: () -> Unit,
+    onPermissionDeniedForever: () -> Unit,
+    onLocationUndetermined: () -> Unit
+) {
+    val result = locationPermissionController.requirePermissionFor(Priority.HighAccuracy)
+    println("result location is $result")
+    when (result) {
+        PermissionState.NotDetermined -> onLocationUndetermined()
+        PermissionState.Granted -> onPermissionGranted()
+        PermissionState.Denied -> onPermissionDenied()
+        PermissionState.DeniedForever -> onPermissionDeniedForever()
+    }
+}
+@Composable
+fun PermissionDeniedDialog(onDismiss: () -> Unit, onGoToSettings: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { AppTextTitle("Location Permission Required") },
+        text = { AppTextBody("This app needs location permission to function properly. Please grant the permission in Settings.") },
+        confirmButton = {
+            Button(onClick = onGoToSettings) {
+                AppTextSubTitle("Go to Settings", color = Color.White)
+            }
+        },
+        dismissButton = {
+            Button(onClick = onDismiss) {
+                AppTextSubTitle("Cancel", color = Color.White)
+            }
+        }
+    )
 }
 
