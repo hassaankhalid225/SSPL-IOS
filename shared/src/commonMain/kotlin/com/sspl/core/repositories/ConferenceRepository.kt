@@ -38,8 +38,8 @@ class ConferenceRepository(private val client: HttpClient) {
         setBody(MultiPartFormDataContent(
             formData {
                 append("picture", picture, Headers.build {
-                    append(HttpHeaders.ContentType, ContentType.Application.OctetStream.toString())
-                    append(HttpHeaders.ContentDisposition, "form-data; name=\"picture\"; filename=\"image.jpg\"")
+                    append(HttpHeaders.ContentType, "application/octet-stream")
+                    append(HttpHeaders.ContentDisposition, "filename=\"image.jpg\"")
                 })
             }
         ))

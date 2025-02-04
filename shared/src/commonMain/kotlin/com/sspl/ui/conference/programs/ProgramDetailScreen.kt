@@ -15,11 +15,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -80,26 +83,37 @@ fun ProgramDetailScreen(
     val data = navController.previousBackStackEntry?.savedStateHandle?.get<String>("data") ?: return
     val conference: Conference = Json.decodeFromString<Conference>(data)
     val scaffoldState = remember { SnackbarHostState() }
+    val showLocationSuccessDialog by attendanceViewModel.showAttendanceDialogByLocation.collectAsStateWithLifecycle()
+    val showImageSuccessDialog by attendanceViewModel.showAttendanceDialogByImage.collectAsStateWithLifecycle()
+
+    if (showLocationSuccessDialog) {
+        AttendanceDialog(title = "Attendance Marked",
+            description = "Your attendance has been marked.",
+            onDismiss = { attendanceViewModel.onDismissDialogs() })
+    }
+    if (showImageSuccessDialog) {
+        AttendanceDialog(onDismiss = { attendanceViewModel.onDismissDialogs() })
+    }
 
     LaunchedEffect(Unit) {
         viewModel.getConferenceById(conference.id)
     }
 
-    LaunchedEffect(Unit){
-        attendanceViewModel.attendanceViaLocationStatus.collect{status->
-            when(status){
+    LaunchedEffect(Unit) {
+        attendanceViewModel.attendanceViaLocationStatus.collect { status ->
+            when (status) {
                 is ApiStates.Failure -> status.error.message?.let { scaffoldState.showSnackbar(it) }
                 ApiStates.Loading -> scaffoldState.showSnackbar("Please wait...")
                 is ApiStates.Success -> scaffoldState.showSnackbar("Attendance marked successfully")
             }
         }
     }
-    LaunchedEffect(Unit){
-        attendanceViewModel.attendanceViaImageStatus.collect{status->
-            when(status){
+    LaunchedEffect(Unit) {
+        attendanceViewModel.attendanceViaImageStatus.collect { status ->
+            when (status) {
                 is ApiStates.Failure -> status.error.message?.let { scaffoldState.showSnackbar(it) }
                 ApiStates.Loading -> scaffoldState.showSnackbar("Uploading image...")
-                is ApiStates.Success -> scaffoldState.showSnackbar("Attendance marked successfully")
+                is ApiStates.Success -> scaffoldState.showSnackbar("Image uploaded for attendance approval!")
             }
         }
     }
@@ -118,9 +132,13 @@ fun ProgramDetailScreen(
 
         is ApiStates.Success -> {
             (details as ApiStates.Success<ConferenceDetail>).data?.let {
-                Scaffold(snackbarHost = { SnackbarHost(scaffoldState) }, containerColor = Color.Transparent) { _ ->
+                Scaffold(
+                    snackbarHost = { SnackbarHost(scaffoldState) },
+                    containerColor = Color.Transparent
+                ) { _ ->
 
-                    ConferenceDetailContent(navController = navController,
+                    ConferenceDetailContent(
+                        navController = navController,
                         conference = conference,
                         conferenceDetail = it,
                         onMarkAttendance = { session ->
@@ -132,7 +150,8 @@ fun ProgramDetailScreen(
                             attendanceViewModel.markAttendanceViaImage(
                                 conferenceId = conference.id.toLong(), sessionId = sessionID, image
                             )
-                        }, scaffoldState =scaffoldState
+                        },
+                        scaffoldState = scaffoldState
                     )
                 }
             }
@@ -146,7 +165,8 @@ private fun ConferenceDetailContent(
     conference: Conference,
     conferenceDetail: ConferenceDetail,
     onMarkAttendance: (sessionId: Long) -> Unit = {},
-    onMarkAttendanceByImage: (sessionId: Long, ByteArray) -> Unit,scaffoldState: SnackbarHostState
+    onMarkAttendanceByImage: (sessionId: Long, ByteArray) -> Unit,
+    scaffoldState: SnackbarHostState
 ) {
     val scope = rememberCoroutineScope()
     LazyColumn(
@@ -158,14 +178,14 @@ private fun ConferenceDetailContent(
         conferenceDetail.days?.let { listOfDays ->
             itemsIndexed(listOfDays, key = { i, _ -> i }) { i, item ->
                 Column(modifier = Modifier.fillMaxWidth().let {
-                        if (i == listOfDays.size - 1) {
-                            it.clip(
-                                shape = RoundedCornerShape(0.dp, 0.dp, 16.dp, 16.dp)
-                            )
-                        } else {
-                            it
-                        }
-                    }.background(boxColor)) {
+                    if (i == listOfDays.size - 1) {
+                        it.clip(
+                            shape = RoundedCornerShape(0.dp, 0.dp, 16.dp, 16.dp)
+                        )
+                    } else {
+                        it
+                    }
+                }.background(boxColor)) {
                     HorizontalDivider(
                         modifier = Modifier.fillMaxWidth(), thickness = 2.dp, color = columnColor
                     )
@@ -180,11 +200,12 @@ private fun ConferenceDetailContent(
                     }
                     val sessionWithBreaks =
                         (item.breaks.orEmpty() + item.sessions.orEmpty()).sortedBy {
-                                if (it.isBreak) it.startsAt
-                                else it.breakdown?.firstOrNull()?.startsAt
-                            }
+                            if (it.isBreak) it.startsAt
+                            else it.breakdown?.firstOrNull()?.startsAt
+                        }
                     if (sessionWithBreaks.isNotEmpty()) {
-                        SessionsSchedule(sessionWithBreaks,
+                        SessionsSchedule(
+                            sessionWithBreaks,
                             onMarkAttendance = onMarkAttendance,
                             onMarkAttendanceByImage = onMarkAttendanceByImage,
                             onClick = { session ->
@@ -192,7 +213,9 @@ private fun ConferenceDetailContent(
                                     "data", Json.encodeToString(session)
                                 )
                                 navController.navigate(route = Screen.SessionDetailScreen.route)
-                            },scaffoldState = scaffoldState)
+                            },
+                            scaffoldState = scaffoldState
+                        )
                     }
                 }
 
@@ -213,8 +236,8 @@ private fun ConferenceDetail(
 ) {
     Column(
         modifier = Modifier.fillMaxWidth().clip(
-                shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp)
-            ).background(columnColor).padding(all = 12.dp)
+            shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp)
+        ).background(columnColor).padding(all = 12.dp)
     ) {
         AppTextSubTitle(
             text = conference.title.orEmpty().trim()
@@ -246,7 +269,8 @@ private fun ColumnScope.SessionsSchedule(
     sessions: List<Session>,
     onClick: (Session) -> Unit,
     onMarkAttendance: (sessionId: Long) -> Unit,
-    onMarkAttendanceByImage: (sessionId: Long, ByteArray) -> Unit,scaffoldState: SnackbarHostState
+    onMarkAttendanceByImage: (sessionId: Long, ByteArray) -> Unit,
+    scaffoldState: SnackbarHostState
 ) {
     if (sessions.isEmpty()) return
     sessions.forEachIndexed { index, session ->
@@ -256,7 +280,7 @@ private fun ColumnScope.SessionsSchedule(
             )
         }, onMarkAttendanceByImage = {
             onMarkAttendanceByImage(session.id, it)
-        },scaffoldState = scaffoldState)
+        }, scaffoldState = scaffoldState)
     }
 }
 
@@ -266,11 +290,12 @@ private fun ColumnScope.SessionItem(
     showDivider: Boolean,
     onClick: (Session) -> Unit,
     onMarkAttendance: () -> Unit,
-    onMarkAttendanceByImage: (ByteArray) -> Unit,scaffoldState: SnackbarHostState
+    onMarkAttendanceByImage: (ByteArray) -> Unit,
+    scaffoldState: SnackbarHostState
 ) {
     Row(modifier = Modifier.fillMaxWidth().clickable(!session.isBreak) {
-            onClick.invoke(session)
-        }.padding(horizontal = 12.dp)) {
+        onClick.invoke(session)
+    }.padding(horizontal = 12.dp)) {
         Column(
             modifier = Modifier.fillMaxWidth(.22F).defaultMinSize(minHeight = 68.dp)
         ) {
@@ -321,10 +346,12 @@ private fun ColumnScope.SessionItem(
                     Spacer(modifier = Modifier.size(8.dp))
 
                 }
-                if (!session.isBreak){
-                    MarkAttendanceButton(modifier = Modifier.align(Alignment.End), scaffoldState = scaffoldState,
+                if (!session.isBreak) {
+                    MarkAttendanceButton(modifier = Modifier.align(Alignment.End),
+                        scaffoldState = scaffoldState,
                         apiCoordinates = Coordinates(
-                            latitude = session.venue.lat ?: 0.0, longitude = session.venue.lng ?: 0.0
+                            latitude = session.venue.lat ?: 0.0,
+                            longitude = session.venue.lng ?: 0.0
                         ),
                         onMarkAttendance = {
                             onMarkAttendance(
@@ -345,6 +372,22 @@ private fun ColumnScope.SessionItem(
                 .align(alignment = Alignment.End), thickness = 1.dp, color = columnColor
         )
     }
+}
+
+@Composable
+fun AttendanceDialog(
+    modifier: Modifier = Modifier,
+    description: String = "Your image has been uploaded for attendance approval.",
+    title: String = "Image Uploaded", onDismiss: () -> Unit,
+) {
+    AlertDialog(onDismissRequest = { onDismiss() },
+        title = { Text(title) },
+        text = { Text(description) },
+        confirmButton = {
+            TextButton(onClick = { onDismiss() }) {
+                Text("OK")
+            }
+        })
 }
 
 

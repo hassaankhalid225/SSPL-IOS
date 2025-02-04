@@ -9,7 +9,6 @@ import com.sspl.core.usecases.MarkAttendanceViaLocationUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -26,6 +25,12 @@ class AttendanceViewModel(
         MutableSharedFlow()
     val attendanceViaImageStatus = _attendanceViaImageStatus.asSharedFlow()
 
+    var showAttendanceDialogByLocation = MutableStateFlow(false)
+        private set
+
+    var showAttendanceDialogByImage = MutableStateFlow(false)
+        private set
+
 
     fun markAttendanceViaLocation(
         conferenceId: Long,
@@ -34,6 +39,9 @@ class AttendanceViewModel(
         viewModelScope.launch {
             markAttendanceViaLocationUseCase(conferenceId, sessionId).collect { state ->
                 _attendanceViaLocationStatus.emit(state)
+                if (state is ApiStates.Success) {
+                    showAttendanceDialogByLocation.update { true }
+                }
             }
         }
     }
@@ -44,8 +52,17 @@ class AttendanceViewModel(
         viewModelScope.launch {
             markAttendanceViaImageUseCase(conferenceId, sessionId, image).collect { state ->
                 _attendanceViaImageStatus.emit(state)
+                if (state is ApiStates.Success) {
+                    showAttendanceDialogByImage.update { true }
+                }
             }
         }
+    }
+
+
+    fun onDismissDialogs() {
+        showAttendanceDialogByLocation.update { false }
+        showAttendanceDialogByImage.update { false }
     }
 
 }

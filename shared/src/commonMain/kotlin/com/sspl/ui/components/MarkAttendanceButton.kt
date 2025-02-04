@@ -50,20 +50,24 @@ import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-
+//todo (working fine in this way,if don't want any thing related attendance
+// type thing in caller place then we can add attendanceVm here and
+// just pass the conferenceId and sessionId here but that causes irregular
+// behavior as the dialogs will be inside too so once some dialog pops for the
+// mark attendance by image it is triggered by no of items in the LazyColumn that needs to be fixed)
 @Composable
 fun MarkAttendanceButton(
     modifier: Modifier = Modifier,
     apiCoordinates: Coordinates,
     onMarkAttendance: () -> Unit,
-     scaffoldState: SnackbarHostState,
+    scaffoldState: SnackbarHostState,
     onMarkAttendanceByImage: (ByteArray) -> Unit
 ) {
     val scope = rememberCoroutineScope()
     var showCameraDialog by remember { mutableStateOf(false) }
-     val locationPermissionController = remember { LocationPermissionController() }
+    val locationPermissionController = remember { LocationPermissionController() }
     val geoLocation = remember { MobileGeolocator(locationPermissionController) }
-    val gpsChecker= createGpsChecker()
+    val gpsChecker = createGpsChecker()
     var launchCamera by remember { mutableStateOf(value = false) }
     var launchSetting by remember { mutableStateOf(value = false) }
     var permissionRationalDialog by remember { mutableStateOf(value = false) }
@@ -153,10 +157,10 @@ fun MarkAttendanceButton(
 
                         if (isWithinRadius) {
                             scaffoldState.showSnackbar("You are within the allowed radius.")
-                   onMarkAttendance()
+                            onMarkAttendance()
                             println("You are within the allowed radius.")
                         } else {
-                  showCameraDialog=true
+                            showCameraDialog = true
                             println("You are not within the allowed radius.")
                             scaffoldState.showSnackbar("You are outside the allowed radius")
                         }
@@ -175,11 +179,12 @@ fun MarkAttendanceButton(
                 when (snackbarResult) {
                     SnackbarResult.ActionPerformed -> {
                         gpsChecker.requestEnableLocationServices()
-                        locationState=locationState.copy(isPermissionGranted = false)
+                        locationState = locationState.copy(isPermissionGranted = false)
 
                     }
+
                     SnackbarResult.Dismissed -> {
-                        locationState=locationState.copy(isPermissionGranted = false)
+                        locationState = locationState.copy(isPermissionGranted = false)
 
                     }
                 }
@@ -189,120 +194,120 @@ fun MarkAttendanceButton(
     }
 
     if (locationState.isPermissionDeniedForever) {
-        PermissionDeniedDialog(
-            onDismiss = { locationState = locationState.copy(isPermissionDeniedForever = false) },
+        PermissionDeniedDialog(onDismiss = {
+            locationState = locationState.copy(isPermissionDeniedForever = false)
+        },
             onGoToSettings = {
                 locationState = locationState.copy(isPermissionDeniedForever = false)
                 launchSetting = true
-            }
-        )
+            })
     }
     if (showCameraDialog) {
-        CameraDialog(
-            onDismiss = { showCameraDialog = false },
-            onConfirm = {
-                showCameraDialog = false
-                launchCamera = true
-            }
-        )
+        CameraDialog(onDismiss = { showCameraDialog = false }, onConfirm = {
+            showCameraDialog = false
+            launchCamera = true
+        })
     }
-Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(6.dp)){
-    AppTextLabel(
-        text = "Mark Attendance",
-        textDecoration = TextDecoration.Underline,
-        modifier = Modifier.clickable(onClick = {
-            scope.launch {
-                requestPermissions(
-                    locationPermissionController = locationPermissionController,
-                    onPermissionGranted = {
-                        locationState = locationState.copy(isPermissionGranted = true)
-                        if (locationState.isPermissionGranted) {
-                            scope.launch {
-                                if (gpsChecker.hasGps()) {
-                                    scaffoldState.showSnackbar("Looking for location...Please Wait")
+    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        AppTextLabel(
+            text = "Mark Attendance",
+            textDecoration = TextDecoration.Underline,
+            modifier = Modifier.clickable(onClick = {
+                scope.launch {
+                    requestPermissions(locationPermissionController = locationPermissionController,
+                        onPermissionGranted = {
+                            locationState = locationState.copy(isPermissionGranted = true)
+                            if (locationState.isPermissionGranted) {
+                                scope.launch {
+                                    if (gpsChecker.hasGps()) {
+                                        scaffoldState.showSnackbar("Looking for location...Please Wait")
 
 
-                                    isGettingLocation = true
-                                    when (val result = geoLocation.current(Priority.HighAccuracy)) {
-                                        is GeolocatorResult.Error -> {
-                                            println(result.message)
-                                            scaffoldState.showSnackbar(result.message)
-                                            isGettingLocation = false
-                                        }
-
-                                        is GeolocatorResult.Success -> {
-                                            locationState = locationState.copy(
-                                                latitude = result.data.coordinates.latitude.toString(),
-                                                longitude = result.data.coordinates.longitude.toString()
-                                            ).also {
+                                        isGettingLocation = true
+                                        when (val result =
+                                            geoLocation.current(Priority.HighAccuracy)) {
+                                            is GeolocatorResult.Error -> {
+                                                println(result.message)
+                                                scaffoldState.showSnackbar(result.message)
                                                 isGettingLocation = false
-println(result.data.coordinates.toString()+"result.data.coordinates")
                                             }
 
-                                            val isWithinRadius = isWithinRadius(
-                                                apiLatitude = apiCoordinates.latitude,
-                                                apiLongitude = apiCoordinates.longitude,
-                                                currentLatitude = result.data.coordinates.latitude,
-                                                currentLongitude = result.data.coordinates.longitude
-                                            )
+                                            is GeolocatorResult.Success -> {
+                                                locationState = locationState.copy(
+                                                    latitude = result.data.coordinates.latitude.toString(),
+                                                    longitude = result.data.coordinates.longitude.toString()
+                                                ).also {
+                                                    isGettingLocation = false
+                                                    println(result.data.coordinates.toString() + "result.data.coordinates")
+                                                }
+
+                                                val isWithinRadius = isWithinRadius(
+                                                    apiLatitude = apiCoordinates.latitude,
+                                                    apiLongitude = apiCoordinates.longitude,
+                                                    currentLatitude = result.data.coordinates.latitude,
+                                                    currentLongitude = result.data.coordinates.longitude
+                                                )
 
 
-                                            if (isWithinRadius) {
-                                                scaffoldState.showSnackbar("You are within the allowed radius.")
-                                                onMarkAttendance()
-                                                println("You are within the allowed radius.")
-                                            } else {
-                                                showCameraDialog=true
-                                                println("You are not within the allowed radius.")
-                                                scaffoldState.showSnackbar("You are outside the allowed radius")
+                                                if (isWithinRadius) {
+                                                    scaffoldState.showSnackbar("You are within the allowed radius.")
+                                                    onMarkAttendance()
+                                                    println("You are within the allowed radius.")
+                                                } else {
+                                                    showCameraDialog = true
+                                                    println("You are not within the allowed radius.")
+                                                    scaffoldState.showSnackbar("You are outside the allowed radius")
+                                                }
+
                                             }
 
                                         }
+                                    } else {
+                                        val snackbarResult = scaffoldState.showSnackbar(
+                                            message = "Device Location Off",
+                                            actionLabel = "Enable",
+                                            duration = SnackbarDuration.Indefinite,
+                                            withDismissAction = true
+                                        )
+                                        when (snackbarResult) {
+                                            SnackbarResult.ActionPerformed -> {
+                                                gpsChecker.requestEnableLocationServices()
+                                                locationState =
+                                                    locationState.copy(isPermissionGranted = false)
 
-                                    }
-                                } else {
-                                    val snackbarResult = scaffoldState.showSnackbar(
-                                        message = "Device Location Off",
-                                        actionLabel = "Enable",
-                                        duration = SnackbarDuration.Indefinite,
-                                        withDismissAction = true
-                                    )
-                                    when (snackbarResult) {
-                                        SnackbarResult.ActionPerformed -> {
-                                            gpsChecker.requestEnableLocationServices()
-                                            locationState=locationState.copy(isPermissionGranted = false)
+                                            }
 
-                                        }
-                                        SnackbarResult.Dismissed -> {
-                                            locationState=locationState.copy(isPermissionGranted = false)
+                                            SnackbarResult.Dismissed -> {
+                                                locationState =
+                                                    locationState.copy(isPermissionGranted = false)
 
+                                            }
                                         }
                                     }
                                 }
+
                             }
+                        },
+                        onPermissionDenied = {
+                            locationState = locationState.copy(isPermissionDenied = true)
+                        },
+                        onPermissionDeniedForever = {
+                            locationState = locationState.copy(isPermissionDeniedForever = true)
+                        },
+                        onLocationUndetermined = {
+                            locationState = locationState.copy(hasPhoneNoLocation = true)
+                        })
+                }
 
-                        }
-                    },
-                    onPermissionDenied = {
-                        locationState = locationState.copy(isPermissionDenied = true)
-                    },
-                    onPermissionDeniedForever = {
-                        locationState = locationState.copy(isPermissionDeniedForever = true)
-                    },
-                    onLocationUndetermined = {
-                        locationState = locationState.copy(hasPhoneNoLocation = true)
-                    }
-                )
-            }
-
-        })
-    )
-    AnimatedVisibility(isGettingLocation && locationState.latitude.isNullOrEmpty()){
-        CircularProgressIndicator(modifier = Modifier.size(16.dp))
+            })
+        )
+        AnimatedVisibility(isGettingLocation && locationState.latitude.isNullOrEmpty()) {
+            CircularProgressIndicator(modifier = Modifier.size(16.dp))
+        }
     }
-}
 
 }
+
 fun isWithinRadius(
     apiLatitude: Double,
     apiLongitude: Double,
@@ -337,8 +342,7 @@ fun Double.toRadians(): Double = this * PI / 180.0
 
 @Composable
 fun CameraDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
+    AlertDialog(onDismissRequest = onDismiss,
         title = { Text(text = "Location Outside Radius") },
         text = { Text(text = "It seems your location is not in the specified radius. Please take a selfie to upload and mark your attendance.") },
         confirmButton = {
@@ -350,7 +354,6 @@ fun CameraDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
             Button(onClick = onDismiss) {
                 Text("Cancel", color = Color.White)
             }
-        }
-    )
+        })
 }
 

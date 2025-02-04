@@ -12,12 +12,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -39,11 +44,13 @@ import com.sspl.ui.components.MarkAttendanceButton
 import com.sspl.ui.components.SessionBreakDown
 import com.sspl.ui.conference.AttendanceViewModel
 import com.sspl.ui.conference.ConferenceDetailViewModel
- import com.sspl.utils.FORMAT_DEFAULT_DATE_TIME
+import com.sspl.ui.conference.programs.AttendanceDialog
+import com.sspl.utils.FORMAT_DEFAULT_DATE_TIME
 import com.sspl.utils.FORMAT_MONTH_YEAR_WEEKDAY
 import com.sspl.utils.FORMAT_TIME_12HOUR
 import com.sspl.utils.getDayOfMonthSuffixed
 import com.sspl.utils.getJoinedDateTime
+import dev.jordond.compass.Coordinates
 import kotlinx.serialization.json.Json
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -59,21 +66,48 @@ import org.koin.compose.viewmodel.koinViewModel
 fun WorkshopDetailScreen(
     navController: NavController,
     viewModel: ConferenceDetailViewModel = koinViewModel(),
-    attendanceViewModel: AttendanceViewModel =koinViewModel()
+    attendanceViewModel: AttendanceViewModel = koinViewModel()
 ) {
     val data = navController.previousBackStackEntry?.savedStateHandle?.get<String>("data") ?: return
     val conference: Conference = Json.decodeFromString<Conference>(data)
+    val scaffoldState = remember { SnackbarHostState() }
+    val showLocationSuccessDialog by attendanceViewModel.showAttendanceDialogByLocation.collectAsStateWithLifecycle()
+    val showImageSuccessDialog by attendanceViewModel.showAttendanceDialogByImage.collectAsStateWithLifecycle()
 
+    if (showLocationSuccessDialog) {
+        AttendanceDialog(title = "Attendance Marked",
+            description = "Your attendance has been marked.",
+            onDismiss = { attendanceViewModel.onDismissDialogs() })
+    }
+    if (showImageSuccessDialog) {
+        AttendanceDialog(onDismiss = { attendanceViewModel.onDismissDialogs() })
+    }
     LaunchedEffect(Unit) {
         viewModel.getConferenceById(conference.id)
+    }
+    LaunchedEffect(Unit) {
+        attendanceViewModel.attendanceViaLocationStatus.collect { status ->
+            when (status) {
+                is ApiStates.Failure -> status.error.message?.let { scaffoldState.showSnackbar(it) }
+                ApiStates.Loading -> scaffoldState.showSnackbar("Please wait...")
+                is ApiStates.Success -> scaffoldState.showSnackbar("Attendance marked successfully")
+            }
+        }
+    }
+    LaunchedEffect(Unit) {
+        attendanceViewModel.attendanceViaImageStatus.collect { status ->
+            when (status) {
+                is ApiStates.Failure -> status.error.message?.let { scaffoldState.showSnackbar(it) }
+                ApiStates.Loading -> scaffoldState.showSnackbar("Uploading image...")
+                is ApiStates.Success -> scaffoldState.showSnackbar("Image uploaded for attendance approval!")
+            }
+        }
     }
     val details by viewModel.conferences.collectAsStateWithLifecycle()
     when (details) {
         is ApiStates.Failure -> {
             Error(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
+                modifier = Modifier.fillMaxSize().padding(16.dp),
                 error = (details as ApiStates.Failure).error
             )
         }
@@ -84,17 +118,42 @@ fun WorkshopDetailScreen(
 
         is ApiStates.Success -> {
             (details as ApiStates.Success<ConferenceDetail>).data?.let {
-                WorkshopDetailContent(conference = conference, conferenceDetail = it)
+                Scaffold(
+                    snackbarHost = { SnackbarHost(scaffoldState) },
+                    containerColor = Color.Transparent
+                ) { _ ->
+                    WorkshopDetailContent(
+                        conference = conference,
+                        conferenceDetail = it,
+                        onMarkAttendance = { session ->
+                            attendanceViewModel.markAttendanceViaLocation(
+                                conferenceId = conference.id.toLong(), sessionId = session
+                            )
+                        },
+                        onMarkAttendanceByImage = { sessionID, image ->
+                            attendanceViewModel.markAttendanceViaImage(
+                                conferenceId = conference.id.toLong(), sessionId = sessionID, image
+                            )
+                        },
+                        scaffoldState = scaffoldState
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun WorkshopDetailContent(conference: Conference, conferenceDetail: ConferenceDetail) {
+private fun WorkshopDetailContent(
+    conference: Conference,
+    conferenceDetail: ConferenceDetail,
+    onMarkAttendance: (sessionId: Long) -> Unit,
+    onMarkAttendanceByImage: (sessionId: Long, ByteArray) -> Unit,
+    scaffoldState: SnackbarHostState
+
+) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(all = 12.dp)
+        modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(all = 12.dp)
     ) {
         item {
             WorkshopDetail(conference, conferenceDetail)
@@ -102,25 +161,23 @@ private fun WorkshopDetailContent(conference: Conference, conferenceDetail: Conf
 
         conferenceDetail.days?.let { listOfDays ->
             itemsIndexed(listOfDays, key = { i, _ -> i }) { i, item ->
-                Column(
-                    modifier = Modifier.fillMaxWidth()
-                        .let {
-                            if (i == listOfDays.size - 1) {
-                                it.clip(
-                                    shape = RoundedCornerShape(0.dp, 0.dp, 16.dp, 16.dp)
-                                )
-                            } else {
-                                it
-                            }
+                Column(modifier = Modifier.fillMaxWidth().let {
+                        if (i == listOfDays.size - 1) {
+                            it.clip(
+                                shape = RoundedCornerShape(0.dp, 0.dp, 16.dp, 16.dp)
+                            )
+                        } else {
+                            it
                         }
-                        .background(boxColor)
-                        .padding(all = 12.dp)
-                ) {
+                    }.background(boxColor).padding(all = 12.dp)) {
                     item.breaks?.let { breaks ->
                         SetSessionBreak(breaks)
                     }
                     item.sessions?.let { sessions ->
-                        SessionsSchedule(sessions)
+                        SessionsSchedule(sessions,
+                            onMarkAttendance = onMarkAttendance,
+                            onMarkAttendanceByImage = onMarkAttendanceByImage,
+                            scaffoldState = scaffoldState)
                     }
                 }
             }
@@ -131,17 +188,12 @@ private fun WorkshopDetailContent(conference: Conference, conferenceDetail: Conf
 
 @Composable
 private fun WorkshopDetail(
-    conference: Conference,
-    conferenceDetail: ConferenceDetail
+    conference: Conference, conferenceDetail: ConferenceDetail
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(
+        modifier = Modifier.fillMaxWidth().clip(
                 shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp)
-            )
-            .background(columnColor)
-            .padding(all = 12.dp)
+            ).background(columnColor).padding(all = 12.dp)
     ) {
         AppTextSubTitle(
             text = conference.title.orEmpty()
@@ -149,13 +201,11 @@ private fun WorkshopDetail(
         conference.startDate?.let { date ->
             Spacer(modifier = Modifier.size(4.dp))
             AppTextLabel(
-                text = getDayOfMonthSuffixed(date) +
-                        " " +
-                        formatDateTime(
-                            dateTime = date,
-                            inFormat = FORMAT_DEFAULT_DATE_TIME,
-                            outFormat = FORMAT_MONTH_YEAR_WEEKDAY
-                        ),
+                text = getDayOfMonthSuffixed(date) + " " + formatDateTime(
+                    dateTime = date,
+                    inFormat = FORMAT_DEFAULT_DATE_TIME,
+                    outFormat = FORMAT_MONTH_YEAR_WEEKDAY
+                ),
                 color = MaterialTheme.colorScheme.tertiary,
             )
         }
@@ -179,13 +229,16 @@ private fun WorkshopDetail(
 }
 
 @Composable
-private fun SessionsSchedule(sessions: List<Session>) {
+private fun SessionsSchedule(sessions: List<Session>,
+                             onMarkAttendance: (sessionId:Long) -> Unit = {},
+                             onMarkAttendanceByImage: (sessionId:Long,ByteArray) -> Unit,
+                             scaffoldState: SnackbarHostState
+                             ) {
     if (sessions.isEmpty()) return
     sessions.forEach { session ->
         Column(modifier = Modifier.fillMaxWidth()) {
             AppTextSubTitle(
-                text = session.title,
-                color = orange
+                text = session.title, color = orange
             )
             if (!session.summary.isNullOrEmpty()) {
                 AppTextLabel(text = session.summary)
@@ -197,11 +250,20 @@ private fun SessionsSchedule(sessions: List<Session>) {
             if (!session.breakdown.isNullOrEmpty()) {
                 SessionBreakDown(session.breakdown)
             }
-//            MarkAttendanceButton(
-//                onMarkAttendance = {
-//
-//                }, modifier = Modifier.align(Alignment.End)
-//            )
+            if (!session.isBreak) {
+                MarkAttendanceButton(modifier = Modifier.align(Alignment.End),
+                    scaffoldState = scaffoldState,
+                    apiCoordinates = Coordinates(
+                        latitude = session.venue?.lat ?: 0.0,
+                        longitude = session.venue?.lng ?: 0.0
+                    ),
+                    onMarkAttendance = {
+                        onMarkAttendance(session.id)
+                    },
+                    onMarkAttendanceByImage = {
+                        onMarkAttendanceByImage(session.id,it)
+                    })
+            }
         }
     }
 }
@@ -212,8 +274,7 @@ private fun SetSessionBreak(breaks: List<Session>) {
     Column {
         Spacer(modifier = Modifier.size(16.dp))
         AppTextSubTitle(
-            text = "Break",
-            color = orange
+            text = "Break", color = orange
         )
         breaks.forEach {
             Spacer(modifier = Modifier.size(4.dp))
