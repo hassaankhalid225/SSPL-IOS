@@ -23,9 +23,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.sspl.platform.createGpsChecker
+import com.sspl.platform.shared.PermissionCallback
+import com.sspl.platform.shared.createPermissionsManager
 import com.sspl.ui.location.LocationState
 import com.sspl.ui.location.PermissionDeniedDialog
 import com.sspl.ui.location.requestPermissions
@@ -38,10 +41,8 @@ import dev.jordond.compass.permissions.LocationPermissionController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import shared.PermissionCallback
 import shared.PermissionStatus
 import shared.PermissionType
-import shared.createPermissionsManager
 import shared.rememberCameraManager
 import kotlin.math.PI
 import kotlin.math.atan2
@@ -212,6 +213,7 @@ fun MarkAttendanceButton(
         AppTextLabel(
             text = "Mark Attendance",
             textDecoration = TextDecoration.Underline,
+            fontWeight = FontWeight.SemiBold,
             modifier = Modifier.clickable(onClick = {
                 scope.launch {
                     requestPermissions(locationPermissionController = locationPermissionController,

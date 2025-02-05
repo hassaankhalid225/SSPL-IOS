@@ -195,9 +195,6 @@ private fun ConferenceDetailContent(
                         text = "Day 0${i + 1}",
                         color = orange
                     )
-                    scope.launch {
-
-                    }
                     val sessionWithBreaks =
                         (item.breaks.orEmpty() + item.sessions.orEmpty()).sortedBy {
                             if (it.isBreak) it.startsAt
@@ -344,7 +341,6 @@ private fun ColumnScope.SessionItem(
                 venue.title?.let {
                     AppTextBody(text = venue.title.trim(), color = orange)
                     Spacer(modifier = Modifier.size(8.dp))
-
                 }
                 if (!session.isBreak) {
                     MarkAttendanceButton(modifier = Modifier.align(Alignment.End),
@@ -361,6 +357,7 @@ private fun ColumnScope.SessionItem(
                         onMarkAttendanceByImage = {
                             onMarkAttendanceByImage(it)
                         })
+                    Spacer(modifier = Modifier.size(8.dp))
                 }
             }
 

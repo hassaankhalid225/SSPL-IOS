@@ -47,7 +47,7 @@ suspend fun <T : HttpClientEngineConfig> getBaseClient(
         }
         install(Logging) {
             logger = Logger.SIMPLE
-            level = LogLevel.INFO
+            level = LogLevel.BODY
             sanitizeHeader { header -> header == HttpHeaders.Authorization }
         }
         defaultRequest {
