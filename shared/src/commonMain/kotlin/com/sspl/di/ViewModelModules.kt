@@ -44,7 +44,6 @@ internal val viewModelModules = module {
     viewModelOf(::UserDetailViewModel)
     viewModelOf(::PostCreationViewModel)
     viewModelOf(::AttendanceViewModel)
-    viewModelOf(::AboutViewModel)
 
 
 //    viewModelOf(::PlayerScreenViewModel)

@@ -26,20 +26,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.sspl.resources.Res
 import com.sspl.resources.demo1
 import com.sspl.resources.demo2
-import com.sspl.resources.ic_user
 import com.sspl.ui.components.AppTextBody
-import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.AppTextSubTitle
 import com.sspl.ui.components.AppTextTitle
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun AboutScreen(navController: NavController, modifier: Modifier = Modifier) {
@@ -166,4 +164,10 @@ fun MemberCard(
             AppTextSubTitle(text = post)
         }
     }
+}
+
+@Preview
+@Composable
+fun PreviewContent() {
+    AboutScreenContent(modifier = Modifier)
 }
