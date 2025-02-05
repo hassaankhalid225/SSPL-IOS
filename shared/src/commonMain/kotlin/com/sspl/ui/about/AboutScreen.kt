@@ -2,25 +2,28 @@ package com.sspl.ui.about
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -29,85 +32,60 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.sspl.resources.Res
-import com.sspl.resources.demo1
-import com.sspl.resources.demo2
+import com.sspl.core.models.SocietyMember
+import com.sspl.ui.components.AppHorizontalPager
 import com.sspl.ui.components.AppTextBody
+import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.AppTextSubTitle
-import com.sspl.ui.components.AppTextTitle
-import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun AboutScreen(navController: NavController, modifier: Modifier = Modifier) {
+fun AboutScreen(navController: NavController, viewModel: AboutSocietyViewModel = koinViewModel()) {
+    val members = viewModel.executiveMembers.collectAsState()
+    val executiveMembers = viewModel.officeBearers.collectAsState()
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
+        item {
+            OfficeBearers(members.value)
+        }
+        item {
 
-    AboutScreenContent(modifier)
+            LazyVerticalStaggeredGrid(
+                columns = StaggeredGridCells.Fixed(2), // 3 columns
+                modifier = Modifier.fillMaxWidth()
+                    .wrapContentHeight()
+                    .heightIn(min = 200.dp, max = 2400.dp),
+                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
+                verticalItemSpacing = 8.dp,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                userScrollEnabled = false
+            ) {
+                items(executiveMembers.value) { item ->
+                    ExecutiveMemberCard(
+                        member = item
+                    )
+                }
 
-}
-
-@Composable
-fun AboutScreenContent(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState())
-            .background(Color.White).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Spacer(Modifier.weight(0.05f))
-        PresidentInfo()
-        Spacer(Modifier.weight(0.1f))
-        AppTextSubTitle("Dean's Message")
-        MessageParagraph(
-            modifier = Modifier.fillMaxWidth(),
-            text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-        )
-
-        Spacer(Modifier.height(20.dp))
-
-        AppTextSubTitle("Members")
-        Spacer(Modifier.height(10.dp))
-        LazyRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            items(10) {
-                MemberCard()
             }
         }
-        Spacer(Modifier.weight(0.25f))
-
     }
 
 }
 
 @Composable
-fun PresidentInfo(
-    modifier: Modifier = Modifier,
-    presidentImage: Any = Res.drawable.demo1,
-    postName: String = "Dean of KE-ABC-Xyz",
-    presidentName: String = "Dr President XYZ",
-) {
-    Row(
-        modifier.fillMaxWidth().padding(end = 20.dp), verticalAlignment = Alignment.CenterVertically
-    ) {
-
-        Image(
-            painter = painterResource(presidentImage as DrawableResource),
-            contentDescription = null,
-            modifier = Modifier.size(120.dp).aspectRatio(1f).clip(RoundedCornerShape(4)),
-            contentScale = ContentScale.Crop
+private fun OfficeBearers(members: List<SocietyMember>) {
+    val pagerState = rememberPagerState(pageCount = {
+        members.size
+    })
+    AppHorizontalPager(
+        list = members,
+        pagerState = pagerState,
+        showIndicator = false
+    ) { modifier, item, page ->
+        OfficeBearerMemberCard(
+            modifier = modifier,
+            member = item
         )
-        Spacer(Modifier.weight(.6f))
-        Column(
-            horizontalAlignment = Alignment.Start, verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            AppTextTitle(text = presidentName, fontSize = 18.sp)
-            AppTextSubTitle(text = postName, fontSize = 16.sp)
-        }
-        Spacer(Modifier.weight(.4f))
-
-
     }
 }
 
@@ -132,11 +110,8 @@ fun MessageParagraph(
 }
 
 @Composable
-fun MemberCard(
-    modifier: Modifier = Modifier,
-    image: Any = Res.drawable.demo2,
-    name: String = "Member Name ABC",
-    post: String = "Member Post XYZ"
+fun ExecutiveMemberCard(
+    member: SocietyMember,
 ) {
     Card(
         colors = CardDefaults.cardColors(
@@ -144,30 +119,59 @@ fun MemberCard(
         ),
         border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.3f)),
         shape = RoundedCornerShape(8.dp),
-        modifier = modifier
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier.padding(16.dp)
-        ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
             Image(
-                painter = painterResource(image as DrawableResource),
+                painter = painterResource(member.picture),
                 contentDescription = null,
-                modifier = Modifier.size(120.dp, 140.dp).aspectRatio(1f)
+                modifier = Modifier
+                    .fillMaxWidth()
                     .clip(RoundedCornerShape(4)),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.FillWidth
             )
-            Spacer(Modifier.height(4.dp))
-            AppTextSubTitle(text = name)
-            Spacer(Modifier.height(4.dp))
-            AppTextSubTitle(text = post)
+            AppTextLabel(
+                text = member.name + " " + member.designation,
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp, horizontal = 4.dp)
+            )
         }
     }
 }
 
-@Preview
 @Composable
-fun PreviewContent() {
-    AboutScreenContent(modifier = Modifier)
+fun OfficeBearerMemberCard(
+    modifier: Modifier,
+    member: SocietyMember
+) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = Color.Transparent
+        ),
+        border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.3f)),
+        shape = RoundedCornerShape(8.dp),
+        modifier = modifier.then(Modifier.fillMaxWidth())
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Image(
+                painter = painterResource(member.picture),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth(.4F)
+                    .clip(RoundedCornerShape(4)),
+                contentScale = ContentScale.FillWidth
+            )
+            Column(
+                modifier = Modifier.fillMaxWidth(1F).padding(vertical = 10.dp, horizontal = 12.dp)
+            ) {
+                AppTextSubTitle(
+                    text = member.designation,
+                    color = MaterialTheme.colorScheme.tertiary
+                )
+                Spacer(Modifier.height(2.dp))
+                AppTextLabel(text = member.name)
+            }
+        }
+    }
 }

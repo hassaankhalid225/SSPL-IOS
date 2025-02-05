@@ -39,6 +39,7 @@ import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.platform.shared.UrlOpener
 import com.sspl.resources.Res
+import com.sspl.resources.about_us
 import com.sspl.resources.ad_sspl
 import com.sspl.resources.banner_five
 import com.sspl.resources.banner_four
@@ -49,6 +50,7 @@ import com.sspl.resources.banner_two
 import com.sspl.resources.exhibition
 import com.sspl.resources.forum
 import com.sspl.resources.ic_exhibition
+import com.sspl.resources.ic_about_us
 import com.sspl.resources.ic_forum
 import com.sspl.resources.ic_notifications
 import com.sspl.resources.ic_scientific_program
@@ -106,15 +108,20 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeScreenViewModel 
             toScreen = Screen.ProfileScreen
         ),
         Item(
-            title = stringResource(Res.string.notifications),
-            icon = IconResource.fromDrawableResource(Res.drawable.ic_notifications),
-            toScreen = Screen.AboutScreen
-        ),
-        Item(
             title = stringResource(Res.string.exhibition),
             icon = IconResource.fromDrawableResource(Res.drawable.ic_exhibition),
             toScreen = Screen.ProfileScreen
         ),
+        Item(
+            title = stringResource(Res.string.about_us),
+            icon = IconResource.fromDrawableResource(Res.drawable.ic_about_us),
+            toScreen = Screen.AboutScreen
+        ),
+        Item(
+            title = stringResource(Res.string.notifications),
+            icon = IconResource.fromDrawableResource(Res.drawable.ic_notifications),
+            toScreen = Screen.NotificationsScreen
+        )
     )
     val bannerImages = listOf(
         Res.drawable.banner_one,
@@ -173,7 +180,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeScreenViewModel 
                     SquareItem(it) {
                         if (index == 2) {
                             println("Do nothing now")
-                        }else if (index == 5) {
+                        }else if (index == 4) {
                             urlOpener.openUrl("https://www.ssplahore.com/")
                         } else {
                             navController.navigate(it.toScreen.route)

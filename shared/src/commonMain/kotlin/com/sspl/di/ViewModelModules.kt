@@ -1,5 +1,6 @@
 package com.sspl.di
 
+import com.sspl.ui.about.AboutSocietyViewModel
 import com.sspl.ui.conference.AttendanceViewModel
 import com.sspl.ui.conference.ConferenceDetailViewModel
 import com.sspl.ui.conference.ConferenceViewModel
@@ -44,6 +45,7 @@ internal val viewModelModules = module {
     viewModelOf(::UserDetailViewModel)
     viewModelOf(::PostCreationViewModel)
     viewModelOf(::AttendanceViewModel)
+    viewModelOf(::AboutSocietyViewModel)
 
 
 //    viewModelOf(::PlayerScreenViewModel)
