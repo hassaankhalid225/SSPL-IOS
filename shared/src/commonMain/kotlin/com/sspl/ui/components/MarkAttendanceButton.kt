@@ -21,6 +21,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.sspl.platform.createGpsChecker
@@ -208,6 +209,7 @@ fun MarkAttendanceButton(
         AppTextLabel(
             text = "Mark Attendance",
             textDecoration = TextDecoration.Underline,
+            fontWeight = FontWeight.SemiBold,
             modifier = Modifier.clickable(onClick = {
                 scope.launch {
                     requestPermissions(locationPermissionController = locationPermissionController,
