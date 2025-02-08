@@ -147,6 +147,7 @@ fun SignUpScreenContent(
 ) {
     Box(modifier.fillMaxSize()) {
         Image(
+            modifier= Modifier.fillMaxSize(),
             painter = painterResource(Res.drawable.login_screen_background),
             contentDescription = null,
             contentScale = ContentScale.FillBounds

@@ -56,6 +56,7 @@ fun ForgotPasswordScreen(navController: NavController) {
 private fun ForgotPasswordContent(onBackPressed: () -> Unit) {
     Box(Modifier.fillMaxSize()) {
         Image(
+            modifier= Modifier.fillMaxSize(),
             painter = painterResource(Res.drawable.login_screen_background),
             contentDescription = null,
             contentScale = ContentScale.FillBounds

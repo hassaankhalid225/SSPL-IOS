@@ -170,7 +170,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeScreenViewModel 
                 columns = GridCells.Fixed(2), // 3 columns
                 modifier = Modifier.fillMaxWidth()
                     .wrapContentHeight()
-                    .heightIn(min = 200.dp, max = 1200.dp),
+                    .heightIn(min = 200.dp, max = 2800.dp),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
