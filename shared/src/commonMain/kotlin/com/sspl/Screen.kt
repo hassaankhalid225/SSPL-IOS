@@ -9,6 +9,7 @@ import com.sspl.resources.Res
 import com.sspl.resources.about_us
 import com.sspl.resources.create_post
 import com.sspl.resources.edit_profile
+import com.sspl.resources.forgot_password
 import com.sspl.resources.forum
 import com.sspl.resources.home
 import com.sspl.resources.ic_forum
@@ -33,6 +34,7 @@ import com.sspl.ui.conference.programs.SessionDetailScreen
 import com.sspl.ui.conference.workshops.WorkshopDetailScreen
 import com.sspl.ui.conference.workshops.WorkshopsScreen
 import com.sspl.ui.homescreen.HomeScreen
+import com.sspl.ui.kyc.ForgotPasswordScreen
 import com.sspl.ui.kyc.LoginScreen
 import com.sspl.ui.kyc.SignUpScreen
 import com.sspl.ui.notifications.NotificationsScreen
@@ -134,6 +136,11 @@ sealed class Screen(
         route = "SignUpScreen",
     )
 
+    data object ForgotPasswordScreen : Screen(
+        title = Res.string.forgot_password,
+        route = "ForgotPassword",
+    )
+
     data object EditProfile : Screen(
         title = Res.string.edit_profile,
         route = "EditProfileScreen",
@@ -153,6 +160,7 @@ sealed class Screen(
         title = Res.string.verify_otp,
         route = "OtpScreen",
     )
+
     data object AboutScreen : Screen(
         title = Res.string.about_us,
         route = "AboutScreen",
@@ -214,7 +222,9 @@ fun kycScreens(): List<NavItem> = listOf(
     NavItem(screen = Screen.SignUpScreen, component = { SignUpScreen(navController = it) }),
     NavItem(screen = Screen.SignInScreen, component = { LoginScreen(navController = it) }),
     NavItem(screen = Screen.OtpScreen, component = { OtpScreen(navController = it) }),
-
+    NavItem(
+        screen = Screen.ForgotPasswordScreen,
+        component = { ForgotPasswordScreen(navController = it) }),
 
 
     NavItem(

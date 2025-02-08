@@ -102,7 +102,8 @@ fun LoginScreen(
                         launchSingleTop = true
                     }
                 }
-                else ->Unit
+
+                else -> Unit
             }
         }
     }
@@ -125,9 +126,10 @@ fun LoginScreen(
             createNewAccount = {
                 navController.navigate(Screen.SignUpScreen.route)
             },
-            modifier = modifier.clickable{
-                navController.navigate(Screen.GetLocation.route)
-            }
+            onForgotPassword = {
+                navController.navigate(Screen.ForgotPasswordScreen.route)
+            },
+            modifier = modifier
         )
     }
 

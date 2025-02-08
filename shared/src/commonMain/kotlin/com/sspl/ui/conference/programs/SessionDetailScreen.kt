@@ -74,10 +74,16 @@ private fun HeaderDetail(
         AppTextSubTitle(
             text = session.title.trim()
         )
+
+        if (!session.summary.isNullOrEmpty()) {
+            AppTextBody(
+                text = session.summary.orEmpty().trim()
+            )
+        }
         Spacer(modifier = Modifier.size(4.dp))
 
-        val startAt = session.breakdown?.firstOrNull()?.startsAt
-        val endAt = session.breakdown?.firstOrNull()?.endsAt
+        val startAt = session.startsAt
+        val endAt = session.endsAt
         val time = getJoinedDateTime(
             startAt.orEmpty(),
             endAt.orEmpty(),
@@ -87,9 +93,6 @@ private fun HeaderDetail(
         AppTextLabel(
             text = time,
             color = MaterialTheme.colorScheme.tertiary,
-        )
-        AppTextBody(
-            text = session.summary.orEmpty().trim()
         )
         Spacer(modifier = Modifier.size(8.dp))
         session.venue?.let { venue ->

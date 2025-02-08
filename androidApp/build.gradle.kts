@@ -20,8 +20,8 @@ android {
         applicationId = "com.sspl.android"
         minSdk = 23
         targetSdk = 35
-        versionCode = 4
-        versionName = "1.0.4"
+        versionCode = 7
+        versionName = "1.0.7"
     }
     signingConfigs {
         create("release") {

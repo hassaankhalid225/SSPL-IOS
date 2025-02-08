@@ -87,7 +87,8 @@ fun ProgramDetailScreen(
     val showImageSuccessDialog by attendanceViewModel.showAttendanceDialogByImage.collectAsStateWithLifecycle()
 
     if (showLocationSuccessDialog) {
-        AttendanceDialog(title = "Attendance Marked",
+        AttendanceDialog(
+            title = "Attendance Marked",
             description = "Your attendance has been marked.",
             onDismiss = { attendanceViewModel.onDismissDialogs() })
     }
@@ -197,8 +198,7 @@ private fun ConferenceDetailContent(
                     )
                     val sessionWithBreaks =
                         (item.breaks.orEmpty() + item.sessions.orEmpty()).sortedBy {
-                            if (it.isBreak) it.startsAt
-                            else it.breakdown?.firstOrNull()?.startsAt
+                            it.startsAt
                         }
                     if (sessionWithBreaks.isNotEmpty()) {
                         SessionsSchedule(
@@ -296,16 +296,8 @@ private fun ColumnScope.SessionItem(
         Column(
             modifier = Modifier.fillMaxWidth(.22F).defaultMinSize(minHeight = 68.dp)
         ) {
-            val startAt = if (session.isBreak) {
-                session.startsAt
-            } else {
-                session.breakdown?.firstOrNull()?.startsAt
-            }
-            val endAt = if (session.isBreak) {
-                session.endsAt
-            } else {
-                session.breakdown?.firstOrNull()?.endsAt
-            }
+            val startAt = session.startsAt
+            val endAt = session.endsAt
             val time = getJoinedDateTime(
                 startAt.orEmpty(),
                 endAt.orEmpty(),
@@ -329,7 +321,7 @@ private fun ColumnScope.SessionItem(
         ) {
             if (!session.addOnSets.isNullOrEmpty()) {
                 ConferenceAddsOn(session.addOnSets)
-                Spacer(modifier = Modifier.size(4.dp))
+                Spacer(modifier = Modifier.size(8.dp))
             }
             AppTextLabel(
                 text = session.title.trim()
@@ -343,7 +335,8 @@ private fun ColumnScope.SessionItem(
                     Spacer(modifier = Modifier.size(8.dp))
                 }
                 if (!session.isBreak) {
-                    MarkAttendanceButton(modifier = Modifier.align(Alignment.End),
+                    MarkAttendanceButton(
+                        modifier = Modifier.align(Alignment.End),
                         scaffoldState = scaffoldState,
                         apiCoordinates = Coordinates(
                             latitude = session.venue.lat ?: 0.0,
@@ -377,7 +370,8 @@ fun AttendanceDialog(
     description: String = "Your image has been uploaded for attendance approval.",
     title: String = "Image Uploaded", onDismiss: () -> Unit,
 ) {
-    AlertDialog(onDismissRequest = { onDismiss() },
+    AlertDialog(
+        onDismissRequest = { onDismiss() },
         title = { Text(title) },
         text = { Text(description) },
         confirmButton = {

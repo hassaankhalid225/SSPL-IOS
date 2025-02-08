@@ -78,4 +78,6 @@
     <string name="with_otp_sent_to">with OTP we sent to </string>
     <string name="still_waiting_for_your_otp">Still waiting for your OTP?</string>
     <string name="resend_it_now">Resend It Now</string>
+    <string name="reset_password">Reset Password</string>
+    <string name="enter_email_to_reset_password">Enter Email to Reset Password.</string>
 </resources>
