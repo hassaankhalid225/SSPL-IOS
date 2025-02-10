@@ -6,6 +6,8 @@ import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngineConfig
 import io.ktor.client.engine.HttpClientEngineFactory
 import io.ktor.client.plugins.DefaultRequest
+import io.ktor.client.plugins.cache.HttpCache
+import io.ktor.client.plugins.cache.storage.CacheStorage
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.DEFAULT
@@ -38,6 +40,9 @@ suspend fun <T : HttpClientEngineConfig> getBaseClient(
 ): HttpClient {
     return HttpClient(engineFactory) {
         install(Resources)
+        install(HttpCache) {
+            publicStorage(CacheStorage.Disabled) // Disables response caching
+        }
         install(ContentNegotiation) {
             json(Json {
                 ignoreUnknownKeys = true

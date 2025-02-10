@@ -23,7 +23,7 @@ class PostUserDetailsUseCase(
         country: String? = null,
         designation: String? = null,
         registrationNo: String? = null,
-    ): Flow<ApiStates<User>> = flow {
+    ) = flow<ApiStates<User>> {
         emit(ApiStates.Loading)
         try {
             val body = User(

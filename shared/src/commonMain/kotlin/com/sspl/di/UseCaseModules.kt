@@ -1,6 +1,7 @@
 package com.sspl.di
 
 import com.sspl.core.usecases.CommentOnPostUseCase
+import com.sspl.core.usecases.DeleteAccountUseCase
 import com.sspl.core.usecases.DislikePostUseCase
 import com.sspl.core.usecases.EmailValidationUseCase
 import com.sspl.core.usecases.GetConferencesDetailsUseCase
@@ -38,10 +39,6 @@ internal val useCaseModules = module {
 //    single { CheckIsAuthenticated(get()) }
 //    single { GetLiveStream(get(), get()) }
 //    single { GetLiveStreamCategories(get(), get()) }
-    single { GetPostsUseCase(get()) }
-    single { LikePostUseCase() }
-    single { DislikePostUseCase() }
-    single { CommentOnPostUseCase() }
     single { EmailValidationUseCase() }
     single { PasswordValidationUseCase() }
     single { PhoneNumberValidationUseCase() }
@@ -52,16 +49,21 @@ internal val useCaseModules = module {
     single { ValidateUserInstitutionUseCase() }
     single { ValidateUserDesignationUseCase() }
     single { ValidateUserPmdcNoUseCase() }
-    single { SignUpUserUseCase(get(), get()) }
-    single { LoginUserUseCase(get(),get()) }
-    single { GetConferencesUseCase(get()) }
-    single { GetConferencesDetailsUseCase(get()) }
     single { ValidateUserRegistrationNumberUseCase() }
-    single { PostUserDetailsUseCase(get()) }
-    single { GetUserDetailsUseCase(get ()) }
-    single { UpdateUserBasicInfoUseCase(get()) }
-    single { GetPostDetailsUseCase(get()) }
-    single { MarkAttendanceViaImageUseCase(get()) }
-    single { MarkAttendanceViaLocationUseCase(get()) }
 
+    factory { GetPostsUseCase(get()) }
+    factory { LikePostUseCase() }
+    factory { DislikePostUseCase() }
+    factory { CommentOnPostUseCase() }
+    factory { SignUpUserUseCase(get(), get()) }
+    factory { LoginUserUseCase(get(), get()) }
+    factory { GetConferencesUseCase(get()) }
+    factory { GetConferencesDetailsUseCase(get()) }
+    factory { PostUserDetailsUseCase(get()) }
+    factory { GetUserDetailsUseCase(get()) }
+    factory { UpdateUserBasicInfoUseCase(get()) }
+    factory { GetPostDetailsUseCase(get()) }
+    factory { MarkAttendanceViaImageUseCase(get()) }
+    factory { MarkAttendanceViaLocationUseCase(get()) }
+    factory { DeleteAccountUseCase(get(), get()) }
 }

@@ -8,6 +8,7 @@ import androidx.navigation.NavHostController
 import com.sspl.resources.Res
 import com.sspl.resources.about_us
 import com.sspl.resources.create_post
+import com.sspl.resources.delete_account
 import com.sspl.resources.edit_profile
 import com.sspl.resources.forgot_password
 import com.sspl.resources.forum
@@ -21,6 +22,7 @@ import com.sspl.resources.program_detail
 import com.sspl.resources.scientific_programs
 import com.sspl.resources.session
 import com.sspl.resources.session_detail
+import com.sspl.resources.settings
 import com.sspl.resources.sign_up
 import com.sspl.resources.user_details
 import com.sspl.resources.verify_otp
@@ -42,6 +44,8 @@ import com.sspl.ui.otp.OtpScreen
 import com.sspl.ui.postcreation.CreatePostScreen
 import com.sspl.ui.posts.PostScreen
 import com.sspl.ui.session.SessionScreen
+import com.sspl.ui.settings.SettingsScreen
+import com.sspl.ui.settings.deleteaccount.DeleteAccountScreen
 import com.sspl.ui.userdetails.EditProfileScreen
 import com.sspl.ui.userdetails.ProfileScreen
 import com.sspl.ui.userdetails.UserDetailsScreen
@@ -170,6 +174,16 @@ sealed class Screen(
         title = Res.string.notifications,
         route = "NotificationsScreen",
     )
+
+    data object SettingsScreen : Screen(
+        title = Res.string.settings,
+        route = "SettingsScreen",
+    )
+
+    data object DeleteAccountScreen : Screen(
+        title = Res.string.delete_account,
+        route = "DeleteAccountScreen",
+    )
 }
 
 fun screenByRoute(route: String?): Screen? =
@@ -215,6 +229,12 @@ fun otherScreens(): List<NavItem> = listOf(
     NavItem(
         screen = Screen.NotificationsScreen,
         component = { NotificationsScreen(navController = it) }),
+    NavItem(
+        screen = Screen.SettingsScreen,
+        component = { SettingsScreen(navController = it) }),
+    NavItem(
+        screen = Screen.DeleteAccountScreen,
+        component = { DeleteAccountScreen(navController = it) }),
 )
 
 fun kycScreens(): List<NavItem> = listOf(

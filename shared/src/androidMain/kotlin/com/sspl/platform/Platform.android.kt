@@ -1,38 +1,20 @@
 package com.sspl.platform
 
-import android.Manifest
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.location.LocationManager
-import android.net.Uri
 import android.provider.Settings
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.lifecycleScope
 import com.sspl.core.getBaseClient
 import com.sspl.session.UserSession
-import com.sspl.storage.Storage
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
-import io.ktor.http.Url
-import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
-
-class AndroidPlatform : Platform {
-    override val name: String = "Android ${android.os.Build.VERSION.SDK_INT}"
-}
 
 actual suspend fun getClient(userSession: UserSession): HttpClient {
     return getBaseClient(userSession = userSession, engineFactory = OkHttp) {

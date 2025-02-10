@@ -22,7 +22,7 @@ class UpdateUserBasicInfoUseCase(
         lastName: String,
         phone: String
     ): Flow<ApiStates<User>> = flow {
-        println("🟢 Submit enter")
+        println("Fucking 2")
         emit(ApiStates.Loading)
 
         try {

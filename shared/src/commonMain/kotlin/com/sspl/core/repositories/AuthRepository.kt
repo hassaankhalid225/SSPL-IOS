@@ -1,9 +1,12 @@
 package com.sspl.core.repositories
 
 import com.sspl.core.apis.AuthRequest
+import com.sspl.core.apis.ProfileRequest
 import com.sspl.core.models.Account
 import com.sspl.core.models.User
+import com.sspl.core.requestbodies.DeleteAccountBody
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.resources.get
 import io.ktor.client.plugins.resources.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
@@ -23,6 +26,11 @@ class AuthRepository(private val client: HttpClient) {
 
     suspend fun signUp(body: User): HttpResponse =
         client.post(AuthRequest.SignUp()) {
+            setBody(body)
+        }
+
+    suspend fun deleteAccount(body: DeleteAccountBody): HttpResponse =
+        client.post(AuthRequest.DeleteAccount()) {
             setBody(body)
         }
 }

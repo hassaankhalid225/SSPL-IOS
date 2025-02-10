@@ -24,6 +24,7 @@ import androidx.navigation.compose.rememberNavController
 import com.sspl.theme.windowBackGround
 import com.sspl.ui.components.AppBottomBar
 import com.sspl.ui.components.MyTopAppBar
+import com.sspl.ui.settings.deleteaccount.DeleteAccountScreen
 import com.sspl.ui.userdetails.ProfileScreen
 import com.sspl.ui.userdetails.ProfileViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -84,14 +85,21 @@ fun MainScreen(onParentGraph: () -> Unit) {
                 .padding(top = it.calculateTopPadding())
         ) {
             (otherScreens() + navItems).forEach { navItem ->
-                when (navItem.screen.route) {
-                    (Screen.ProfileScreen.route) ->{
+                when (navItem.screen) {
+                    is Screen.ProfileScreen -> {
                         composable(route = navItem.screen.route) {
                             ProfileScreen(navController, onParentGraph = onParentGraph)
                         }
                     }
 
-                    else ->{
+                    is Screen.DeleteAccountScreen -> {
+                        composable(route = navItem.screen.route) {
+                            DeleteAccountScreen(navController, onParentGraph = onParentGraph)
+                        }
+                    }
+
+
+                    else -> {
                         composable(route = navItem.screen.route) {
                             navItem.component.invoke(navController)
                         }

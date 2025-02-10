@@ -1,6 +1,5 @@
 package com.sspl.ui.homescreen
 
-import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay

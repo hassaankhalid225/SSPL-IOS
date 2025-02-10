@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.flow
 class GetUserDetailsUseCase(
     private val userRepository: UserRepository,
  ) {
-    fun getUserProfile(
+    operator fun invoke(
     ): Flow<ApiStates<User>> = flow {
         emit(ApiStates.Loading)
         try {

@@ -28,7 +28,7 @@ class UserDetailViewModel(
     private val validateUserInstitutionUseCase: ValidateUserInstitutionUseCase,
     private val validateUserRegistrationNumberUseCase: ValidateUserRegistrationNumberUseCase,
     private val validateUserPmDcNumberUseCase: ValidateUserPmdcNoUseCase,
-    private val postUserDetailsUseCase: PostUserDetailsUseCase
+    private val postUserDetailsUseCase: PostUserDetailsUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(UserDetailsUiState())
@@ -132,17 +132,18 @@ class UserDetailViewModel(
     // Helper function to update the save button enabled state based on field validation
     private fun updateSaveEnabledState() {
         _uiState.update { currentState ->
-            currentState.copy(isSaveEnabled = listOf(
-                currentState.institution,
+            currentState.copy(
+                isSaveEnabled = listOf(
+                    currentState.institution,
 //                currentState.city,
-                currentState.country,
-                currentState.registrationNumber
-            ).all { field -> field.isNotEmpty() } && listOf(
-                currentState.institutionError,
+                    currentState.country,
+                    currentState.registrationNumber
+                ).all { field -> field.isNotEmpty() } && listOf(
+                    currentState.institutionError,
 //                currentState.cityError,
-                currentState.countryError,
-                currentState.registrationNumberError,
-            ).all { error -> error == null })
+                    currentState.countryError,
+                    currentState.registrationNumberError,
+                ).all { error -> error == null })
         }
     }
 }

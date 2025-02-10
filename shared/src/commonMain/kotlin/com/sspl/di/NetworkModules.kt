@@ -30,12 +30,8 @@ import org.koin.dsl.module
  */
 
 internal val networkModules = module {
-//    singleOf(::provideLoggingInterceptor)
-//    singleOf(::provideCacheInterceptor)
-    singleOf(::provideHttpClient)
-//    factoryOf(::provideHttpClient)
-//    singleOf(::provideRetrofit)
-//    singleOf(::provideService)
+     singleOf(::provideHttpClient)
+    factoryOf(::provideHttpClient)
 }
 
 var cacheSize: Long = 5 * 1024 * 1024 // 5MB

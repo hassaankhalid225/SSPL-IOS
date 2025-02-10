@@ -19,7 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun AppRoundedCornerButton(modifier: Modifier = Modifier,onClick:()->Unit,title:String,isEnabled:Boolean=true) {
+fun AppRoundedCornerButton(modifier: Modifier = Modifier,title:String,isEnabled:Boolean=true,onClick:()->Unit) {
     Button(
         onClick = onClick,
         enabled =isEnabled ,

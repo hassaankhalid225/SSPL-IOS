@@ -20,6 +20,8 @@ import com.sspl.session.UserSession
 import com.sspl.ui.components.countrypicker.Country
 import com.sspl.ui.components.countrypicker.Pakistan
 import com.sspl.ui.kyc.ValidationResult
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -82,7 +84,7 @@ class ProfileViewModel(
     }
     fun getUserDetails() {
         viewModelScope.launch {
-            getUserDetailsUseCase.getUserProfile().collect { state->
+            getUserDetailsUseCase.invoke().collect { state->
                 _userDetails.value = state
                 if (state is ApiStates.Success){
                     state.data?.let { data->
@@ -167,7 +169,6 @@ class ProfileViewModel(
 
         if (_basicProfileUiState.value.isUpdateEnabled && !_basicProfileUiState.value.isLoading) {
             println("✅ Conditions Met: Calling UseCase")
-
             updateUserBasicInfoUseCase(
                 firstName = _basicProfileUiState.value.firstName,
                 lastName = _basicProfileUiState.value.lastName,
@@ -262,10 +263,11 @@ class ProfileViewModel(
         }
     }
     private fun updateUserProfessionalInfo() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
+            println("Fucking Launch")
             if (_professionalProfileUiState.value.isUpdateEnabled && !_professionalProfileUiState.value.isLoading) {
 
-                postUserDetailsUseCase(
+                postUserDetailsUseCase.invoke(
                     pmdcNo = _professionalProfileUiState.value.pmDcNumber.orEmpty(),
                     registrationNo = _professionalProfileUiState.value.registrationNumber,
                     instituteName = _professionalProfileUiState.value.institution,

@@ -53,10 +53,12 @@ import com.sspl.resources.ic_exhibition
 import com.sspl.resources.ic_about_us
 import com.sspl.resources.ic_forum
 import com.sspl.resources.ic_notifications
+import com.sspl.resources.ic_account_settings
 import com.sspl.resources.ic_scientific_program
 import com.sspl.resources.ic_user
 import com.sspl.resources.ic_workshop
 import com.sspl.resources.notifications
+import com.sspl.resources.settings
 import com.sspl.resources.profile
 import com.sspl.resources.scientific_programs
 import com.sspl.resources.workshops
@@ -121,6 +123,11 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeScreenViewModel 
             title = stringResource(Res.string.notifications),
             icon = IconResource.fromDrawableResource(Res.drawable.ic_notifications),
             toScreen = Screen.NotificationsScreen
+        ),
+        Item(
+            title = stringResource(Res.string.settings),
+            icon = IconResource.fromDrawableResource(Res.drawable.ic_account_settings),
+            toScreen = Screen.SettingsScreen
         )
     )
     val bannerImages = listOf(
@@ -180,7 +187,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeScreenViewModel 
                     SquareItem(it) {
                         if (index == 2) {
                             println("Do nothing now")
-                        }else if (index == 4) {
+                        } else if (index == 4) {
                             urlOpener.openUrl("https://www.ssplahore.com/")
                         } else {
                             navController.navigate(it.toScreen.route)

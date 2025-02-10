@@ -55,11 +55,8 @@ class UserSession(private val storage: Storage) {
 
     suspend fun resetUser() {
         storage.putString(USER_KEY, null)
+        token = null
     }
-
-
-
-
 
 
 }
