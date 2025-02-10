@@ -15,7 +15,9 @@ import com.sspl.core.usecases.MarkAttendanceViaLocationUseCase
 import com.sspl.core.usecases.PasswordValidationUseCase
 import com.sspl.core.usecases.PhoneNumberValidationUseCase
 import com.sspl.core.usecases.PostUserDetailsUseCase
+import com.sspl.core.usecases.InitResetPasswordUseCase
 import com.sspl.core.usecases.SignUpUserUseCase
+import com.sspl.core.usecases.UpdatePasswordUseCase
 import com.sspl.core.usecases.UpdateUserBasicInfoUseCase
 import com.sspl.core.usecases.ValidateUserCityUseCase
 import com.sspl.core.usecases.ValidateUserCountryUseCase
@@ -63,5 +65,7 @@ internal val useCaseModules = module {
     single { GetPostDetailsUseCase(get()) }
     single { MarkAttendanceViaImageUseCase(get()) }
     single { MarkAttendanceViaLocationUseCase(get()) }
+    single { InitResetPasswordUseCase(get()) }
+    single { UpdatePasswordUseCase(get()) }
 
 }
