@@ -17,17 +17,23 @@ android {
     namespace = "com.sspl.android"
     compileSdk = 35
     defaultConfig {
-        applicationId = "com.sspl.android"
+        applicationId = "com.sspl"
         minSdk = 23
         targetSdk = 35
         versionCode = 7
         versionName = "1.0.7"
     }
     signingConfigs {
-        create("release") {
+        create("sspl") {
+            storeFile = file(keystoreProperties["storeFile"] as String)
             keyAlias = keystoreProperties["keyAlias"] as String
             keyPassword = keystoreProperties["keyPassword"] as String
-            storeFile = file(keystoreProperties["storeFile"] as String)
+            storePassword = keystoreProperties["storePassword"] as String
+        }
+        create("bhimsoft") {
+            storeFile = file(keystoreProperties["bhimsoft_storeFile"] as String)
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
             storePassword = keystoreProperties["storePassword"] as String
         }
         create("stageRelease") {
@@ -47,12 +53,33 @@ android {
     }
     buildTypes {
         getByName("release") {
-            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
         }
         getByName("debug") {
-            signingConfig = signingConfigs.getByName("stageRelease")
             isMinifyEnabled = false
+        }
+    }
+
+    flavorDimensions += "version"
+    productFlavors {
+        create("stage") {
+            dimension = "version"
+            applicationIdSuffix = ".android"
+            signingConfig = signingConfigs.getByName("stageRelease")
+        }
+        create("sspl") {
+            versionCode = 7
+            versionName = "1.0.7"
+            dimension = "version"
+            applicationIdSuffix = ".android"
+            signingConfig = signingConfigs.getByName("sspl")
+        }
+        create("bhimsoft") {
+            versionCode = 1
+            versionName = "1.0.1"
+            dimension = "version"
+            applicationIdSuffix = ".sosapp"
+            signingConfig = signingConfigs.getByName("bhimsoft")
         }
     }
     compileOptions {
