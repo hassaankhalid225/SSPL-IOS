@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.Screen
@@ -72,7 +73,7 @@ fun ForgotPasswordScreen(
 
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-//status for either the code was sent to user or not
+    //status for either the code was sent to user or not
     LaunchedEffect(Unit) {
         viewModel.initPasswordStatus.collect { event ->
             when (event) {
@@ -101,38 +102,75 @@ fun ForgotPasswordScreen(
         }
     }
     Scaffold(snackbarHost = { SnackbarHost(scaffoldState) }) { _ ->
-        AnimatedVisibility(!uiState.showOtpView) {
-            ForgotPasswordContent(
-                onBackPressed = {
-                    println(">>> onBackPressed")
-                    navController.popBackStack()
-                },
-                email = uiState.emailText,
-                emailErrorMsg = uiState.emailError,
-                isLoading = uiState.isLoadingInitPassword,
-                isEnabled = uiState.isEnabledInitPassword,
-                onEvents = viewModel::onEvent
+        Box(Modifier.fillMaxSize()) {
+            Image(
+                modifier = Modifier.fillMaxSize(),
+                painter = painterResource(Res.drawable.login_screen_background),
+                contentDescription = null,
+                contentScale = ContentScale.FillBounds
             )
+            Box(
+                modifier = Modifier.fillMaxWidth().fillMaxHeight(0.15f).background(
+                    brush = Brush.verticalGradient(
+                        listOf(
+                            MaterialTheme.colorScheme.primary,
+                            MaterialTheme.colorScheme.primary.copy(alpha = .8F),
+                            MaterialTheme.colorScheme.primary.copy(alpha = .5F),
+                            MaterialTheme.colorScheme.primary.copy(alpha = .1F),
+                            Color.Transparent
+                        )
+                    )
+                )
+            ) {
+                IconButton(
+                    modifier = Modifier.padding(top = 8.dp).zIndex(2f),
+                    onClick = {
+                        if (uiState.showOtpView) {
+                            viewModel.switchView(false)
+                        } else {
+                            navController.popBackStack()
+                        }
+                    },
+                    colors = IconButtonDefaults.iconButtonColors()
+                        .copy(contentColor = MaterialTheme.colorScheme.onPrimaryContainer)
+                ) {
+                    Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "")
+                }
+            }
+
+            Column(
+                modifier = Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp, top = 48.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                AnimatedVisibility(!uiState.showOtpView) {
+                    ForgotPasswordContent(
+                        email = uiState.emailText,
+                        emailErrorMsg = uiState.emailError,
+                        isLoading = uiState.isLoadingInitPassword,
+                        isEnabled = uiState.isEnabledInitPassword,
+                        onEvents = viewModel::onEvent
+                    )
+                }
+                AnimatedVisibility(uiState.showOtpView) {
+                    OtpScreenContent(
+                        otp = uiState.otpString,
+                        password = uiState.newPassword,
+                        passwordErrorMsg = uiState.newPasswordError,
+                        rePassword = uiState.confirmPassword,
+                        rePasswordErrorMsg = uiState.confirmPasswordError,
+                        isLoadingUpdatePassword = uiState.isLoadingUpdatePassword,
+                        isEnabledUpdatePassword = uiState.isEnabledUpdatePassword,
+                        isPasswordVisible = uiState.isPasswordVisible,
+                        isReenteredPasswordVisible = uiState.isReenteredPasswordVisible,
+                        isOtpValid = uiState.isOtpValid,
+                        onEvents = viewModel::onEvent
+                    )
+                }
+            }
         }
-        AnimatedVisibility(uiState.showOtpView) {
-            OtpScreenContent(
-                onBackPressed = {
-                    println(">>> onBackPressed")
-                    navController.popBackStack()
-                },
-                otp = uiState.otpString,
-                password = uiState.newPassword,
-                passwordErrorMsg = uiState.newPasswordError,
-                rePassword = uiState.confirmPassword,
-                rePasswordErrorMsg = uiState.confirmPasswordError,
-                isLoadingUpdatePassword = uiState.isLoadingUpdatePassword,
-                isEnabledUpdatePassword = uiState.isEnabledUpdatePassword,
-                isPasswordVisible = uiState.isPasswordVisible,
-                isReenteredPasswordVisible = uiState.isReenteredPasswordVisible,
-                isOtpValid = uiState.isOtpValid,
-                onEvents = viewModel::onEvent
-            )
-        }
+
     }
 }
 
@@ -143,67 +181,34 @@ private fun ForgotPasswordContent(
     isLoading: Boolean,
     isEnabled: Boolean,
     onEvents: (ForgotPasswordUiEvents) -> Unit,
-    onBackPressed: () -> Unit
 ) {
-    Box(Modifier.fillMaxSize()) {
-        Image(
-            modifier = Modifier.fillMaxSize(),
-            painter = painterResource(Res.drawable.login_screen_background),
-            contentDescription = null,
-            contentScale = ContentScale.FillBounds
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Title Section
+        Spacer(Modifier.weight(0.15f))
+        HeaderSection(
+            iconResource = IconResource.fromDrawableResource(drawable = Res.drawable.app_logo),
+            title = stringResource(Res.string.reset_password),
+            subTitle = stringResource(Res.string.enter_email_to_reset_password)
         )
-        Box(
-            modifier = Modifier.fillMaxWidth().fillMaxHeight(0.15f).background(
-                brush = Brush.verticalGradient(
-                    listOf(
-                        MaterialTheme.colorScheme.primary,
-                        MaterialTheme.colorScheme.primary.copy(alpha = .8F),
-                        MaterialTheme.colorScheme.primary.copy(alpha = .5F),
-                        MaterialTheme.colorScheme.primary.copy(alpha = .1F),
-                        Color.Transparent
-                    )
-                )
-            )
-        ) {
-            IconButton(
-                modifier = Modifier.padding(top = 8.dp),
-                onClick = onBackPressed,
-                colors = IconButtonDefaults.iconButtonColors()
-                    .copy(contentColor = MaterialTheme.colorScheme.onPrimaryContainer)
-            ) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "")
-            }
+        Spacer(Modifier.weight(0.15f))
+        AnimatedVisibility(visible = true) {
+            EmailInputField(email = email, emailErrorMsg = emailErrorMsg, onEmailChange = {
+                onEvents.invoke(ForgotPasswordUiEvents.EmailChanged(it))
+            })
         }
-        Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+        Spacer(Modifier.height(22.dp))
+        ButtonWithProgress(
+            isEnabled = isEnabled,
+            isLoading = isLoading,
+            buttonText = stringResource(Res.string.continue_str),
         ) {
-            // Title Section
-            Spacer(Modifier.weight(0.15f))
-            HeaderSection(
-                iconResource = IconResource.fromDrawableResource(drawable = Res.drawable.app_logo),
-                title = stringResource(Res.string.reset_password),
-                subTitle = stringResource(Res.string.enter_email_to_reset_password)
-            )
-            Spacer(Modifier.weight(0.15f))
-            AnimatedVisibility(visible = true) {
-                EmailInputField(email = email, emailErrorMsg = emailErrorMsg, onEmailChange = {
-                    onEvents.invoke(ForgotPasswordUiEvents.EmailChanged(it))
-                })
-            }
-            Spacer(Modifier.height(22.dp))
-            ButtonWithProgress(
-                isEnabled = isEnabled,
-                isLoading = isLoading,
-                buttonText = stringResource(Res.string.continue_str),
-            ) {
-                onEvents(ForgotPasswordUiEvents.InitPassword)
-            }
-            Spacer(Modifier.weight(1f))
-
+            onEvents(ForgotPasswordUiEvents.InitPassword)
         }
+        Spacer(Modifier.weight(1f))
 
     }
 }
@@ -216,96 +221,64 @@ private fun OtpScreenContent(
     rePassword: String,
     rePasswordErrorMsg: String? = null,
     isLoadingUpdatePassword: Boolean,
-    isEnabledUpdatePassword: Boolean,isOtpValid: Boolean,
+    isEnabledUpdatePassword: Boolean, isOtpValid: Boolean,
     isPasswordVisible: Boolean,
     isReenteredPasswordVisible: Boolean,
     onEvents: (ForgotPasswordUiEvents) -> Unit,
-    onBackPressed: () -> Unit
 ) {
-    Box(Modifier.fillMaxSize()) {
-        Image(
-            modifier = Modifier.fillMaxSize(),
-            painter = painterResource(Res.drawable.login_screen_background),
-            contentDescription = null,
-            contentScale = ContentScale.FillBounds
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Title Section
+        Spacer(Modifier.weight(0.15f))
+        HeaderSection(
+            iconResource = IconResource.fromDrawableResource(drawable = Res.drawable.app_logo),
+            title = stringResource(Res.string.enter_otp),
+            subTitle = stringResource(Res.string.enter_otp_sent_to_email)
         )
-        Box(
-            modifier = Modifier.fillMaxWidth().fillMaxHeight(0.15f).background(
-                brush = Brush.verticalGradient(
-                    listOf(
-                        MaterialTheme.colorScheme.primary,
-                        MaterialTheme.colorScheme.primary.copy(alpha = .8F),
-                        MaterialTheme.colorScheme.primary.copy(alpha = .5F),
-                        MaterialTheme.colorScheme.primary.copy(alpha = .1F),
-                        Color.Transparent
-                    )
-                )
-            )
-        ) {
-            IconButton(
-                modifier = Modifier.padding(top = 8.dp),
-                onClick = onBackPressed,
-                colors = IconButtonDefaults.iconButtonColors()
-                    .copy(contentColor = MaterialTheme.colorScheme.onPrimaryContainer)
-            ) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "")
-            }
-        }
-        Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Title Section
-            Spacer(Modifier.weight(0.15f))
-            HeaderSection(
-                iconResource = IconResource.fromDrawableResource(drawable = Res.drawable.app_logo),
-                title = stringResource(Res.string.enter_otp),
-                subTitle = stringResource(Res.string.enter_otp_sent_to_email)
-            )
-            Spacer(Modifier.weight(0.15f))
-            AppTextSubTitle(stringResource(Res.string.enter_otp_below))
-            OtpView(otpLength = 6,
-                otpValue = otp,
-                onOtpChange = { onEvents(ForgotPasswordUiEvents.OnOtpEntered(it)) },
-                onOtpEntered = { })
-            PasswordTextField(
-                text = password,
-                isEnabled = isOtpValid,
-                errorMessage = passwordErrorMsg,
-                isPasswordVisible = isPasswordVisible,
-                onTextChange = {
-                    onEvents.invoke(ForgotPasswordUiEvents.NewPasswordChanged(it))
-                },
-                onTogglePassword = {
-                    onEvents.invoke(ForgotPasswordUiEvents.TogglePasswordVisibility)
-                },
-            )
-            PasswordTextField(
-                text = rePassword,
-                isEnabled =isOtpValid ,
-                errorMessage = rePasswordErrorMsg,
-                isPasswordVisible = isReenteredPasswordVisible,
-                onTextChange = {
-                    onEvents.invoke(ForgotPasswordUiEvents.ConfirmPasswordChanged(it))
-                },
-                onTogglePassword = {
-                    onEvents.invoke(ForgotPasswordUiEvents.ToggleReenteredPasswordVisibility)
-                },
-            )
+        Spacer(Modifier.weight(0.15f))
+        AppTextSubTitle(stringResource(Res.string.enter_otp_below))
+        OtpView(
+            otpLength = 6,
+            otpValue = otp,
+            onOtpChange = { onEvents(ForgotPasswordUiEvents.OnOtpEntered(it)) },
+            onOtpEntered = { })
+        PasswordTextField(
+            text = password,
+            isEnabled = isOtpValid,
+            errorMessage = passwordErrorMsg,
+            isPasswordVisible = isPasswordVisible,
+            onTextChange = {
+                onEvents.invoke(ForgotPasswordUiEvents.NewPasswordChanged(it))
+            },
+            onTogglePassword = {
+                onEvents.invoke(ForgotPasswordUiEvents.TogglePasswordVisibility)
+            },
+        )
+        PasswordTextField(
+            text = rePassword,
+            isEnabled = isOtpValid,
+            errorMessage = rePasswordErrorMsg,
+            isPasswordVisible = isReenteredPasswordVisible,
+            onTextChange = {
+                onEvents.invoke(ForgotPasswordUiEvents.ConfirmPasswordChanged(it))
+            },
+            onTogglePassword = {
+                onEvents.invoke(ForgotPasswordUiEvents.ToggleReenteredPasswordVisibility)
+            },
+        )
 
-            Spacer(Modifier.height(22.dp))
-            ButtonWithProgress(
-                isEnabled = isEnabledUpdatePassword,
-                isLoading = isLoadingUpdatePassword,
-                buttonText = stringResource(Res.string.reset_password),
-            ) {
-                onEvents(ForgotPasswordUiEvents.UpdatePassword)
-            }
-            Spacer(Modifier.weight(1f))
-
+        Spacer(Modifier.height(22.dp))
+        ButtonWithProgress(
+            isEnabled = isEnabledUpdatePassword,
+            isLoading = isLoadingUpdatePassword,
+            buttonText = stringResource(Res.string.reset_password),
+        ) {
+            onEvents(ForgotPasswordUiEvents.UpdatePassword)
         }
+        Spacer(Modifier.weight(1f))
 
     }
 }

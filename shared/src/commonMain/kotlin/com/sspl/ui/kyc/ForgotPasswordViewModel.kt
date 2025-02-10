@@ -113,6 +113,15 @@ class ForgotPasswordViewModel(
         }
     }
 
+    fun switchView(showOtpView: Boolean){
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    showOtpView = showOtpView
+                )
+            }
+        }
+    }
     private fun validateEmail() {
         val isEmailValid = emailValidationUseCase(_uiState.value.emailText)
         _uiState.update {
