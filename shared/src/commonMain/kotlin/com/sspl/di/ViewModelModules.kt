@@ -5,6 +5,7 @@ import com.sspl.ui.conference.AttendanceViewModel
 import com.sspl.ui.conference.ConferenceDetailViewModel
 import com.sspl.ui.conference.ConferenceViewModel
 import com.sspl.ui.homescreen.HomeScreenViewModel
+import com.sspl.ui.kyc.ForgotPasswordViewModel
 import com.sspl.ui.kyc.SignInViewModel
 import com.sspl.ui.kyc.SignUpViewModel
 import com.sspl.ui.otp.OtpViewModel
@@ -41,7 +42,6 @@ internal val viewModelModules = module {
     viewModelOf(::ConferenceDetailViewModel)
     viewModelOf(::SignInViewModel)
     viewModelOf(::SignUpViewModel)
-
     viewModelOf(::PostViewModel)
     viewModelOf(::OtpViewModel)
     viewModelOf(::UserDetailViewModel)
@@ -49,6 +49,7 @@ internal val viewModelModules = module {
     viewModelOf(::PostCreationViewModel)
     viewModelOf(::AttendanceViewModel)
     viewModelOf(::AboutSocietyViewModel)
+    viewModelOf(::ForgotPasswordViewModel)
 
 
 //    viewModelOf(::PlayerScreenViewModel)

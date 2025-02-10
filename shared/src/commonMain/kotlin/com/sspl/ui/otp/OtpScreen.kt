@@ -127,6 +127,17 @@ fun OtpScreenContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
+            AppTextTitle(
+                text = stringResource(Res.string.verification_code),
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            AppTextSubTitle(
+                text = stringResource(Res.string.enter_otp_sent_to_your_number),
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
             OtpView(
                 otpLength = 6,
                 otpValue = uiState.otpValue,
@@ -188,17 +199,7 @@ fun OtpView(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        AppTextTitle(
-            text = stringResource(Res.string.verification_code),
-        )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        AppTextSubTitle(
-            text = stringResource(Res.string.enter_otp_sent_to_your_number),
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
 
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp)

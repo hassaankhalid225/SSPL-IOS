@@ -23,4 +23,12 @@ object AuthRequest {
     @Serializable
     @Resource("/delete-account/init")
     data class DeleteAccount(val parent: AuthRequest = AuthRequest)
+
+    @Serializable
+    @Resource("/reset-password/init")
+    data class ResetPasswordInit(val parent: AuthRequest = AuthRequest)
+
+    @Serializable
+    @Resource("/reset-password")
+    data class UpdatePassword(val parent: AuthRequest = AuthRequest)
 }

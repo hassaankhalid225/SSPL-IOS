@@ -9,6 +9,10 @@
     <string name="about_us">About Us</string>
     <string name="edit_profile">Edit Profile</string>
     <string name="workshops">Workshops</string>
+    <string name="enter_otp">Enter OTP</string>
+    <string name="enter_otp_below">Enter OTP below</string>
+    <string name="continue_str">Continue</string>
+    <string name="enter_otp_sent_to_email">Enter OTP sent to your email address\nthen enter new password</string>
     <string name="scientific_programs">Scientific Programs</string>
     <string name="program_detail">Program Detail</string>
     <string name="session_detail">Session Detail</string>
@@ -63,6 +67,7 @@
     <string name="already_have_an_account">Already have an account?</string>
     <string name="create_an_account_so_you_can_interact_seamlessly">Create an account so you can\ninteract seamlessly</string>
     <string name="enter_otp_sent_to_your_number">Enter OTP sent to your number</string>
+    <string name="update_password">Update Password</string>
 
     <string name="back">Back!</string>
     <string name="sign_in_via_email">Sign in via Email</string>

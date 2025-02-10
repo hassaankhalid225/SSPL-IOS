@@ -106,6 +106,7 @@ fun AppTextField(
 @Composable
 fun PasswordTextField(
     modifier: Modifier = Modifier,
+    isEnabled:Boolean=true,
     text: String,
     onTextChange: (String) -> Unit,
     placeholder: String = "Enter your password...",
@@ -119,7 +120,7 @@ fun PasswordTextField(
     val focusManager = LocalFocusManager.current
 
     OutlinedTextField(
-        value = text,
+        value = text, enabled = isEnabled,
         onValueChange = {newText ->
             val trimmedText = newText.replace("\\s".toRegex(), "")
             onTextChange(trimmedText)
