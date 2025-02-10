@@ -2,22 +2,16 @@ package com.sspl.core.usecases
 
 
 import com.sspl.core.ApiStates
-import com.sspl.core.apis.AuthRequest
 import com.sspl.core.models.Account
 import com.sspl.core.models.ApiError
 import com.sspl.core.models.User
 import com.sspl.core.models.UserResponse
 import com.sspl.core.repositories.AuthRepository
 import com.sspl.session.UserSession
-import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.plugins.resources.post
-import io.ktor.client.request.setBody
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 class SignUpUserUseCase(
     private val authRepository: AuthRepository, private val userSession: UserSession
@@ -61,9 +55,3 @@ class SignUpUserUseCase(
     }
 }
 
-data class SignUpBody(
-    val first_name: String,
-    val last_name: String,
-    val gender: String?,
-    val account: Account
-)

@@ -52,7 +52,7 @@ fun ButtonWithProgress(
     isEnabled: Boolean,
     isLoading: Boolean,
     buttonText: String,
-    modifier: Modifier,
+    modifier: Modifier=Modifier,
     onClick: () -> Unit
 ) {
     AppRoundedCornerButton(
