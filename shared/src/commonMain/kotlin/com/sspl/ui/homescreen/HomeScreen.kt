@@ -129,7 +129,7 @@ fun HomeScreen(
         Item(
             title = stringResource(Res.string.notifications),
             icon = IconResource.fromDrawableResource(Res.drawable.ic_notifications),
-            toScreen = Screen.NotificationsScreen
+            toScreen = Screen.FeedbackScreen
         ),
         Item(
             title = stringResource(Res.string.settings),

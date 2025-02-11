@@ -22,7 +22,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -71,6 +70,7 @@ fun OtpScreen(
                         scaffoldState.showSnackbar(result.message)
                     }
                 }
+
                 OtpOneTimeEvents.Success -> {
                     navController.navigate(Screen.MainScreen.route) {
                         popUpTo(Screen.SignInScreen.route) {
@@ -159,6 +159,7 @@ fun OtpScreenContent(
         }
     }
 }
+
 @Composable
 fun ResendOtpRow(
     isVerifying: Boolean,
@@ -181,10 +182,10 @@ fun ResendOtpRow(
 fun OtpView(
     otpLength: Int = 6,
     otpValue: String,
-    onOtpChange:(String)->Unit,
+    onOtpChange: (String) -> Unit,
     onOtpEntered: (String) -> Unit
 ) {
- val focusRequester = remember { FocusRequester() }
+    val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     val scope = rememberCoroutineScope()
 

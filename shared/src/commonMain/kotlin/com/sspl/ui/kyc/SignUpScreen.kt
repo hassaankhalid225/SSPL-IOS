@@ -55,11 +55,10 @@ import com.sspl.ui.components.countrypicker.Country
 import com.sspl.utils.IconResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
+
 import org.koin.compose.viewmodel.koinViewModel
 
 
-@Preview
 @Composable
 fun SignUpScreen(
     navController: NavController, viewModel: SignUpViewModel = koinViewModel()
