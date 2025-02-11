@@ -27,6 +27,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -59,6 +61,7 @@ import com.sspl.ui.components.Error
 import com.sspl.ui.components.MarkAttendanceButton
 import com.sspl.ui.conference.AttendanceViewModel
 import com.sspl.ui.conference.ConferenceDetailViewModel
+import com.sspl.ui.userdetails.ProfileViewModel
 import com.sspl.utils.FORMAT_DAY_MONTH
 import com.sspl.utils.FORMAT_DEFAULT_DATE_TIME
 import com.sspl.utils.FORMAT_TIME_12HOUR
@@ -83,13 +86,16 @@ import org.koin.compose.viewmodel.koinViewModel
 fun ProgramDetailScreen(
     navController: NavController,
     viewModel: ConferenceDetailViewModel = koinViewModel(),
-    attendanceViewModel: AttendanceViewModel = koinViewModel()
+    attendanceViewModel: AttendanceViewModel = koinViewModel(),
+    profileViewModel: ProfileViewModel = koinViewModel()
 ) {
     val data = navController.previousBackStackEntry?.savedStateHandle?.get<String>("data") ?: return
     val conference: Conference = Json.decodeFromString<Conference>(data)
     val scaffoldState = remember { SnackbarHostState() }
     val showLocationSuccessDialog by attendanceViewModel.showAttendanceDialogByLocation.collectAsStateWithLifecycle()
     val showImageSuccessDialog by attendanceViewModel.showAttendanceDialogByImage.collectAsStateWithLifecycle()
+
+    val isGuestUser = profileViewModel.isGuestUser.collectAsStateWithLifecycle()
 
     if (showLocationSuccessDialog) {
         AttendanceDialog(
@@ -147,6 +153,7 @@ fun ProgramDetailScreen(
                         navController = navController,
                         conference = conference,
                         conferenceDetail = it,
+                        isGuestUser = isGuestUser,
                         onMarkAttendance = { session ->
                             attendanceViewModel.markAttendanceViaLocation(
                                 conferenceId = conference.id.toLong(), sessionId = session
@@ -170,6 +177,7 @@ private fun ConferenceDetailContent(
     navController: NavController,
     conference: Conference,
     conferenceDetail: ConferenceDetail,
+    isGuestUser: State<Boolean>,
     onMarkAttendance: (sessionId: Long) -> Unit = {},
     onMarkAttendanceByImage: (sessionId: Long, ByteArray) -> Unit,
     scaffoldState: SnackbarHostState
@@ -208,6 +216,7 @@ private fun ConferenceDetailContent(
                     if (sessionWithBreaks.isNotEmpty()) {
                         SessionsSchedule(
                             sessionWithBreaks,
+                            isGuestUser,
                             onMarkAttendance = onMarkAttendance,
                             onMarkAttendanceByImage = onMarkAttendanceByImage,
                             onClick = { session ->
@@ -269,6 +278,7 @@ private fun ConferenceDetail(
 @Composable
 private fun ColumnScope.SessionsSchedule(
     sessions: List<Session>,
+    isGuestUser: State<Boolean>,
     onClick: (Session) -> Unit,
     onMarkAttendance: (sessionId: Long) -> Unit,
     onMarkAttendanceByImage: (sessionId: Long, ByteArray) -> Unit,
@@ -276,7 +286,7 @@ private fun ColumnScope.SessionsSchedule(
 ) {
     if (sessions.isEmpty()) return
     sessions.forEachIndexed { index, session ->
-        SessionItem(session, sessions.size != index + 1, onClick, onMarkAttendance = {
+        SessionItem(session, sessions.size != index + 1, isGuestUser, onClick, onMarkAttendance = {
             onMarkAttendance(
                 session.id
             )
@@ -290,6 +300,7 @@ private fun ColumnScope.SessionsSchedule(
 private fun ColumnScope.SessionItem(
     session: Session,
     showDivider: Boolean,
+    isGuestUser: State<Boolean>,
     onClick: (Session) -> Unit,
     onMarkAttendance: () -> Unit,
     onMarkAttendanceByImage: (ByteArray) -> Unit,
@@ -339,7 +350,7 @@ private fun ColumnScope.SessionItem(
                     AppTextBody(text = venue.title.trim(), color = orange)
                     Spacer(modifier = Modifier.size(8.dp))
                 }
-                if (!session.isBreak) {
+                if (!session.isBreak && isGuestUser.value.not()) {
                     Row(
                         modifier = Modifier.align(alignment = Alignment.End),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)

@@ -21,6 +21,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -51,6 +52,7 @@ import com.sspl.ui.components.SessionBreakDown
 import com.sspl.ui.conference.AttendanceViewModel
 import com.sspl.ui.conference.ConferenceDetailViewModel
 import com.sspl.ui.conference.programs.AttendanceDialog
+import com.sspl.ui.userdetails.ProfileViewModel
 import com.sspl.utils.FORMAT_DEFAULT_DATE_TIME
 import com.sspl.utils.FORMAT_MONTH_YEAR_WEEKDAY
 import com.sspl.utils.FORMAT_TIME_12HOUR
@@ -74,14 +76,15 @@ import org.koin.compose.viewmodel.koinViewModel
 fun WorkshopDetailScreen(
     navController: NavController,
     viewModel: ConferenceDetailViewModel = koinViewModel(),
-    attendanceViewModel: AttendanceViewModel = koinViewModel()
+    attendanceViewModel: AttendanceViewModel = koinViewModel(),
+    profileViewModel: ProfileViewModel = koinViewModel()
 ) {
     val data = navController.previousBackStackEntry?.savedStateHandle?.get<String>("data") ?: return
     val conference: Conference = Json.decodeFromString<Conference>(data)
     val scaffoldState = remember { SnackbarHostState() }
     val showLocationSuccessDialog by attendanceViewModel.showAttendanceDialogByLocation.collectAsStateWithLifecycle()
     val showImageSuccessDialog by attendanceViewModel.showAttendanceDialogByImage.collectAsStateWithLifecycle()
-
+    val isGuestUser = profileViewModel.isGuestUser.collectAsStateWithLifecycle()
     if (showLocationSuccessDialog) {
         AttendanceDialog(
             title = "Attendance Marked",
@@ -133,6 +136,7 @@ fun WorkshopDetailScreen(
                 ) { _ ->
                     WorkshopDetailContent(
                         conference = conference,
+                        isGuestUser = isGuestUser,
                         conferenceDetail = it,
                         onMarkAttendance = { session ->
                             attendanceViewModel.markAttendanceViaLocation(
@@ -155,6 +159,7 @@ fun WorkshopDetailScreen(
 @Composable
 private fun WorkshopDetailContent(
     conference: Conference,
+    isGuestUser: State<Boolean>,
     conferenceDetail: ConferenceDetail,
     onMarkAttendance: (sessionId: Long) -> Unit,
     onMarkAttendanceByImage: (sessionId: Long, ByteArray) -> Unit,
@@ -184,7 +189,8 @@ private fun WorkshopDetailContent(
                     }
                     item.sessions?.let { sessions ->
                         SessionsSchedule(
-                            sessions,
+                            sessions = sessions,
+                            isGuestUser = isGuestUser,
                             onMarkAttendance = onMarkAttendance,
                             onMarkAttendanceByImage = onMarkAttendanceByImage,
                             scaffoldState = scaffoldState
@@ -242,6 +248,7 @@ private fun WorkshopDetail(
 @Composable
 private fun SessionsSchedule(
     sessions: List<Session>,
+    isGuestUser: State<Boolean>,
     onMarkAttendance: (sessionId: Long) -> Unit = {},
     onMarkAttendanceByImage: (sessionId: Long, ByteArray) -> Unit,
     scaffoldState: SnackbarHostState
@@ -262,7 +269,7 @@ private fun SessionsSchedule(
             if (!session.breakdown.isNullOrEmpty()) {
                 SessionBreakDown(session.breakdown)
             }
-            if (!session.isBreak) {
+            if (!session.isBreak && isGuestUser.value.not()) {
                 val shouldShowFeedback = isNowAfter(
                     targetTime = session.endsAt,
                     graceMinutes = 24 * 60

@@ -68,6 +68,8 @@ import com.sspl.theme.platformConfig
 import com.sspl.ui.components.AppHorizontalPager
 import com.sspl.ui.components.AppTextSubTitle
 import com.sspl.ui.components.BetterModalBottomSheet
+import com.sspl.ui.components.GuestUserWarning
+import com.sspl.ui.userdetails.ProfileViewModel
 import com.sspl.utils.IconResource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -84,8 +86,13 @@ import org.koin.compose.viewmodel.koinViewModel
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavController, homeViewModel: HomeScreenViewModel = koinViewModel()) {
+fun HomeScreen(
+    navController: NavController,
+    homeViewModel: HomeScreenViewModel = koinViewModel(),
+    profileViewModel: ProfileViewModel = koinViewModel()
+) {
     var showSheet = homeViewModel.isAdShown.collectAsState()
+    val isGuestUser = profileViewModel.isGuestUser.collectAsState()
     val urlOpener = koinInject<UrlOpener>()
     val scope = rememberCoroutineScope()
     val data = listOf(
@@ -155,6 +162,15 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeScreenViewModel 
         }
     }
     LazyColumn(modifier = Modifier.fillMaxSize()) {
+        if (isGuestUser.value) {
+            item {
+                GuestUserWarning(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 16.dp, top = 16.dp)
+                )
+            }
+        }
         item {
             AppHorizontalPager(
                 list = bannerImages,

@@ -43,11 +43,14 @@ class ProfileViewModel(
     private val validateUserPmDcNumberUseCase: ValidateUserPmdcNoUseCase,
     private val postUserDetailsUseCase: PostUserDetailsUseCase
 ) : ViewModel() {
-//throughtout the app single obj
+    //throughtout the app single obj
     private val _user = MutableStateFlow<User?>(null)
     val user = _user.asStateFlow()
-//only for profile details
-    private val _userDetails  = MutableStateFlow<ApiStates<User?>>(ApiStates.Loading)
+    var isGuestUser = MutableStateFlow<Boolean>(true)
+        private set
+
+    //only for profile details
+    private val _userDetails = MutableStateFlow<ApiStates<User?>>(ApiStates.Loading)
     val userDetails = _userDetails.asStateFlow()
 
     private val _basicProfileUiState = MutableStateFlow(BasicProfileUiState())
@@ -70,7 +73,8 @@ class ProfileViewModel(
         viewModelScope.launch {
             println("Called ProfileViewModel")
             _user.value = userSession.getUser()
-            _user.value?.let { mUser->
+            _user.value?.let { mUser ->
+                isGuestUser.update { mUser.account?.isGuestUser() == true }
                 _basicProfileUiState.update {
                     it.copy(
                         firstName = mUser.firstName.orEmpty(),
@@ -82,18 +86,19 @@ class ProfileViewModel(
             }
         }
     }
+
     fun getUserDetails() {
         viewModelScope.launch {
-            getUserDetailsUseCase.invoke().collect { state->
+            getUserDetailsUseCase.invoke().collect { state ->
                 _userDetails.value = state
-                if (state is ApiStates.Success){
-                    state.data?.let { data->
+                if (state is ApiStates.Success) {
+                    state.data?.let { data ->
                         _professionalProfileUiState.update {
                             it.copy(
-                              institution = data.profile?.institute.orEmpty(),
+                                institution = data.profile?.institute.orEmpty(),
                                 pmDcNumber = data.profile?.pmdcNumber.orEmpty(),
-                                registrationNumber =data.profile?.orgNumber.orEmpty() ,
-                                designation =data.profile?.title.orEmpty() ,
+                                registrationNumber = data.profile?.orgNumber.orEmpty(),
+                                designation = data.profile?.title.orEmpty(),
                                 isUpdateEnabled = true
                             )
                         }
@@ -103,7 +108,7 @@ class ProfileViewModel(
         }
     }
 
-    fun onSignOut(){
+    fun onSignOut() {
         viewModelScope.launch {
             userSession.resetToken()
             userSession.resetUser()
@@ -114,7 +119,10 @@ class ProfileViewModel(
         when (event) {
             is BasicProfileEvents.OnCountryChange -> {
                 _basicProfileUiState.value =
-                    _basicProfileUiState.value.copy(country = event.country, showCountryChooser = false)
+                    _basicProfileUiState.value.copy(
+                        country = event.country,
+                        showCountryChooser = false
+                    )
             }
 
             is BasicProfileEvents.ToggleCountryChooser -> {
@@ -185,7 +193,7 @@ class ProfileViewModel(
                 if (state is ApiStates.Success) {
                     state.data?.let { newProfile ->
                         val newUser = _user.value?.copy(
-                            account = _user.value?.account?.copy(phone =  newProfile.account?.phone.orEmpty()),
+                            account = _user.value?.account?.copy(phone = newProfile.account?.phone.orEmpty()),
                             firstName = newProfile.firstName.orEmpty(),
                             lastName = newProfile.lastName.orEmpty()
                         )
@@ -208,8 +216,8 @@ class ProfileViewModel(
         }
     }
 
-    fun onProfessionalEvent(event: ProfessionalProfileEvents){
-        when(event){
+    fun onProfessionalEvent(event: ProfessionalProfileEvents) {
+        when (event) {
             is ProfessionalProfileEvents.OnDesignationTextChange -> {
                 val result = validateUserDesignationUseCase(event.designationText)
                 _professionalProfileUiState.update {
@@ -219,6 +227,7 @@ class ProfileViewModel(
                     ).apply { updateSaveEnabledState() }
                 }
             }
+
             is ProfessionalProfileEvents.OnInstitutionTextChange -> {
                 val result = validateUserInstitutionUseCase(event.institutionText)
                 _professionalProfileUiState.update {
@@ -228,6 +237,7 @@ class ProfileViewModel(
                     ).apply { updateSaveEnabledState() }
                 }
             }
+
             is ProfessionalProfileEvents.OnPmDcNumberTextChange -> {
                 val result = validateUserPmDcNumberUseCase(event.pmDcNumberText)
                 _professionalProfileUiState.update {
@@ -237,6 +247,7 @@ class ProfileViewModel(
                     ).apply { updateSaveEnabledState() }
                 }
             }
+
             is ProfessionalProfileEvents.OnRegistrationNumberTextChange -> {
                 val result = validateUserRegistrationNumberUseCase(event.registrationNumberText)
                 _professionalProfileUiState.update {
@@ -246,22 +257,26 @@ class ProfileViewModel(
                     ).apply { updateSaveEnabledState() }
                 }
             }
+
             ProfessionalProfileEvents.OnSave -> {
                 updateUserProfessionalInfo()
             }
         }
     }
+
     private fun updateSaveEnabledState() {
         _professionalProfileUiState.update { currentState ->
-            currentState.copy(isUpdateEnabled = listOf(
-                currentState.institution,
-                currentState.registrationNumber
-            ).all { field -> field.isNotEmpty() } && listOf(
-                currentState.institutionError,
-                currentState.registrationNumberError,
-            ).all { error -> error == null })
+            currentState.copy(
+                isUpdateEnabled = listOf(
+                    currentState.institution,
+                    currentState.registrationNumber
+                ).all { field -> field.isNotEmpty() } && listOf(
+                    currentState.institutionError,
+                    currentState.registrationNumberError,
+                ).all { error -> error == null })
         }
     }
+
     private fun updateUserProfessionalInfo() {
         viewModelScope.launch(Dispatchers.IO) {
             println("Fucking Launch")
@@ -272,10 +287,10 @@ class ProfileViewModel(
                     registrationNo = _professionalProfileUiState.value.registrationNumber,
                     instituteName = _professionalProfileUiState.value.institution,
                     designation = _professionalProfileUiState.value.designation
-                    ).collect { state ->
-                        _userDetails.update {
-                            it
-                        }
+                ).collect { state ->
+                    _userDetails.update {
+                        it
+                    }
                     _isUserProfessionalInfoUpdated.emit(state)
                     _professionalProfileUiState.update {
                         it.copy(isLoading = state is ApiStates.Loading)
@@ -302,6 +317,7 @@ data class BasicProfileUiState(
     val country: Country = Pakistan,
     val showCountryChooser: Boolean = false,
 )
+
 data class ProfessionalProfileUiState(
     val institution: String = "",
     val pmDcNumber: String? = "",
@@ -326,12 +342,12 @@ sealed interface BasicProfileEvents {
 }
 
 
-
 sealed interface ProfessionalProfileEvents {
     data object OnSave : ProfessionalProfileEvents
     data class OnInstitutionTextChange(val institutionText: String) : ProfessionalProfileEvents
     data class OnPmDcNumberTextChange(val pmDcNumberText: String) : ProfessionalProfileEvents
     data class OnRegistrationNumberTextChange(val registrationNumberText: String) :
         ProfessionalProfileEvents
+
     data class OnDesignationTextChange(val designationText: String) : ProfessionalProfileEvents
 }
