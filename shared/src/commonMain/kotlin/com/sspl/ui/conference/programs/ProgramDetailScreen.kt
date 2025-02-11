@@ -1,7 +1,9 @@
 package com.sspl.ui.conference.programs
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -34,6 +36,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -61,6 +64,8 @@ import com.sspl.utils.FORMAT_DEFAULT_DATE_TIME
 import com.sspl.utils.FORMAT_TIME_12HOUR
 import com.sspl.utils.VERTICAL_DOTS
 import com.sspl.utils.getJoinedDateTime
+import com.sspl.utils.isInRange
+import com.sspl.utils.isNowAfter
 import dev.jordond.compass.Coordinates
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -319,11 +324,11 @@ private fun ColumnScope.SessionItem(
                 .padding(start = 8.dp, end = 8.dp, top = 8.dp)
 
         ) {
-            if (!session.addOnSets.isNullOrEmpty()) {
-                ConferenceAddsOn(session.addOnSets)
-                Spacer(modifier = Modifier.size(8.dp))
-            }
-            AppTextLabel(
+//            if (!session.addOnSets.isNullOrEmpty()) {
+//                ConferenceAddsOn(session.addOnSets)
+//                Spacer(modifier = Modifier.size(8.dp))
+//            }
+            AppTextSubTitle(
                 text = session.title.trim()
             )
             Spacer(modifier = Modifier.size(4.dp))
@@ -335,21 +340,49 @@ private fun ColumnScope.SessionItem(
                     Spacer(modifier = Modifier.size(8.dp))
                 }
                 if (!session.isBreak) {
-                    MarkAttendanceButton(
-                        modifier = Modifier.align(Alignment.End),
-                        scaffoldState = scaffoldState,
-                        apiCoordinates = Coordinates(
-                            latitude = session.venue.lat ?: 0.0,
-                            longitude = session.venue.lng ?: 0.0
-                        ),
-                        onMarkAttendance = {
-                            onMarkAttendance(
+                    Row(
+                        modifier = Modifier.align(alignment = Alignment.End),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        val shouldShowFeedback = isNowAfter(
+                            targetTime = session.endsAt,
+                            graceMinutes = 24 * 60
+                        )
+                        val showAttendance = isInRange(
+                            startDateTimeUtc = session.startsAt,
+                            endDateTimeUtc = session.endsAt,
+                            graceMinutes = 15
+                        )
+                        AnimatedVisibility(visible = shouldShowFeedback) {
+                            AppTextLabel(
+                                text = "Feedback",
+                                textDecoration = TextDecoration.Underline,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.clickable(
+                                    onClick = {
 
+                                    }
+                                )
                             )
-                        },
-                        onMarkAttendanceByImage = {
-                            onMarkAttendanceByImage(it)
-                        })
+                        }
+                        AnimatedVisibility(visible = showAttendance) {
+                            MarkAttendanceButton(
+                                modifier = Modifier,
+                                scaffoldState = scaffoldState,
+                                apiCoordinates = Coordinates(
+                                    latitude = session.venue.lat ?: 0.0,
+                                    longitude = session.venue.lng ?: 0.0
+                                ),
+                                onMarkAttendance = {
+                                    onMarkAttendance(
+
+                                    )
+                                },
+                                onMarkAttendanceByImage = {
+                                    onMarkAttendanceByImage(it)
+                                })
+                        }
+                    }
                     Spacer(modifier = Modifier.size(8.dp))
                 }
             }

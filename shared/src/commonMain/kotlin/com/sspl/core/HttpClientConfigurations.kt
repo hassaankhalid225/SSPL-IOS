@@ -40,9 +40,9 @@ suspend fun <T : HttpClientEngineConfig> getBaseClient(
 ): HttpClient {
     return HttpClient(engineFactory) {
         install(Resources)
-        install(HttpCache) {
-            publicStorage(CacheStorage.Disabled) // Disables response caching
-        }
+//        install(HttpCache) {
+//            publicStorage(CacheStorage.Disabled) // Disables response caching
+//        }
         install(ContentNegotiation) {
             json(Json {
                 ignoreUnknownKeys = true

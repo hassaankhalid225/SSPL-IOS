@@ -1,8 +1,12 @@
 package com.sspl.ui.conference.workshops
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,6 +27,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -50,6 +56,8 @@ import com.sspl.utils.FORMAT_MONTH_YEAR_WEEKDAY
 import com.sspl.utils.FORMAT_TIME_12HOUR
 import com.sspl.utils.getDayOfMonthSuffixed
 import com.sspl.utils.getJoinedDateTime
+import com.sspl.utils.isInRange
+import com.sspl.utils.isNowAfter
 import dev.jordond.compass.Coordinates
 import kotlinx.serialization.json.Json
 import org.koin.compose.viewmodel.koinViewModel
@@ -75,7 +83,8 @@ fun WorkshopDetailScreen(
     val showImageSuccessDialog by attendanceViewModel.showAttendanceDialogByImage.collectAsStateWithLifecycle()
 
     if (showLocationSuccessDialog) {
-        AttendanceDialog(title = "Attendance Marked",
+        AttendanceDialog(
+            title = "Attendance Marked",
             description = "Your attendance has been marked.",
             onDismiss = { attendanceViewModel.onDismissDialogs() })
     }
@@ -162,22 +171,24 @@ private fun WorkshopDetailContent(
         conferenceDetail.days?.let { listOfDays ->
             itemsIndexed(listOfDays, key = { i, _ -> i }) { i, item ->
                 Column(modifier = Modifier.fillMaxWidth().let {
-                        if (i == listOfDays.size - 1) {
-                            it.clip(
-                                shape = RoundedCornerShape(0.dp, 0.dp, 16.dp, 16.dp)
-                            )
-                        } else {
-                            it
-                        }
-                    }.background(boxColor).padding(all = 12.dp)) {
+                    if (i == listOfDays.size - 1) {
+                        it.clip(
+                            shape = RoundedCornerShape(0.dp, 0.dp, 16.dp, 16.dp)
+                        )
+                    } else {
+                        it
+                    }
+                }.background(boxColor).padding(all = 12.dp)) {
                     item.breaks?.let { breaks ->
                         SetSessionBreak(breaks)
                     }
                     item.sessions?.let { sessions ->
-                        SessionsSchedule(sessions,
+                        SessionsSchedule(
+                            sessions,
                             onMarkAttendance = onMarkAttendance,
                             onMarkAttendanceByImage = onMarkAttendanceByImage,
-                            scaffoldState = scaffoldState)
+                            scaffoldState = scaffoldState
+                        )
                     }
                 }
             }
@@ -192,8 +203,8 @@ private fun WorkshopDetail(
 ) {
     Column(
         modifier = Modifier.fillMaxWidth().clip(
-                shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp)
-            ).background(columnColor).padding(all = 12.dp)
+            shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp)
+        ).background(columnColor).padding(all = 12.dp)
     ) {
         AppTextSubTitle(
             text = conference.title.orEmpty()
@@ -229,11 +240,12 @@ private fun WorkshopDetail(
 }
 
 @Composable
-private fun SessionsSchedule(sessions: List<Session>,
-                             onMarkAttendance: (sessionId:Long) -> Unit = {},
-                             onMarkAttendanceByImage: (sessionId:Long,ByteArray) -> Unit,
-                             scaffoldState: SnackbarHostState
-                             ) {
+private fun SessionsSchedule(
+    sessions: List<Session>,
+    onMarkAttendance: (sessionId: Long) -> Unit = {},
+    onMarkAttendanceByImage: (sessionId: Long, ByteArray) -> Unit,
+    scaffoldState: SnackbarHostState
+) {
     if (sessions.isEmpty()) return
     sessions.forEach { session ->
         Column(modifier = Modifier.fillMaxWidth()) {
@@ -251,18 +263,50 @@ private fun SessionsSchedule(sessions: List<Session>,
                 SessionBreakDown(session.breakdown)
             }
             if (!session.isBreak) {
-                MarkAttendanceButton(modifier = Modifier.align(Alignment.End),
-                    scaffoldState = scaffoldState,
-                    apiCoordinates = Coordinates(
-                        latitude = session.venue?.lat ?: 0.0,
-                        longitude = session.venue?.lng ?: 0.0
-                    ),
-                    onMarkAttendance = {
-                        onMarkAttendance(session.id)
-                    },
-                    onMarkAttendanceByImage = {
-                        onMarkAttendanceByImage(session.id,it)
-                    })
+                val shouldShowFeedback = isNowAfter(
+                    targetTime = session.endsAt,
+                    graceMinutes = 24 * 60
+                )
+                val showAttendance = isInRange(
+                    startDateTimeUtc = session.startsAt,
+                    endDateTimeUtc = session.endsAt,
+                    graceMinutes = 15
+                )
+
+                Row(
+                    modifier = Modifier.align(alignment = Alignment.End),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    AnimatedVisibility(visible = shouldShowFeedback) {
+                        AppTextLabel(
+                            text = "Feedback",
+                            textDecoration = TextDecoration.Underline,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.clickable(
+                                onClick = {
+
+                                }
+                            )
+                        )
+                    }
+
+                    AnimatedVisibility(visible = showAttendance) {
+                        MarkAttendanceButton(
+                            modifier = Modifier,
+                            scaffoldState = scaffoldState,
+                            apiCoordinates = Coordinates(
+                                latitude = session.venue?.lat ?: 0.0,
+                                longitude = session.venue?.lng ?: 0.0
+                            ),
+                            onMarkAttendance = {
+                                onMarkAttendance(session.id)
+                            },
+                            onMarkAttendanceByImage = {
+                                onMarkAttendanceByImage(session.id, it)
+                            })
+                    }
+
+                }
             }
         }
     }
