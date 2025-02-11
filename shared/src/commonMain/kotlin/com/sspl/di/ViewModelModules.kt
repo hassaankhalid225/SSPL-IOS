@@ -13,6 +13,7 @@ import com.sspl.ui.otp.OtpViewModel
 import com.sspl.ui.postcreation.PostCreationViewModel
 import com.sspl.ui.posts.PostViewModel
 import com.sspl.ui.settings.deleteaccount.DeleteAccountViewModel
+import com.sspl.ui.userdetails.EditProfileViewModel
 import com.sspl.ui.userdetails.ProfileViewModel
 import com.sspl.ui.userdetails.UserDetailViewModel
 import org.koin.core.module.dsl.singleOf
@@ -52,6 +53,7 @@ internal val viewModelModules = module {
     viewModelOf(::AboutSocietyViewModel)
     viewModelOf(::ForgotPasswordViewModel)
     viewModelOf(::FeedbackViewModel)
+    viewModelOf(::EditProfileViewModel)
 
 
 //    viewModelOf(::PlayerScreenViewModel)
