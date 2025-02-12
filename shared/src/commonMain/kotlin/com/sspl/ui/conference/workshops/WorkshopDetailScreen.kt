@@ -298,7 +298,7 @@ private fun SessionsSchedule(
                     modifier = Modifier.align(alignment = Alignment.End),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    AnimatedVisibility(visible = shouldShowFeedback) {
+                    AnimatedVisibility(visible = false) {
                         AppTextLabel(
                             text = "Feedback",
                             textDecoration = TextDecoration.Underline,

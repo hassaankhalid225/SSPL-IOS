@@ -32,10 +32,13 @@ class PostFeedbackFormUseCase(private val conferenceRepository: ConferenceReposi
                 })
             }
 
-            val response = conferenceRepository.postFeedbackForm(
-                conferenceId = conferenceId,sessionId = sessionId,
-                body = jsonBody
-            )
+            val response = sessionId?.let {
+                conferenceRepository.postFeedbackFormSession(
+                    conferenceId = conferenceId,
+                    sessionId=it,
+                    body = jsonBody
+                )
+            }?:conferenceRepository.postFeedbackForm(conferenceId, body = jsonBody)
             if (response.status.isSuccess()) {
                 val responseBody = response.body<CommonResponse>()
                  emit(ApiStates.Success(responseBody))
