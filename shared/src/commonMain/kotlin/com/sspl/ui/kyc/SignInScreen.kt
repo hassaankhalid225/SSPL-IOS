@@ -59,6 +59,7 @@ import com.sspl.ui.components.ButtonWithProgress
 import com.sspl.ui.components.PasswordTextField
 import com.sspl.ui.components.PhoneWithCountrySelector
 import com.sspl.ui.components.countrypicker.Country
+import com.sspl.ui.feedback.FeedbackScreenContent
 import com.sspl.utils.IconResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -127,10 +128,11 @@ fun LoginScreen(
                 navController.navigate(Screen.SignUpScreen.route)
             },
             onForgotPassword = {
-                navController.navigate(Screen.ForgotPasswordScreen.route)
-            },
+                 navController.navigate(Screen.ForgotPasswordScreen.route)
+             },
             modifier = modifier
         )
+
     }
 
 

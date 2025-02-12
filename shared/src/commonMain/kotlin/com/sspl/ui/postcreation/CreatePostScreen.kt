@@ -208,7 +208,7 @@ fun CreatePostContent(
                 detectTapGestures { keyboardController?.hide() }
             }, horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        DescriptionTextEditor(text = uiState.description,
+        DescriptionTextEditor(text = uiState.description, modifier = Modifier.fillMaxWidth().heightIn(min = 160.dp, max = 300.dp).padding(10.dp),
             onTextChanged = { onEvent(CreatePostUIEvents.OnDescriptionChange(it)) })
         Spacer(Modifier.height(20.dp))
         AddImages(images = uiState.images,
@@ -227,13 +227,13 @@ fun CreatePostContent(
 
 @Composable
 fun DescriptionTextEditor(
-    modifier: Modifier = Modifier, text: String, onTextChanged: (String) -> Unit
+    modifier: Modifier = Modifier, shape: RoundedCornerShape= RoundedCornerShape(16.dp), placeholderText:String=stringResource(Res.string.whats_on_your_mind), text: String, onTextChanged: (String) -> Unit
 ) {
     Card(
         colors = CardDefaults.cardColors(
             containerColor = Color.LightGray.copy(alpha = 0.2f)
         ),
-        shape = RoundedCornerShape(16.dp),
+        shape = shape,
         border = BorderStroke(0.7.dp, Color.LightGray),
         modifier = Modifier.imePadding()
     ) {
@@ -242,10 +242,10 @@ fun DescriptionTextEditor(
             onValueChange = {
                 onTextChanged(it)
             },
-            modifier = modifier.fillMaxWidth().heightIn(min = 160.dp, max = 300.dp).padding(10.dp),
+            modifier = modifier,
             placeholder = {
                 AppTextLabel(
-                    stringResource(Res.string.whats_on_your_mind), color = Color.Gray
+                    placeholderText, color = Color.Gray
                 )
             },
             textStyle = TextStyle(fontSize = 18.sp, color = Color.Black, textDecoration = null),

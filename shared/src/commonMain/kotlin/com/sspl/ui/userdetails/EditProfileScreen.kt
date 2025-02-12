@@ -32,6 +32,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.core.ApiStates
+import com.sspl.core.models.Session
+import com.sspl.core.models.User
 import com.sspl.resources.Res
 import com.sspl.resources.app_logo
 import com.sspl.resources.designation
@@ -51,24 +53,32 @@ import com.sspl.ui.components.PhoneWithCountrySelector
 import com.sspl.ui.kyc.HeaderSection
 import com.sspl.ui.kyc.UserEvents
 import com.sspl.utils.IconResource
+import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun EditProfileScreen(navController: NavController, viewModel: ProfileViewModel = koinViewModel()) {
+fun EditProfileScreen(
+    navController: NavController,
+    profileViewModel: ProfileViewModel = koinViewModel(),
+    viewModel: EditProfileViewModel = koinViewModel()
+) {
 
     val isPersonalDetails =
         navController.previousBackStackEntry?.savedStateHandle?.get<Boolean>("isPersonalDetails")
-
+    val user = navController.previousBackStackEntry?.savedStateHandle?.get<String>("currentUser")
+    val userObj: User? = user?.let { Json.decodeFromString<User>(it) }
     val basicInfoState by viewModel.basicProfileUiState.collectAsStateWithLifecycle()
     val professionalInfoState by viewModel.professionalProfileUiState.collectAsStateWithLifecycle()
 
     val scaffoldState = remember { SnackbarHostState() }
-
     LaunchedEffect(Unit) {
-        viewModel.isUserBasicInfoUpdated.collect {isBasicInfoUpdated->
-            when(isBasicInfoUpdated) {
+        viewModel.updateProfessionalProfileUiState(userObj)
+    }
+    LaunchedEffect(Unit) {
+        viewModel.isUserBasicInfoUpdated.collect { isBasicInfoUpdated ->
+            when (isBasicInfoUpdated) {
 
 
                 is ApiStates.Failure -> {
@@ -78,6 +88,7 @@ fun EditProfileScreen(navController: NavController, viewModel: ProfileViewModel 
                 }
 
                 is ApiStates.Success -> {
+                    isBasicInfoUpdated.data?.let { profileViewModel.updateUser(it) }
                     navController.navigateUp()
                     scaffoldState.showSnackbar("Updated Successfully")
                 }
@@ -86,17 +97,17 @@ fun EditProfileScreen(navController: NavController, viewModel: ProfileViewModel 
             }
         }
     }
-    LaunchedEffect(Unit){
-        viewModel.isUserProfessionalInfoUpdated.collect{isProfessionalInfoUpdated->
+    LaunchedEffect(Unit) {
+        viewModel.isUserProfessionalInfoUpdated.collect { isProfessionalInfoUpdated ->
             when (isProfessionalInfoUpdated) {
                 is ApiStates.Failure -> {
                     scaffoldState.showSnackbar(
-                        (isProfessionalInfoUpdated as ApiStates.Failure).error.message
-                            ?: "Something went wrong"
+                        isProfessionalInfoUpdated.error.message
                     )
                 }
 
                 is ApiStates.Success -> {
+                    isProfessionalInfoUpdated.data?.let { profileViewModel.updateUserDetails(it) }
                     navController.navigateUp()
                     scaffoldState.showSnackbar("Updated Successfully")
                 }
@@ -144,6 +155,7 @@ fun EditProfileScreen(navController: NavController, viewModel: ProfileViewModel 
     }
 
 }
+
 @Composable
 fun EditPersonalDetails(
     basicProfileUiState: BasicProfileUiState,

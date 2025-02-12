@@ -4,6 +4,7 @@ import com.sspl.ui.about.AboutSocietyViewModel
 import com.sspl.ui.conference.AttendanceViewModel
 import com.sspl.ui.conference.ConferenceDetailViewModel
 import com.sspl.ui.conference.ConferenceViewModel
+import com.sspl.ui.feedback.FeedbackViewModel
 import com.sspl.ui.homescreen.HomeScreenViewModel
 import com.sspl.ui.kyc.ForgotPasswordViewModel
 import com.sspl.ui.kyc.SignInViewModel
@@ -12,6 +13,7 @@ import com.sspl.ui.otp.OtpViewModel
 import com.sspl.ui.postcreation.PostCreationViewModel
 import com.sspl.ui.posts.PostViewModel
 import com.sspl.ui.settings.deleteaccount.DeleteAccountViewModel
+import com.sspl.ui.userdetails.EditProfileViewModel
 import com.sspl.ui.userdetails.ProfileViewModel
 import com.sspl.ui.userdetails.UserDetailViewModel
 import org.koin.core.module.dsl.singleOf
@@ -50,6 +52,8 @@ internal val viewModelModules = module {
     viewModelOf(::AttendanceViewModel)
     viewModelOf(::AboutSocietyViewModel)
     viewModelOf(::ForgotPasswordViewModel)
+    viewModelOf(::FeedbackViewModel)
+    viewModelOf(::EditProfileViewModel)
 
 
 //    viewModelOf(::PlayerScreenViewModel)

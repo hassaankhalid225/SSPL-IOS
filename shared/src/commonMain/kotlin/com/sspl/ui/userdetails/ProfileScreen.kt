@@ -49,6 +49,8 @@ import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.AppTextTitle
 import com.sspl.ui.components.Error
 import com.sspl.utils.EMAIL_GUEST_USER
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -80,10 +82,17 @@ fun ProfileScreen(
             navController.currentBackStackEntry?.savedStateHandle?.set(
                 "isPersonalDetails", true
             )
+            navController.currentBackStackEntry?.savedStateHandle?.set(
+                "currentUser",  Json.encodeToString((userDetails as ApiStates.Success).data)
+            )
             navController.navigate(Screen.EditProfile.route)
         }, onEditProfessionalDetails = {
             navController.currentBackStackEntry?.savedStateHandle?.set(
                 "isPersonalDetails", false
+            )
+            navController.currentBackStackEntry?.savedStateHandle?.set(
+
+                "currentUser",  Json.encodeToString((userDetails as ApiStates.Success).data)
             )
             navController.navigate(Screen.EditProfile.route)
         }

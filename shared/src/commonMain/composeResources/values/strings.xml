@@ -10,6 +10,8 @@
     <string name="edit_profile">Edit Profile</string>
     <string name="workshops">Workshops</string>
     <string name="enter_otp">Enter OTP</string>
+    <string name="feedback">Feedback</string>
+    <string name="feedback_sub_title">Your opinion matters! Please answer the following question to help us improve our service</string>
     <string name="enter_otp_below">Enter OTP below</string>
     <string name="continue_str">Continue</string>
     <string name="enter_otp_sent_to_email">Enter OTP sent to your email address\nthen enter new password</string>

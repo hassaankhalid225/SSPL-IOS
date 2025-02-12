@@ -10,6 +10,7 @@ import com.sspl.resources.about_us
 import com.sspl.resources.create_post
 import com.sspl.resources.delete_account
 import com.sspl.resources.edit_profile
+import com.sspl.resources.feedback
 import com.sspl.resources.forgot_password
 import com.sspl.resources.forum
 import com.sspl.resources.home
@@ -35,6 +36,7 @@ import com.sspl.ui.conference.programs.ScientificProgramsScreen
 import com.sspl.ui.conference.programs.SessionDetailScreen
 import com.sspl.ui.conference.workshops.WorkshopDetailScreen
 import com.sspl.ui.conference.workshops.WorkshopsScreen
+import com.sspl.ui.feedback.FeedbackScreen
 import com.sspl.ui.homescreen.HomeScreen
 import com.sspl.ui.kyc.ForgotPasswordScreen
 import com.sspl.ui.kyc.LoginScreen
@@ -169,6 +171,10 @@ sealed class Screen(
         title = Res.string.about_us,
         route = "AboutScreen",
     )
+    data object FeedbackScreen : Screen(
+        title = Res.string.feedback,
+        route = "FeedbackScreen",
+    )
 
     data object NotificationsScreen : Screen(
         title = Res.string.notifications,
@@ -214,6 +220,9 @@ fun otherScreens(): List<NavItem> = listOf(
     NavItem(
         screen = Screen.SessionScreen,
         component = { SessionScreen(navController = it) }),
+    NavItem(
+        screen = Screen.FeedbackScreen,
+        component = { FeedbackScreen(navController = it) }),
     NavItem(
         screen = Screen.UserDetailsScreen,
         component = { UserDetailsScreen(navController = it) }),
