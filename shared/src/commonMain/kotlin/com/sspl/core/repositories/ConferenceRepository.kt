@@ -14,6 +14,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.headersOf
+import kotlinx.serialization.json.JsonObject
 import kotlin.uuid.Uuid
 
 class ConferenceRepository(private val client: HttpClient) {
@@ -52,4 +53,11 @@ class ConferenceRepository(private val client: HttpClient) {
     ): HttpResponse = client.get(
         ConferenceRequest.GetFeedbackForm(conferenceId)
     )
+    suspend fun postFeedbackForm(
+        conferenceId: Long,body: JsonObject
+    ): HttpResponse = client.post(
+        ConferenceRequest.PostFeedbackFormRequest(conferenceId)
+    ){
+        setBody(body)
+    }
 }
