@@ -22,7 +22,7 @@ class ConferenceDetailViewModel(
     val conferences = _conferences.asStateFlow()
 
     //
-    fun getConferenceById(conferenceId: Int) {
+    fun getConferenceById(conferenceId: Long) {
         viewModelScope.launch {
             conferenceRepository.getConferenceById(conferenceId,"days").flowOn(Dispatchers.IO).collect { responseState->
                 println("Conference Response is $responseState")

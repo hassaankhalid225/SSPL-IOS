@@ -9,14 +9,14 @@ sealed class ConferenceRequest {
     @Serializable
     @Resource("/conferences/{conferenceId}")
     data class ById(
-        val conferenceId: Int,
+        val conferenceId: Long,
         val format: String = "days"
     ) : ConferenceRequest()
 
     @Serializable
     @Resource("/conferences/{conferenceId}")
     data class ByType(
-        val conferenceId: Int,
+        val conferenceId: Long,
         val format: String = "days"
     ) : ConferenceRequest()
 

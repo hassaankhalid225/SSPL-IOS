@@ -18,7 +18,7 @@ import kotlin.uuid.Uuid
 
 class ConferenceRepository(private val client: HttpClient) {
 
-    suspend fun getConferenceById(conferenceId: Int): HttpResponse =
+    suspend fun getConferenceById(conferenceId: Long): HttpResponse =
         client.get(ConferenceRequest.ById(conferenceId = conferenceId))
 
     suspend fun getAllConferences(type: String? = null): HttpResponse =

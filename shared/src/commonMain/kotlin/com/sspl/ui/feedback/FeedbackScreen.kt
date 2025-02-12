@@ -45,26 +45,33 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.core.ApiStates
+import com.sspl.core.models.Conference
 import com.sspl.core.models.FeedbackForm
 import com.sspl.core.models.Option
 import com.sspl.core.models.Statement
 import com.sspl.resources.Res
 import com.sspl.resources.feedback_sub_title
 import com.sspl.ui.components.AppProgressBar
-import com.sspl.ui.components.AppTextField
 import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.AppTextSubTitle
 import com.sspl.ui.components.ButtonWithProgress
 import com.sspl.ui.postcreation.DescriptionTextEditor
+import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 
 @Composable
 fun FeedbackScreen(navController: NavController, viewModel: FeedbackViewModel = koinViewModel()) {
+    val conferenceID = navController.previousBackStackEntry?.savedStateHandle?.get<Long>("conferenceID") ?: return
+
+    //Session ID will be null if user is coming from Conference directly.
+    val sessionID = navController.previousBackStackEntry?.savedStateHandle?.get<Long>("sessionID")
+    println(">>>Conference ID:$conferenceID , sessionID=$sessionID")
+
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) {
-        viewModel.setConferenceId(10L)
+        viewModel.setConferenceId(conferenceID)
     }
     val feedbackForm = viewModel.feedbackFormResponse.collectAsStateWithLifecycle().value
     when (feedbackForm) {

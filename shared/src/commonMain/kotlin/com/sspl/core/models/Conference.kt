@@ -5,7 +5,7 @@ import kotlinx.serialization.SerialName
 
 @Serializable
 data class Conference(
-    val id: Int,
+    val id: Long,
     val type: ConferenceType,
     val title: String?,
     val summary: String?,

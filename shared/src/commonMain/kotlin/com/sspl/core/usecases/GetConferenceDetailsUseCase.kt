@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 class GetConferencesDetailsUseCase(private val conferenceRepository: ConferenceRepository){
-    fun getConferenceById(conferenceId: Int, format: String? = null): Flow<ApiStates<ConferenceDetail>> = flow {
+    fun getConferenceById(conferenceId: Long, format: String? = null): Flow<ApiStates<ConferenceDetail>> = flow {
         emit(ApiStates.Loading)
         try {
             println(conferenceId.toString()+"is the id ")

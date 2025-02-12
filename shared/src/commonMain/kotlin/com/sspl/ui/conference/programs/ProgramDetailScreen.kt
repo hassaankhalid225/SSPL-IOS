@@ -225,6 +225,17 @@ private fun ConferenceDetailContent(
                                 )
                                 navController.navigate(route = Screen.SessionDetailScreen.route)
                             },
+                            onFeedbackClicked = {session->
+                                navController.currentBackStackEntry?.savedStateHandle?.set(
+                                    "conferenceID",
+                                    conferenceDetail.id
+                                )
+                                navController.currentBackStackEntry?.savedStateHandle?.set(
+                                    "sessionID",
+                                    session.id
+                                )
+                                navController.navigate(route = Screen.FeedbackScreen.route)
+                            },
                             scaffoldState = scaffoldState
                         )
                     }
@@ -282,17 +293,22 @@ private fun ColumnScope.SessionsSchedule(
     onClick: (Session) -> Unit,
     onMarkAttendance: (sessionId: Long) -> Unit,
     onMarkAttendanceByImage: (sessionId: Long, ByteArray) -> Unit,
+    onFeedbackClicked: (Session) -> Unit,
     scaffoldState: SnackbarHostState
 ) {
     if (sessions.isEmpty()) return
     sessions.forEachIndexed { index, session ->
-        SessionItem(session, sessions.size != index + 1, isGuestUser, onClick, onMarkAttendance = {
-            onMarkAttendance(
-                session.id
-            )
-        }, onMarkAttendanceByImage = {
-            onMarkAttendanceByImage(session.id, it)
-        }, scaffoldState = scaffoldState)
+        SessionItem(
+            session, sessions.size != index + 1, isGuestUser, onClick, onMarkAttendance = {
+                onMarkAttendance(
+                    session.id
+                )
+            }, onMarkAttendanceByImage = {
+                onMarkAttendanceByImage(session.id, it)
+            },
+            onFeedbackClicked = { onFeedbackClicked.invoke(session) },
+            scaffoldState = scaffoldState
+        )
     }
 }
 
@@ -304,6 +320,7 @@ private fun ColumnScope.SessionItem(
     onClick: (Session) -> Unit,
     onMarkAttendance: () -> Unit,
     onMarkAttendanceByImage: (ByteArray) -> Unit,
+    onFeedbackClicked: () -> Unit,
     scaffoldState: SnackbarHostState
 ) {
     Row(modifier = Modifier.fillMaxWidth().clickable(!session.isBreak) {

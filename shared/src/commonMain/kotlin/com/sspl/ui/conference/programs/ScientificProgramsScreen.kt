@@ -1,7 +1,9 @@
 package com.sspl.ui.conference.programs
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -26,6 +28,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -45,9 +48,13 @@ import com.sspl.ui.components.AppTextBody
 import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.AppTextSubTitle
 import com.sspl.ui.components.Error
+import com.sspl.ui.components.MarkAttendanceButton
 import com.sspl.ui.conference.ConferenceViewModel
 import com.sspl.utils.FORMAT_DAY_MONTH
 import com.sspl.utils.FORMAT_DEFAULT_DATE_TIME
+import com.sspl.utils.isInRange
+import com.sspl.utils.isNowAfter
+import dev.jordond.compass.Coordinates
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.koin.compose.viewmodel.koinViewModel
@@ -109,21 +116,33 @@ fun ConferenceList(
             ConferenceItem(
                 item = item,
                 position = i,
-                showDivider = i != conferences.size - 1
-            ) {
-                navController.currentBackStackEntry?.savedStateHandle?.set(
-                    "data",
-                    Json.encodeToString(item)
-                )
-                navController.navigate(route = Screen.ScientificProgramDetailScreen.route)
-            }
+                showDivider = i != conferences.size - 1,
+                onClick = {
+                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                        "data",
+                        Json.encodeToString(item)
+                    )
+                    navController.navigate(route = Screen.ScientificProgramDetailScreen.route)
+                },
+                onFeedbackClick = {
+                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                        "conferenceID",
+                        item.id
+                    )
+                    navController.navigate(route = Screen.FeedbackScreen.route)
+                }
+            )
         }
     }
 }
 
 @Composable
 fun ConferenceItem(
-    item: Conference, position: Int, showDivider: Boolean = true, onClick: () -> Unit
+    item: Conference,
+    position: Int,
+    showDivider: Boolean = true,
+    onClick: () -> Unit,
+    onFeedbackClick: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth().let {
@@ -215,10 +234,32 @@ fun ConferenceItem(
                     text = item.summary ?: ""
                 )
                 Spacer(modifier = Modifier.size(16.dp))
-                AppTextLabel(
-                    text = "MORE DETAILS",
-                    modifier = Modifier.padding(top = 8.dp).align(alignment = Alignment.End)
-                )
+
+                Row(
+                    modifier = Modifier.padding(end = 8.dp).align(alignment = Alignment.End),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    val shouldShowFeedback = isNowAfter(
+                        targetTime = item.startDate
+                    ) || true
+                    AnimatedVisibility(visible = shouldShowFeedback) {
+                        AppTextLabel(
+                            text = "FEEDBACK",
+                            textDecoration = TextDecoration.Underline,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.clickable(
+                                onClick = {
+                                    onFeedbackClick.invoke()
+                                }
+                            )
+                        )
+                    }
+                    AppTextLabel(
+                        textDecoration = TextDecoration.Underline,
+                        fontWeight = FontWeight.SemiBold,
+                        text = "MORE DETAILS"
+                    )
+                }
             }
             if (showDivider) {
                 Spacer(
