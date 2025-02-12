@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.sspl.Screen
 import com.sspl.core.ApiStates
 import com.sspl.core.models.Conference
 import com.sspl.core.models.ConferenceDetail
@@ -147,6 +148,16 @@ fun WorkshopDetailScreen(
                             attendanceViewModel.markAttendanceViaImage(
                                 conferenceId = conference.id.toLong(), sessionId = sessionID, image
                             )
+                        },  onFeedbackClicked = {sessionId,_,->
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                "conferenceID",
+                                conference.id
+                            )
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                "sessionID",
+                                sessionId
+                            )
+                            navController.navigate(route = Screen.FeedbackScreen.route)
                         },
                         scaffoldState = scaffoldState
                     )
@@ -163,6 +174,7 @@ private fun WorkshopDetailContent(
     conferenceDetail: ConferenceDetail,
     onMarkAttendance: (sessionId: Long) -> Unit,
     onMarkAttendanceByImage: (sessionId: Long, ByteArray) -> Unit,
+    onFeedbackClicked: (sessionId: Long,conferenceDetailId:Long) -> Unit,
     scaffoldState: SnackbarHostState
 
 ) {
@@ -193,6 +205,7 @@ private fun WorkshopDetailContent(
                             isGuestUser = isGuestUser,
                             onMarkAttendance = onMarkAttendance,
                             onMarkAttendanceByImage = onMarkAttendanceByImage,
+                            onFeedBackClicked = { onFeedbackClicked.invoke(it,conferenceDetail.id) },
                             scaffoldState = scaffoldState
                         )
                     }
@@ -251,6 +264,7 @@ private fun SessionsSchedule(
     isGuestUser: State<Boolean>,
     onMarkAttendance: (sessionId: Long) -> Unit = {},
     onMarkAttendanceByImage: (sessionId: Long, ByteArray) -> Unit,
+    onFeedBackClicked: (sessionId:Long) -> Unit,
     scaffoldState: SnackbarHostState
 ) {
     if (sessions.isEmpty()) return
@@ -284,14 +298,14 @@ private fun SessionsSchedule(
                     modifier = Modifier.align(alignment = Alignment.End),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    AnimatedVisibility(visible = shouldShowFeedback) {
+                    AnimatedVisibility(visible = false) {
                         AppTextLabel(
                             text = "Feedback",
                             textDecoration = TextDecoration.Underline,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier.clickable(
                                 onClick = {
-
+onFeedBackClicked(session.id)
                                 }
                             )
                         )

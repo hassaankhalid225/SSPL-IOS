@@ -18,6 +18,7 @@ import com.sspl.core.usecases.PasswordValidationUseCase
 import com.sspl.core.usecases.PhoneNumberValidationUseCase
 import com.sspl.core.usecases.PostUserDetailsUseCase
 import com.sspl.core.usecases.InitResetPasswordUseCase
+import com.sspl.core.usecases.PostFeedbackFormUseCase
 import com.sspl.core.usecases.SignUpUserUseCase
 import com.sspl.core.usecases.UpdatePasswordUseCase
 import com.sspl.core.usecases.UpdateUserBasicInfoUseCase
@@ -72,4 +73,5 @@ internal val useCaseModules = module {
     factory { MarkAttendanceViaImageUseCase(get()) }
     factory { MarkAttendanceViaLocationUseCase(get()) }
     factory { DeleteAccountUseCase(get(), get()) }
+    factory { PostFeedbackFormUseCase(get()) }
 }

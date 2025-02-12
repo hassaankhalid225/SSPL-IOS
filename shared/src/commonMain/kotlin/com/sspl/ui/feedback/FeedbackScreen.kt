@@ -2,6 +2,7 @@ package com.sspl.ui.feedback
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,7 +30,12 @@ import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -40,6 +46,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -52,10 +61,12 @@ import com.sspl.core.models.QuestionType
 import com.sspl.core.models.Statement
 import com.sspl.resources.Res
 import com.sspl.resources.feedback_sub_title
+import com.sspl.resources.whats_on_your_mind
 import com.sspl.ui.components.AppProgressBar
 import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.AppTextSubTitle
 import com.sspl.ui.components.ButtonWithProgress
+import com.sspl.ui.components.Error
 import com.sspl.ui.postcreation.DescriptionTextEditor
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -64,15 +75,29 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun FeedbackScreen(navController: NavController, viewModel: FeedbackViewModel = koinViewModel()) {
     val conferenceID =
-        navController.previousBackStackEntry?.savedStateHandle?.get<Long>("conferenceID") ?: return
+        navController.previousBackStackEntry?.savedStateHandle?.get<Long>("conferenceID")?:return
+    val scaffoldState = remember { SnackbarHostState() }
 
     //Session ID will be null if user is coming from Conference directly.
     val sessionID = navController.previousBackStackEntry?.savedStateHandle?.get<Long>("sessionID")
     println(">>>Conference ID:$conferenceID , sessionID=$sessionID")
-
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    LaunchedEffect(Unit) {
+     LaunchedEffect(Unit) {
         viewModel.setConferenceId(conferenceID)
+         viewModel.setSessionId(sessionID)
+    }
+    LaunchedEffect(Unit) {
+        viewModel.isFeedbackSubmitted.collect{status->
+            when(status){
+                is ApiStates.Failure -> scaffoldState.showSnackbar(status.error.message.orEmpty())
+                ApiStates.Loading -> Unit
+                is ApiStates.Success -> {
+                    scaffoldState.showSnackbar(status.data?.message.orEmpty())
+                    navController.popBackStack()
+                }
+            }
+
+        }
     }
     val feedbackForm = viewModel.feedbackFormResponse.collectAsStateWithLifecycle().value
     when (feedbackForm) {
@@ -81,16 +106,21 @@ fun FeedbackScreen(navController: NavController, viewModel: FeedbackViewModel = 
         }
 
         is ApiStates.Failure -> {
-
+            com.sspl.ui.components.Error(Modifier.fillMaxSize(),feedbackForm.error)
         }
 
         is ApiStates.Success -> {
-            feedbackForm.data?.let { form ->
-                FeedbackScreenContent(
-                    uiState = uiState,
-                    feedbackForm = form,
-                    onEvent = viewModel::onEvent
-                )
+            Scaffold(
+                snackbarHost = { SnackbarHost(scaffoldState) },
+                containerColor = Color.Transparent
+            ) { _ ->
+                feedbackForm.data?.let { form ->
+                    FeedbackScreenContent(
+                        uiState = uiState,
+                        feedbackForm = form,
+                        onEvent = viewModel::onEvent
+                    )
+                }
             }
         }
     }
@@ -131,7 +161,13 @@ fun FeedbackScreenContent(
                                     QuestionSelector(
                                         statement = it,
                                         options = question.options,
-                                        onAnswerSelected = { statement, option -> })
+                                        onAnswerSelected = { statement, option ->
+                                            onEvent(
+                                                FeedbackUiEvents.OnAnswerSelected(
+                                                    statement, option
+                                                )
+                                            )
+                                        })
                                 }
                             }
 
@@ -142,21 +178,29 @@ fun FeedbackScreenContent(
                                         options = question.options,
                                         onAnswerSelected = { statement, option ->
 
+                                            onEvent(
+                                                FeedbackUiEvents.OnAnswerSelected(
+                                                    statement, option
+                                                )
+                                            )
                                         }
                                     )
                                 }
                             }
 
                             QuestionType.COMMENT -> {
-                                DescriptionTextEditor(
-                                    text = uiState.bestAspectsComment,
-                                    shape = RoundedCornerShape(4.dp),
+                                CommentTextEditor(
+                                     shape = RoundedCornerShape(4.dp),
                                     modifier = Modifier.fillMaxWidth()
                                         .heightIn(min = 100.dp, max = 300.dp),
                                     placeholderText = question.statement,
                                     onTextChanged = {
-                                        onEvent(FeedbackUiEvents.OnBestAspectsCommentChanged(it))
-                                    })
+                                        onEvent(
+                                            FeedbackUiEvents.OnAnswerSelected(
+                                                statement = Statement(id = question.id, statement = question.statement),
+                                                comment = it // Pass the comment as the value
+                                            )
+                                        )                                    })
                             }
                         }
                     }
@@ -260,7 +304,7 @@ private fun YesNoQuestion(
     options: List<Option>,
     onAnswerSelected: (Statement, Option) -> Unit
 ) {
-    var selectedAnswer by remember { mutableStateOf<Boolean?>(null) }
+    var selectedOption by remember { mutableStateOf<Option?>(null) }
 
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -268,22 +312,34 @@ private fun YesNoQuestion(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         AppTextLabel(
-            text = statement.statement
+            text = statement.statement,
         )
 
         Row(
             modifier = Modifier.selectableGroup(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically
         ) {
-            options.forEach {
-                RadioButton(text = it.label, selected = selectedAnswer == true, onClick = {
-                    selectedAnswer = true
-                    onAnswerSelected(statement, it)
-                })
+            options.forEach { option ->
+                RadioButton(
+                    selected = selectedOption == option,
+                    onClick = {
+                        selectedOption = option
+                        onAnswerSelected(statement, option)
+                    },
+                    modifier = Modifier.semantics { contentDescription = option.label }
+                )
+                Text(
+                    text = option.label,
+                    modifier = Modifier.clickable {
+                        selectedOption = option
+                        onAnswerSelected(statement, option)
+                    }
+                )
             }
         }
     }
 }
+
 
 @Composable
 private fun RadioButton(
@@ -304,6 +360,46 @@ private fun RadioButton(
         }
     }
 }
+
+@Composable
+fun CommentTextEditor(
+    modifier: Modifier = Modifier, shape: RoundedCornerShape= RoundedCornerShape(16.dp), placeholderText:String=stringResource(Res.string.whats_on_your_mind),    onTextChanged: (String) -> Unit
+) {
+    var text by remember { mutableStateOf("") }
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = Color.LightGray.copy(alpha = 0.2f)
+        ),
+        shape = shape,
+        border = BorderStroke(0.7.dp, Color.LightGray),
+        modifier = Modifier.imePadding()
+    ) {
+        TextField(
+            value = text,
+            onValueChange = {
+                onTextChanged(it)
+                text = it
+            },
+            modifier = modifier,
+            placeholder = {
+                AppTextLabel(
+                    placeholderText, color = Color.Gray
+                )
+            },
+            textStyle = TextStyle(fontSize = 18.sp, color = Color.Black, textDecoration = null),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent
+            ),
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
+}
+
+
 
 
 

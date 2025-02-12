@@ -381,14 +381,14 @@ private fun ColumnScope.SessionItem(
                             endDateTimeUtc = session.endsAt,
                             graceMinutes = 15
                         )
-                        AnimatedVisibility(visible = shouldShowFeedback) {
+                        AnimatedVisibility(visible = true) {
                             AppTextLabel(
                                 text = "Feedback",
                                 textDecoration = TextDecoration.Underline,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier.clickable(
                                     onClick = {
-
+onFeedbackClicked.invoke()
                                     }
                                 )
                             )

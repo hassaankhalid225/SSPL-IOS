@@ -23,7 +23,8 @@ class GetFeedbackFormUseCase(private val conferenceRepository: ConferenceReposit
         try {
             val response = conferenceRepository.getFeedbackForm(conferenceId = conferenceId)
             if (response.status.isSuccess()) {
-                val result = response.body<FeedbackForm>()
+                print("the response is  ${response.body<String>()}")
+                val result = response.body<FeedbackForm?>()
                 emit(ApiStates.Success(result))
             } else {
                 val errorResponse = response.body<ApiError>()
