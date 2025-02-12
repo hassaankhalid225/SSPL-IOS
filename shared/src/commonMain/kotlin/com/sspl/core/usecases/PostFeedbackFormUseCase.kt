@@ -18,7 +18,7 @@ import kotlinx.serialization.json.put
 
 
 class PostFeedbackFormUseCase(private val conferenceRepository: ConferenceRepository) {
-    operator fun invoke(selectedAnswers: List<Pair<Statement, Option>>,conferenceId: Long): Flow<ApiStates<CommonResponse>> = flow {
+    operator fun invoke(selectedAnswers: List<Pair<Statement, Option>>,conferenceId: Long,sessionId: Long? = null): Flow<ApiStates<CommonResponse>> = flow {
         emit(ApiStates.Loading)
         try {
             val jsonBody = buildJsonObject {
@@ -33,7 +33,7 @@ class PostFeedbackFormUseCase(private val conferenceRepository: ConferenceReposi
             }
 
             val response = conferenceRepository.postFeedbackForm(
-                conferenceId = conferenceId,
+                conferenceId = conferenceId,sessionId = sessionId,
                 body = jsonBody
             )
             if (response.status.isSuccess()) {

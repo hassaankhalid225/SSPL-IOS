@@ -28,6 +28,7 @@ class FeedbackViewModel(
     private val postFeedbackFormUseCase: PostFeedbackFormUseCase,
 ) : ViewModel() {
     private val _conferenceId = MutableStateFlow<Long?>(null)
+    private val _sessionId = MutableStateFlow<Long?>(null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val feedbackFormResponse =
@@ -51,6 +52,11 @@ class FeedbackViewModel(
             _conferenceId.update { conferenceId }
         }
     }
+fun setSessionId(sessionId: Long?) {
+    viewModelScope.launch {
+        _sessionId.update { sessionId }
+    }
+}
 
     fun onEvent(event: FeedbackUiEvents) {
         when (event) {
@@ -78,7 +84,7 @@ class FeedbackViewModel(
                 _conferenceId.value?.let { id ->
                     viewModelScope.launch {
                         postFeedbackFormUseCase(
-                            conferenceId = id, selectedAnswers = _uiState.value.selectedAnswers
+                          sessionId = _sessionId.value,  conferenceId = id, selectedAnswers = _uiState.value.selectedAnswers
                         ).collect { state ->
                             _uiState.value =
                                 _uiState.value.copy(isLoading = state is ApiStates.Loading)

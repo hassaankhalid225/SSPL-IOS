@@ -54,9 +54,10 @@ class ConferenceRepository(private val client: HttpClient) {
         ConferenceRequest.GetFeedbackForm(conferenceId)
     )
     suspend fun postFeedbackForm(
-        conferenceId: Long,body: JsonObject
+        conferenceId: Long,body: JsonObject,sessionId: Long? = null
     ): HttpResponse = client.post(
-        ConferenceRequest.PostFeedbackFormRequest(conferenceId)
+        if(sessionId != null) ConferenceRequest.PostFeedbackFormSessionRequest(conferenceId,sessionId)
+        else ConferenceRequest.PostFeedbackFormRequest(conferenceId)
     ){
         setBody(body)
     }

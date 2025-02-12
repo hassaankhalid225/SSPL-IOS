@@ -84,6 +84,7 @@ fun FeedbackScreen(navController: NavController, viewModel: FeedbackViewModel = 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
      LaunchedEffect(Unit) {
         viewModel.setConferenceId(conferenceID)
+         viewModel.setSessionId(sessionID)
     }
     LaunchedEffect(Unit) {
         viewModel.isFeedbackSubmitted.collect{status->

@@ -148,10 +148,10 @@ fun WorkshopDetailScreen(
                             attendanceViewModel.markAttendanceViaImage(
                                 conferenceId = conference.id.toLong(), sessionId = sessionID, image
                             )
-                        },  onFeedbackClicked = {conferenceDetailId,sessionId->
+                        },  onFeedbackClicked = {sessionId,_,->
                             navController.currentBackStackEntry?.savedStateHandle?.set(
                                 "conferenceID",
-                                conferenceDetailId
+                                conference.id
                             )
                             navController.currentBackStackEntry?.savedStateHandle?.set(
                                 "sessionID",

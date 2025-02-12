@@ -70,7 +70,7 @@ fun UserDetailsScreen(
 
                 is ApiStates.Success -> {
                     navController.navigate(Screen.MainScreen.route) {
-                        popUpTo(Screen.SignInScreen.route) {
+                        popUpTo(Screen.UserDetailsScreen.route) {
                             inclusive = true
                         }
                         launchSingleTop = true
