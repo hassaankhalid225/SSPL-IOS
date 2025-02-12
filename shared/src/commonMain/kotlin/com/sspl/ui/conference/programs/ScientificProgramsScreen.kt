@@ -241,7 +241,7 @@ fun ConferenceItem(
                 ) {
                     val shouldShowFeedback = isNowAfter(
                         targetTime = item.startDate
-                    ) || true
+                    )
                     AnimatedVisibility(visible = shouldShowFeedback) {
                         AppTextLabel(
                             text = "FEEDBACK",

@@ -225,7 +225,7 @@ private fun ConferenceDetailContent(
                                 )
                                 navController.navigate(route = Screen.SessionDetailScreen.route)
                             },
-                            onFeedbackClicked = {session->
+                            onFeedbackClicked = { session ->
                                 navController.currentBackStackEntry?.savedStateHandle?.set(
                                     "conferenceID",
                                     conferenceDetail.id
@@ -381,14 +381,14 @@ private fun ColumnScope.SessionItem(
                             endDateTimeUtc = session.endsAt,
                             graceMinutes = 15
                         )
-                        AnimatedVisibility(visible = true) {
+                        AnimatedVisibility(visible = shouldShowFeedback) {
                             AppTextLabel(
                                 text = "Feedback",
                                 textDecoration = TextDecoration.Underline,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier.clickable(
                                     onClick = {
-onFeedbackClicked.invoke()
+                                        onFeedbackClicked.invoke()
                                     }
                                 )
                             )

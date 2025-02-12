@@ -75,8 +75,8 @@ android {
             signingConfig = signingConfigs.getByName("sspl")
         }
         create("bhimsoft") {
-            versionCode = 1
-            versionName = "1.0.1"
+            versionCode = 2
+            versionName = "1.0.2"
             dimension = "version"
             applicationIdSuffix = ".sosapp"
             signingConfig = signingConfigs.getByName("bhimsoft")
