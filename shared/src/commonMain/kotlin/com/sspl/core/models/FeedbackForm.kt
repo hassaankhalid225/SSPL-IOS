@@ -35,7 +35,7 @@ data class Question(
     val id: Int,
     val statement: String,
     val description: String? = null,
-    val type: String,
+    val type: QuestionType,
     val options: List<Option>,
     val statements: List<Statement>
 )
@@ -51,3 +51,9 @@ data class Statement(
     val id: Int,
     val statement: String
 )
+
+enum class QuestionType {
+    EVALUATION,
+    COMMENT,
+    YESNO
+}
