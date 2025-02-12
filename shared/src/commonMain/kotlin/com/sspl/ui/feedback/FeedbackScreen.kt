@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
@@ -30,6 +31,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,19 +41,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.sspl.core.ApiStates
+import com.sspl.core.models.FeedbackForm
+import com.sspl.core.models.Option
+import com.sspl.core.models.Statement
 import com.sspl.resources.Res
-import com.sspl.resources.app_logo
-import com.sspl.resources.feedback
 import com.sspl.resources.feedback_sub_title
+import com.sspl.ui.components.AppProgressBar
 import com.sspl.ui.components.AppTextField
 import com.sspl.ui.components.AppTextLabel
-import com.sspl.ui.components.AppTextTitle
+import com.sspl.ui.components.AppTextSubTitle
 import com.sspl.ui.components.ButtonWithProgress
-import com.sspl.ui.kyc.HeaderSection
 import com.sspl.ui.postcreation.DescriptionTextEditor
-import com.sspl.utils.IconResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -59,26 +63,37 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun FeedbackScreen(navController: NavController, viewModel: FeedbackViewModel = koinViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    FeedbackScreenContent(
-        facilitatorName = uiState.facilitatorName,
-        facilitatorNameError = uiState.facilitatorNameError,
-        bestAspectsComment = uiState.bestAspectsComment,
-        areaToImproveComment = uiState.areaToImproveComment,
-        isLoading = uiState.isLoading,
-        isEnabled = uiState.isEnabled,
-        onEvent = viewModel::onEvent
-    )
+    LaunchedEffect(Unit) {
+        viewModel.setConferenceId(10L)
+    }
+    val feedbackForm = viewModel.feedbackFormResponse.collectAsStateWithLifecycle().value
+    when (feedbackForm) {
+        is ApiStates.Loading -> {
+            AppProgressBar()
+        }
+
+        is ApiStates.Failure -> {
+
+        }
+
+        is ApiStates.Success -> {
+            feedbackForm.data?.let { form ->
+                FeedbackScreenContent(
+                    uiState = uiState,
+                    feedbackForm = form,
+                    onEvent = viewModel::onEvent
+                )
+            }
+        }
+    }
+
 }
 
 
 @Composable
 fun FeedbackScreenContent(
-    facilitatorName: String = "",
-    facilitatorNameError: String? = null,
-    bestAspectsComment: String = "",
-    areaToImproveComment: String = "",
-    isLoading: Boolean = false,
-    isEnabled: Boolean = false,
+    uiState: FeedbackUiState,
+    feedbackForm: FeedbackForm,
     onEvent: (FeedbackUiEvents) -> Unit = {}
 ) {
 
@@ -90,75 +105,59 @@ fun FeedbackScreenContent(
         ).padding(16.dp)
     ) {
         Spacer(Modifier.height(4.dp))
-
-        HeaderSection(
-            iconResource = IconResource.fromDrawableResource(drawable = Res.drawable.app_logo),
-            title = stringResource(Res.string.feedback),
-            subTitle = stringResource(Res.string.feedback_sub_title)
+        AppTextSubTitle(
+            modifier = Modifier.padding(horizontal = 2.dp),
+            text = stringResource(Res.string.feedback_sub_title),
+            fontSize = 15.sp
         )
-        Spacer(Modifier.height(8.dp))
-        ActivityCard(modifier = Modifier.fillMaxWidth(), title = "Activity Evaluation", content = {
-            QuestionSelector(questionText = "Objectives were achieved?", onAnswerSelected = {})
-            QuestionSelector(questionText = "Activity was well organized?", onAnswerSelected = {})
-            QuestionSelector(questionText = "Environment promoted learning ", onAnswerSelected = {})
-            QuestionSelector(questionText = "Updated my knowledge/skills ", onAnswerSelected = {})
-            QuestionSelector(questionText = "Filled gaps in my professional practice ",
-                onAnswerSelected = {})
-            QuestionSelector(questionText = "Would recommend to colleagues", onAnswerSelected = {})
-        })
+        feedbackForm.questionGroups.forEach { group ->
+            //Spacer(Modifier.height(8.dp))
+            ActivityCard(
+                modifier = Modifier.fillMaxWidth(),
+                title = group.title,
+                content = {
+                    group.questions.forEach { question ->
+                        when (question.type) {
+                            "EVALUATION" -> {
+                                question.statements.forEach {
+                                    QuestionSelector(
+                                        statement = it,
+                                        options = question.options,
+                                        onAnswerSelected = { statement, option -> })
+                                }
+                            }
 
-        Spacer(Modifier.height(8.dp))
+                            "YESNO" -> {
+                                question.statements.forEach {
+                                    YesNoQuestion(
+                                        statement = it,
+                                        options = question.options,
+                                        onAnswerSelected = { statement, option ->
 
-        ActivityCard(modifier = Modifier.fillMaxWidth(),
-            title = "Facilitator Evaluation",
-            content = {
-                AppTextField(placeholder = "Facilitators name",
-                    text = facilitatorName,
-                    errorMessage = facilitatorNameError,
-                    onTextChange = {
-                        onEvent(FeedbackUiEvents.OnFacilitatorNameChanged(it))
-                    })
-                QuestionSelector(questionText = "knowledge ", onAnswerSelected = {})
-                QuestionSelector(questionText = "Clear Presentations ", onAnswerSelected = {})
-                QuestionSelector(questionText = "interaction & discussion ", onAnswerSelected = {})
-                QuestionSelector(questionText = "Explained key concepts ", onAnswerSelected = {})
-            })
+                                        }
+                                    )
+                                }
+                            }
 
-        Spacer(Modifier.height(8.dp))
-
-        ActivityCard(modifier = Modifier.fillMaxWidth(), title = "Impact of activity", content = {
-            YesNoQuestion(questionText = "Competence", onAnswerSelected = { boolean ->
-
-            })
-            YesNoQuestion(questionText = "Performance", onAnswerSelected = { boolean ->
-
-            })
-            YesNoQuestion(questionText = "Patient Outcome", onAnswerSelected = { boolean ->
-
-            })
-        })
-        Spacer(Modifier.height(8.dp))
-
-        ActivityCard(modifier = Modifier.fillMaxWidth(), title = "Comments", content = {
-            DescriptionTextEditor(text = bestAspectsComment,
-                shape = RoundedCornerShape(4.dp),
-                modifier = Modifier.fillMaxWidth().heightIn(min = 100.dp, max = 300.dp),
-                placeholderText = "Best aspects of workshop:",
-                onTextChanged = {
-                    onEvent(FeedbackUiEvents.OnBestAspectsCommentChanged(it))
+                            "COMMENT" -> {
+                                DescriptionTextEditor(
+                                    text = uiState.bestAspectsComment,
+                                    shape = RoundedCornerShape(4.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                        .heightIn(min = 100.dp, max = 300.dp),
+                                    placeholderText = question.statement,
+                                    onTextChanged = {
+                                        onEvent(FeedbackUiEvents.OnBestAspectsCommentChanged(it))
+                                    })
+                            }
+                        }
+                    }
                 })
-            DescriptionTextEditor(text = areaToImproveComment,
-                shape = RoundedCornerShape(4.dp),
-                modifier = Modifier.fillMaxWidth().heightIn(min = 100.dp, max = 300.dp),
-                placeholderText = "Areas for improvement:",
-                onTextChanged = {
-                    onEvent(FeedbackUiEvents.OnAreaToImproveCommentChanged(it))
-                })
-        })
-
-        Spacer(Modifier.height(8.dp))
-        ButtonWithProgress(isEnabled = isEnabled,
-            isLoading = isLoading,
+            Spacer(Modifier.height(4.dp))
+        }
+        ButtonWithProgress(
+            isEnabled = uiState.isEnabled,
+            isLoading = uiState.isLoading,
             modifier = Modifier.imePadding(),
             buttonText = "Submit",
             onClick = {
@@ -173,24 +172,24 @@ fun FeedbackScreenContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuestionSelector(
-    modifier: Modifier = Modifier, questionText: String, onAnswerSelected: (String) -> Unit
+    modifier: Modifier = Modifier,
+    statement: Statement,
+    options: List<Option>,
+    onAnswerSelected: (Statement, Option) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
     var selectedOption by remember { mutableStateOf("") }
-
-    val options = listOf(
-        "Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"
-    )
 
     Column(
         modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         AppTextLabel(
-            text = questionText
+            text = statement.statement
         )
 
         ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
-            OutlinedTextField(value = selectedOption,
+            OutlinedTextField(
+                value = selectedOption,
                 onValueChange = {},
                 readOnly = true,
                 shape = RoundedCornerShape(8.dp),
@@ -213,10 +212,10 @@ fun QuestionSelector(
 
             ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 options.forEach { option ->
-                    DropdownMenuItem(text = { Text(option) }, onClick = {
-                        selectedOption = option
+                    DropdownMenuItem(text = { Text(option.label) }, onClick = {
+                        selectedOption = option.label
                         expanded = false
-                        onAnswerSelected(option)
+                        onAnswerSelected(statement, option)
                     })
                 }
             }
@@ -230,54 +229,57 @@ fun ActivityCard(modifier: Modifier = Modifier, title: String, content: @Composa
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(8.dp),
-        border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.4f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.2f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(22.dp),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            AppTextTitle(text = title, modifier.align(Alignment.Start))
-            Spacer(Modifier.height(6.dp))
+            AppTextSubTitle(text = title, modifier.align(Alignment.Start))
+            Spacer(Modifier.height(4.dp))
             content()
         }
     }
 }
 
 @Composable
-fun YesNoQuestion(
-    modifier: Modifier = Modifier, questionText: String, onAnswerSelected: (Boolean) -> Unit
+private fun YesNoQuestion(
+    modifier: Modifier = Modifier,
+    statement: Statement,
+    options: List<Option>,
+    onAnswerSelected: (Statement, Option) -> Unit
 ) {
     var selectedAnswer by remember { mutableStateOf<Boolean?>(null) }
 
-    Column(
-        modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         AppTextLabel(
-            text = questionText
+            text = statement.statement
         )
 
         Row(
-            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.selectableGroup(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            RadioButton(text = "Yes", selected = selectedAnswer == true, onClick = {
-                selectedAnswer = true
-                onAnswerSelected(true)
-            })
-
-            RadioButton(text = "No", selected = selectedAnswer == false, onClick = {
-                selectedAnswer = false
-                onAnswerSelected(false)
-            })
+            options.forEach {
+                RadioButton(text = it.label, selected = selectedAnswer == true, onClick = {
+                    selectedAnswer = true
+                    onAnswerSelected(statement, it)
+                })
+            }
         }
     }
 }
 
 @Composable
 private fun RadioButton(
-    text: String, selected: Boolean, onClick: () -> Unit
+    text: String? = null, selected: Boolean, onClick: () -> Unit
 ) {
     Row(
         Modifier.selectable(
@@ -288,8 +290,10 @@ private fun RadioButton(
             selected = selected,
             onClick = null // null because we're handling the click on the parent
         )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(text = text)
+        text?.let {
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = text)
+        }
     }
 }
 

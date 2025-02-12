@@ -31,5 +31,11 @@ sealed class ConferenceRequest {
         val sessionId: Long,
     ) : ConferenceRequest()
 
+    @Serializable
+    @Resource("/conferences/{conferenceId}/feedback-form")
+    data class GetFeedbackForm(
+        val conferenceId: Long
+    ) : ConferenceRequest()
+
 
 }

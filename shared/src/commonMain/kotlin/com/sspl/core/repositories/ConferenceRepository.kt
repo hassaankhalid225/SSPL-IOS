@@ -33,9 +33,11 @@ class ConferenceRepository(private val client: HttpClient) {
 
     suspend fun markAttendanceViaImage(
         conferenceId: Long, sessionId: Long, picture: ByteArray
-    ): HttpResponse  = client.post(
-        ConferenceRequest.PostAttendance(conferenceId, sessionId)) {
-        setBody(MultiPartFormDataContent(
+    ): HttpResponse = client.post(
+        ConferenceRequest.PostAttendance(conferenceId, sessionId)
+    ) {
+        setBody(
+            MultiPartFormDataContent(
             formData {
                 append("picture", picture, Headers.build {
                     append(HttpHeaders.ContentType, "application/octet-stream")
@@ -45,6 +47,9 @@ class ConferenceRepository(private val client: HttpClient) {
         ))
     }
 
-
-
+    suspend fun getFeedbackForm(
+        conferenceId: Long
+    ): HttpResponse = client.get(
+        ConferenceRequest.GetFeedbackForm(conferenceId)
+    )
 }
