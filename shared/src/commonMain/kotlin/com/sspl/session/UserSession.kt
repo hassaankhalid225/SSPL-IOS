@@ -37,6 +37,7 @@ class UserSession(private val storage: Storage) {
 
     suspend fun resetToken() {
         storage.putString(TOKEN_KEY, null)
+        this.token = null
     }
 
     suspend fun setUser(user: User) {

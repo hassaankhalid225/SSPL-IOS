@@ -24,10 +24,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -35,7 +38,7 @@ class ProfileViewModel(
     private val userSession: UserSession,
     private val getUserDetailsUseCase: GetUserDetailsUseCase,
 
-) : ViewModel() {
+    ) : ViewModel() {
     //throughtout the app single obj
     private val _user = MutableStateFlow<User?>(null)
     val user = _user.asStateFlow()
@@ -46,8 +49,8 @@ class ProfileViewModel(
     private val _userDetails = MutableStateFlow<ApiStates<User?>>(ApiStates.Loading)
     val userDetails = _userDetails.asStateFlow()
 
-
-
+    var onSignedOut = MutableStateFlow(false)
+        private set
 
     init {
         viewModelScope.launch {
@@ -55,15 +58,18 @@ class ProfileViewModel(
             _user.value = userSession.getUser()
             _user.value?.let { mUser ->
                 isGuestUser.update { mUser.account?.isGuestUser() == true }
-
             }
         }
     }
-    fun updateUser(user: User){
+
+    fun updateUser(user: User) {
         _user.update { user }
+        _userDetails.update { ApiStates.Success(user) }
     }
-    fun updateUserDetails(userDetails:User){
+
+    fun updateUserDetails(userDetails: User) {
         _userDetails.update { ApiStates.Success(userDetails) }
+        _user.update { userDetails }
     }
 
     fun getUserDetails() {
@@ -72,7 +78,7 @@ class ProfileViewModel(
                 _userDetails.value = state
                 if (state is ApiStates.Success) {
                     state.data?.let { data ->
-
+                        _user.update { data }
                     }
                 }
             }
@@ -83,12 +89,8 @@ class ProfileViewModel(
         viewModelScope.launch {
             userSession.resetToken()
             userSession.resetUser()
+            onSignedOut.update { true }
         }
     }
-
-
-
 }
-
-//states
 

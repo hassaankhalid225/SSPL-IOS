@@ -4,7 +4,6 @@ import com.sspl.core.ApiStates
 import com.sspl.core.models.ApiError
 import com.sspl.core.models.User
 import com.sspl.core.repositories.UserRepository
-import com.sspl.session.UserSession
 import io.ktor.client.call.body
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.flow.Flow

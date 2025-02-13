@@ -67,23 +67,24 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = koinViewModel(),
     onParentGraph: () -> Unit = {}
 ) {
-    val user by viewModel.user.collectAsStateWithLifecycle()
+    //val user by viewModel.user.collectAsStateWithLifecycle()
     val userDetails by viewModel.userDetails.collectAsStateWithLifecycle()
-
+    val onSignedOut by viewModel.onSignedOut.collectAsStateWithLifecycle()
+    if (onSignedOut) {
+        onParentGraph()
+    }
     LaunchedEffect(Unit) {
         viewModel.getUserDetails()
     }
     ProfileScreenContent(
-        user = user,
         userDetails = userDetails, onSignOut = {
             viewModel.onSignOut()
-            onParentGraph()
         }, onEditPersonalDetails = {
             navController.currentBackStackEntry?.savedStateHandle?.set(
                 "isPersonalDetails", true
             )
             navController.currentBackStackEntry?.savedStateHandle?.set(
-                "currentUser",  Json.encodeToString((userDetails as ApiStates.Success).data)
+                "currentUser", Json.encodeToString((userDetails as ApiStates.Success).data)
             )
             navController.navigate(Screen.EditProfile.route)
         }, onEditProfessionalDetails = {
@@ -92,7 +93,7 @@ fun ProfileScreen(
             )
             navController.currentBackStackEntry?.savedStateHandle?.set(
 
-                "currentUser",  Json.encodeToString((userDetails as ApiStates.Success).data)
+                "currentUser", Json.encodeToString((userDetails as ApiStates.Success).data)
             )
             navController.navigate(Screen.EditProfile.route)
         }
@@ -103,7 +104,6 @@ fun ProfileScreen(
 
 @Composable
 fun ProfileScreenContent(
-    user: User?,
     onSignOut: () -> Unit,
     userDetails: ApiStates<User?>,
     onEditPersonalDetails: () -> Unit = {},
@@ -120,14 +120,14 @@ fun ProfileScreenContent(
             )
 
             ApiStates.Loading -> AppProgressBar()
-            is ApiStates.Success -> userDetails.data?.let {
+            is ApiStates.Success -> userDetails.data?.let {data->
                 Spacer(Modifier.weight(0.1f))
                 ProfileImage()
                 Spacer(Modifier.height(20.dp))
 
-                BasicInformationSection(user, onEditPersonalDetails = onEditPersonalDetails)
+                BasicInformationSection(data, onEditPersonalDetails = onEditPersonalDetails)
                 Spacer(Modifier.height(16.dp))
-                PersonalDetailsSection(it, onEditProfessionalDetails = onEditProfessionalDetails)
+                PersonalDetailsSection(data, onEditProfessionalDetails = onEditProfessionalDetails)
             }
         }
         Spacer(Modifier.weight(1f))
