@@ -119,7 +119,7 @@ fun HomeScreen(
         Item(
             title = stringResource(Res.string.exhibition),
             icon = IconResource.fromDrawableResource(Res.drawable.ic_exhibition),
-            toScreen = Screen.ProfileScreen
+            toScreen = Screen.ExhibitionRegistrationScreen
         ),
         Item(
             title = stringResource(Res.string.about_us),
@@ -204,7 +204,8 @@ fun HomeScreen(
                         if (index == 2) {
                             println("Do nothing now")
                         } else if (index == 4) {
-                            urlOpener.openUrl("https://www.ssplahore.com/")
+                            // Exhibition: Always navigate to registration screen
+                            navController.navigate(it.toScreen.route)
                         } else {
                             navController.navigate(it.toScreen.route)
                         }

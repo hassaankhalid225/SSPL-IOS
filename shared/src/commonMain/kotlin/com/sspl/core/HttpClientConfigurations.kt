@@ -44,7 +44,7 @@ suspend fun <T : HttpClientEngineConfig> getBaseClient(
 //            publicStorage(CacheStorage.Disabled) // Disables response caching
 //        }
         install(ContentNegotiation) {
-            json(Json {
+            json(Json { 
                 ignoreUnknownKeys = true
                 prettyPrint = true
                 isLenient = true
@@ -56,7 +56,7 @@ suspend fun <T : HttpClientEngineConfig> getBaseClient(
             sanitizeHeader { header -> header == HttpHeaders.Authorization }
         }
         defaultRequest {
-            url("http://188.245.244.112:3000")
+            url("http://188.245.244.112:3000")            
             contentType(ContentType.Application.Json)
             val token = userSession.token
             token?.let {

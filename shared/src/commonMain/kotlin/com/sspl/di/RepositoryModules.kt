@@ -2,6 +2,7 @@ package com.sspl.di
 
 import com.sspl.core.repositories.AuthRepository
 import com.sspl.core.repositories.ConferenceRepository
+import com.sspl.core.repositories.ExhibitionRepository
 import com.sspl.core.repositories.PostRepositoryImpl
 import com.sspl.core.repositories.PostsRepository
 import com.sspl.core.repositories.UserRepository
@@ -21,5 +22,6 @@ internal val repositoryModules = module {
     factory { AuthRepository(get()) }
     factoryOf(::UserRepository)
     factoryOf(::ConferenceRepository)
+    factoryOf(::ExhibitionRepository)
     factoryOf(::PostRepositoryImpl).bind<PostsRepository>()
 }
