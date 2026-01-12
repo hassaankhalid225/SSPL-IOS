@@ -3,8 +3,10 @@ package com.sspl.di
 import com.sspl.core.repositories.AuthRepository
 import com.sspl.core.repositories.ConferenceRepository
 import com.sspl.core.repositories.ExhibitionRepository
+import com.sspl.core.repositories.NotificationRepository
 import com.sspl.core.repositories.PostRepositoryImpl
 import com.sspl.core.repositories.PostsRepository
+import com.sspl.core.repositories.ScenarioRepository
 import com.sspl.core.repositories.UserRepository
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
@@ -24,4 +26,6 @@ internal val repositoryModules = module {
     factoryOf(::ConferenceRepository)
     factoryOf(::ExhibitionRepository)
     factoryOf(::PostRepositoryImpl).bind<PostsRepository>()
+    factoryOf(::ScenarioRepository)
+    singleOf(::NotificationRepository) // Singleton for notification state
 }

@@ -120,6 +120,11 @@ fun ProfileScreenContent(
             )
 
             ApiStates.Loading -> AppProgressBar()
+
+            ApiStates.Idle -> {
+                // Do nothing, waiting for data
+            }
+
             is ApiStates.Success -> userDetails.data?.let {data->
                 Spacer(Modifier.weight(0.1f))
                 ProfileImage()

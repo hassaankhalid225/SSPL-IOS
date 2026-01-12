@@ -77,6 +77,10 @@ fun PostScreen(
             NoItems()
         }
 
+        ApiStates.Idle -> {
+            // Do nothing, waiting for data
+        }
+
         is ApiStates.Success -> {
             PullToRefreshBox(
                 isRefreshing = isRefreshing,
@@ -150,6 +154,10 @@ fun CommentsBottomSheet(
 
                     ApiStates.Loading -> {
                         AppProgressBar()
+                    }
+
+                    ApiStates.Idle -> {
+                        // Do nothing, waiting for data
                     }
 
                     is ApiStates.Success -> {

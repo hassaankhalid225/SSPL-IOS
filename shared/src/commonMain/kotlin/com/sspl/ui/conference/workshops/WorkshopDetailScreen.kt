@@ -104,6 +104,7 @@ fun WorkshopDetailScreen(
                 is ApiStates.Failure -> status.error.message?.let { scaffoldState.showSnackbar(it) }
                 ApiStates.Loading -> scaffoldState.showSnackbar("Please wait...")
                 is ApiStates.Success -> scaffoldState.showSnackbar("Attendance marked successfully")
+                ApiStates.Idle -> {} // Do nothing
             }
         }
     }
@@ -113,6 +114,7 @@ fun WorkshopDetailScreen(
                 is ApiStates.Failure -> status.error.message?.let { scaffoldState.showSnackbar(it) }
                 ApiStates.Loading -> scaffoldState.showSnackbar("Uploading image...")
                 is ApiStates.Success -> scaffoldState.showSnackbar("Image uploaded for attendance approval!")
+                ApiStates.Idle -> {} // Do nothing
             }
         }
     }
@@ -127,6 +129,10 @@ fun WorkshopDetailScreen(
 
         ApiStates.Loading -> {
             AppProgressBar()
+        }
+
+        ApiStates.Idle -> {
+            // Do nothing, waiting for data
         }
 
         is ApiStates.Success -> {

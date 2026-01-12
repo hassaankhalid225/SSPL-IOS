@@ -82,6 +82,10 @@ fun WorkshopsScreen(
             )
         }
 
+        ApiStates.Idle -> {
+            // Do nothing, waiting for data
+        }
+
         is ApiStates.Success -> {
             (uiState as ApiStates.Success<List<Conference>>).data?.let {
                 println("$TAG Data: $it")

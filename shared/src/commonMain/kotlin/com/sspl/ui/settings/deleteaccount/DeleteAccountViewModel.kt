@@ -67,6 +67,8 @@ class DeleteAccountViewModel(
                             )
                         }
 
+                        ApiStates.Idle -> {} // Do nothing
+
                         is ApiStates.Success -> _uiState.update {
                             _uiState.value.copy(
                                 deleteAcRes = data.data,

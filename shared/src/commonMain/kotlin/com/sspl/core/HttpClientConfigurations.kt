@@ -56,7 +56,7 @@ suspend fun <T : HttpClientEngineConfig> getBaseClient(
             sanitizeHeader { header -> header == HttpHeaders.Authorization }
         }
         defaultRequest {
-            url("http://188.245.244.112:3000")            
+            url("http://192.168.50.59:3001")            
             contentType(ContentType.Application.Json)
             val token = userSession.token
             token?.let {

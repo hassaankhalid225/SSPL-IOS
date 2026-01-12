@@ -3,6 +3,7 @@ package com.sspl.core.repositories
 import com.sspl.core.apis.ProfileRequest
 import com.sspl.core.models.Profile
 import com.sspl.core.models.User
+import com.sspl.core.requestbodies.UpdateDeviceTokenRequest
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.resources.get
 import io.ktor.client.plugins.resources.post
@@ -24,5 +25,10 @@ class UserRepository(private val client: HttpClient) {
     suspend fun updateUserProfile(body: User): HttpResponse =
         client.put(ProfileRequest.UserProfileRequest) {
             setBody(body)
+        }
+
+    suspend fun updateDeviceToken(deviceToken: String, devicePlatform: String): HttpResponse =
+        client.put(ProfileRequest.UpdateDeviceToken) {
+            setBody(UpdateDeviceTokenRequest(deviceToken, devicePlatform))
         }
 }

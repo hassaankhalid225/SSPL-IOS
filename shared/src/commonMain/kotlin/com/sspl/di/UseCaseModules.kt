@@ -1,5 +1,6 @@
 package com.sspl.di
 
+import com.sspl.core.usecases.AutoJoinSessionUseCase
 import com.sspl.core.usecases.CommentOnPostUseCase
 import com.sspl.core.usecases.DeleteAccountUseCase
 import com.sspl.core.usecases.DislikePostUseCase
@@ -10,6 +11,7 @@ import com.sspl.core.usecases.GetFeedbackFormUseCase
 import com.sspl.core.usecases.GetPostDetailsUseCase
 import com.sspl.core.usecases.GetPostsUseCase
 import com.sspl.core.usecases.GetUserDetailsUseCase
+import com.sspl.core.usecases.JoinSessionUseCase
 import com.sspl.core.usecases.LikePostUseCase
 import com.sspl.core.usecases.LoginUserUseCase
 import com.sspl.core.usecases.MarkAttendanceViaImageUseCase
@@ -22,6 +24,7 @@ import com.sspl.core.usecases.PostFeedbackFormUseCase
 import com.sspl.core.usecases.SignUpUserUseCase
 import com.sspl.core.usecases.UpdatePasswordUseCase
 import com.sspl.core.usecases.UpdateUserBasicInfoUseCase
+import com.sspl.core.usecases.UpdateDeviceTokenUseCase
 import com.sspl.core.usecases.ValidateUserCityUseCase
 import com.sspl.core.usecases.ValidateUserCountryUseCase
 import com.sspl.core.usecases.ValidateUserDesignationUseCase
@@ -74,4 +77,7 @@ internal val useCaseModules = module {
     factory { MarkAttendanceViaLocationUseCase(get()) }
     factory { DeleteAccountUseCase(get(), get()) }
     factory { PostFeedbackFormUseCase(get()) }
+    factory { JoinSessionUseCase(get()) }
+    factory { AutoJoinSessionUseCase(get()) }
+    factory { UpdateDeviceTokenUseCase(get()) }
 }

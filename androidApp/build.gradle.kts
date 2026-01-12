@@ -78,7 +78,8 @@ android {
             versionCode = 2
             versionName = "1.0.2"
             dimension = "version"
-            applicationIdSuffix = ".sosapp"
+            // TODO: Add com.sspl.sosapp to Firebase console and update google-services.json
+            // applicationIdSuffix = ".sosapp"
             signingConfig = signingConfigs.getByName("bhimsoft")
         }
     }
@@ -103,4 +104,8 @@ dependencies {
     implementation(project.dependencies.platform(libs.firebase.bom)) // Use the latest version
     implementation(libs.firebase.analytics.ktx)
     implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.messaging)
+    
+    // Pusher for real-time notifications
+    implementation(libs.pusher.java.client)
 }

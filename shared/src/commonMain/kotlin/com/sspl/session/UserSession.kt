@@ -16,6 +16,7 @@ class UserSession(private val storage: Storage) {
     companion object {
         private const val TOKEN_KEY = "user_token_key"
         private const val USER_KEY = "user_object_key"
+        private const val DEVICE_TOKEN_KEY = "device_token_key"
     }
 
     var token: String? = null
@@ -27,12 +28,28 @@ class UserSession(private val storage: Storage) {
             return field
         }
 
+    var deviceToken: String? = null
+        private set
+        get() {
+            if (field == null) {
+                runBlocking { field = getDeviceToken() }
+            }
+            return field
+        }
+
     private suspend fun getToken(): String? = storage.getString(TOKEN_KEY)
+    private suspend fun getDeviceToken(): String? = storage.getString(DEVICE_TOKEN_KEY)
 
     suspend fun setToken(token: String) {
         println(">>>Token: Saving $token")
         this.token = token
         storage.putString(TOKEN_KEY, token)
+    }
+
+    suspend fun setDeviceToken(token: String) {
+        println(">>>Device Token: Saving $token")
+        this.deviceToken = token
+        storage.putString(DEVICE_TOKEN_KEY, token)
     }
 
     suspend fun resetToken() {

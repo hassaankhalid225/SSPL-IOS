@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
  * se.muhammadimran@gmail.com
  */
 @Serializable
-@Resource("/auth")
+@Resource("/auth")  
 object AuthRequest {
     @Serializable
     @Resource("/signup")
