@@ -5,6 +5,7 @@ import com.sspl.core.usecases.CommentOnPostUseCase
 import com.sspl.core.usecases.DeleteAccountUseCase
 import com.sspl.core.usecases.DislikePostUseCase
 import com.sspl.core.usecases.EmailValidationUseCase
+import com.sspl.core.usecases.GetBannersUseCase
 import com.sspl.core.usecases.GetConferencesDetailsUseCase
 import com.sspl.core.usecases.GetConferencesUseCase
 import com.sspl.core.usecases.GetFeedbackFormUseCase
@@ -80,4 +81,5 @@ internal val useCaseModules = module {
     factory { JoinSessionUseCase(get()) }
     factory { AutoJoinSessionUseCase(get()) }
     factory { UpdateDeviceTokenUseCase(get()) }
+    factory { GetBannersUseCase(get()) }
 }

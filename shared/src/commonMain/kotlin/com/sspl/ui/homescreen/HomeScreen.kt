@@ -1,6 +1,5 @@
 package com.sspl.ui.homescreen
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -24,7 +23,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -37,16 +35,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.sspl.Screen
+import com.sspl.core.models.Banner
 import com.sspl.platform.shared.UrlOpener
 import com.sspl.resources.Res
 import com.sspl.resources.about_us
-import com.sspl.resources.ad_sspl
-import com.sspl.resources.banner_five
-import com.sspl.resources.banner_four
-import com.sspl.resources.banner_one
-import com.sspl.resources.banner_six
-import com.sspl.resources.banner_three
-import com.sspl.resources.banner_two
 import com.sspl.resources.exhibition
 import com.sspl.resources.forum
 import com.sspl.resources.ic_exhibition
@@ -67,7 +59,6 @@ import com.sspl.theme.columnColor
 import com.sspl.theme.platformConfig
 import com.sspl.ui.components.AppHorizontalPager
 import com.sspl.ui.components.AppTextSubTitle
-import com.sspl.ui.components.BetterModalBottomSheet
 import com.sspl.ui.components.GuestUserWarning
 import com.sspl.ui.userdetails.ProfileViewModel
 import com.sspl.utils.IconResource
@@ -91,7 +82,6 @@ fun HomeScreen(
     homeViewModel: HomeScreenViewModel = koinViewModel(),
     profileViewModel: ProfileViewModel = koinViewModel()
 ) {
-    var showSheet = homeViewModel.isAdShown.collectAsState()
     val isGuestUser = profileViewModel.isGuestUser.collectAsState()
     val urlOpener = koinInject<UrlOpener>()
     val scope = rememberCoroutineScope()
@@ -137,30 +127,37 @@ fun HomeScreen(
             toScreen = Screen.SettingsScreen
         )
     )
-    val bannerImages = listOf(
-        Res.drawable.banner_one,
-        Res.drawable.banner_two,
-        Res.drawable.banner_three,
-        Res.drawable.banner_four,
-        Res.drawable.banner_five,
-        Res.drawable.banner_six
-    )
-    val pagerState = rememberPagerState(pageCount = {
-        bannerImages.size
-    })
+    val banners = homeViewModel.banners.collectAsState()
+    val sliderBanners = banners.value.filter { it.type == "SLIDER" || it.type == null }
+    val rawBaseUrl = com.sspl.utils.BASE_URL // No trailing slash here
+    
     LaunchedEffect(Unit) {
-        while (true) {
-            delay(4000L)
-            val currentPage = pagerState.currentPage
-            scope.launch {
-                if (currentPage + 1 == bannerImages.size) {
-                    pagerState.animateScrollToPage(0)
-                } else {
-                    pagerState.animateScrollToPage(currentPage + 1)
+        homeViewModel.fetchBanners()
+    }
+
+    val pagerState = rememberPagerState(pageCount = {
+        sliderBanners.size
+    })
+
+    LaunchedEffect(sliderBanners) {
+        if (sliderBanners.isNotEmpty()) {
+            while (true) {
+                delay(4000L)
+                val currentPage = pagerState.currentPage
+                scope.launch {
+                    if (currentPage + 1 == sliderBanners.size) {
+                        pagerState.animateScrollToPage(0)
+                    } else {
+                        pagerState.animateScrollToPage(currentPage + 1)
+                    }
                 }
             }
         }
     }
+    
+
+    
+
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         if (isGuestUser.value) {
             item {
@@ -171,23 +168,33 @@ fun HomeScreen(
                 )
             }
         }
-        item {
-            AppHorizontalPager(
-                list = bannerImages,
-                pagerState = pagerState,
-                showIndicator = false
-            ) { modifier, item, page ->
-                Image(
-                    modifier = modifier.then(
-                        Modifier.fillMaxWidth().clip(
-                            shape = RoundedCornerShape(8)
-                        )
-                    ),
-                    contentScale = ContentScale.FillWidth,
-                    painter = painterResource(item), contentDescription = ""
-                )
+        if (sliderBanners.isNotEmpty()) {
+            item {
+                AppHorizontalPager(
+                    list = sliderBanners,
+                    pagerState = pagerState,
+                    showIndicator = false
+                ) { modifier, item, page ->
+                    val fullImageUrl = if (item.imageUrl?.startsWith("/") == true) {
+                        "$rawBaseUrl${item.imageUrl}"
+                    } else {
+                        "$rawBaseUrl/${item.imageUrl}"
+                    }
+                    
+                    coil3.compose.AsyncImage(
+                        model = fullImageUrl,
+                        contentDescription = item.title ?: "",
+                        modifier = modifier.then(
+                            Modifier.fillMaxWidth().clip(
+                                shape = RoundedCornerShape(8)
+                            )
+                        ),
+                        contentScale = ContentScale.FillWidth
+                    )
+                }
             }
         }
+
         item {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2), // 3 columns
@@ -212,33 +219,6 @@ fun HomeScreen(
                     }
                 }
             }
-
-        }
-    }
-
-    AnimatedVisibility(visible = showSheet.value) {
-        BetterModalBottomSheet(
-            sheetState = rememberModalBottomSheetState(
-                skipPartiallyExpanded = true,
-//            confirmValueChange = {
-//                //if (condition) true else false
-//                false
-//            }
-            ),
-            onDismissRequest = {
-                scope.launch { homeViewModel.updateAdShown(false) }
-            }
-        ) {
-
-            val screenHeight = MaterialTheme.platformConfig.screenHeight
-            val maxHeight = screenHeight * 0.85f
-            Image(
-                modifier = Modifier.fillMaxWidth().heightIn(max = maxHeight)
-                    .padding(horizontal = 12.dp),
-                contentScale = ContentScale.FillWidth,
-                painter = painterResource(Res.drawable.ad_sspl),
-                contentDescription = ""
-            )
         }
     }
 }

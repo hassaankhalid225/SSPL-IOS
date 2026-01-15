@@ -1,5 +1,4 @@
 package com.sspl.core
-
 import com.sspl.session.UserSession
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
@@ -56,7 +55,7 @@ suspend fun <T : HttpClientEngineConfig> getBaseClient(
             sanitizeHeader { header -> header == HttpHeaders.Authorization }
         }
         defaultRequest {
-            url("http://192.168.50.59:3001")            
+            url("${com.sspl.utils.BASE_URL}/")
             contentType(ContentType.Application.Json)
             val token = userSession.token
             token?.let {

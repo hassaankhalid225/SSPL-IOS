@@ -1,6 +1,7 @@
 package com.sspl.di
 
 import com.sspl.core.repositories.AuthRepository
+import com.sspl.core.repositories.BannerRepository
 import com.sspl.core.repositories.ConferenceRepository
 import com.sspl.core.repositories.ExhibitionRepository
 import com.sspl.core.repositories.NotificationRepository
@@ -27,5 +28,6 @@ internal val repositoryModules = module {
     factoryOf(::ExhibitionRepository)
     factoryOf(::PostRepositoryImpl).bind<PostsRepository>()
     factoryOf(::ScenarioRepository)
+    factoryOf(::BannerRepository)
     singleOf(::NotificationRepository) // Singleton for notification state
 }

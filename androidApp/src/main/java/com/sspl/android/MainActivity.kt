@@ -189,7 +189,7 @@ class MainActivity : ComponentActivity() {
     private fun setupPusher() {
         // Pusher credentials for real-time notifications
         pusherManager = PusherManager(
-            appKey = "0d0867d0841ec23f584b",
+            appKey = "36e8c7303e28cf81d297",
             cluster = "ap2"
         )
         
