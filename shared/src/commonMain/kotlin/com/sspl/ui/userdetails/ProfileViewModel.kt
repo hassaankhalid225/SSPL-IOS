@@ -39,7 +39,7 @@ class ProfileViewModel(
     private val getUserDetailsUseCase: GetUserDetailsUseCase,
 
     ) : ViewModel() {
-    //throughtout the app single obj
+    //Throughout the app single obj
     private val _user = MutableStateFlow<User?>(null)
     val user = _user.asStateFlow()
     var isGuestUser = MutableStateFlow(true)

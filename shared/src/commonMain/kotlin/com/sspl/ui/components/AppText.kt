@@ -133,34 +133,6 @@ fun AppTextSubTitle(
             textDecoration = textDecoration,
             lineHeight = lineHeight
         )
-
-//        Row {
-//            val words = text.split(" ")
-//            words.forEach { word ->
-//                val firstLetter = word.firstOrNull()?.uppercase() ?: ""
-//                val remainingText = word.drop(1).uppercase()
-//                AppText(
-//                    modifier = modifier,
-//                    text = firstLetter,
-//                    style = style.copy(fontSize = fontSizeCap),
-//                    textAlign = textAlign,
-//                    overflow = overflow,
-//                    maxLines = maxLines,
-//                    textDecoration = textDecoration,
-//                    lineHeight = lineHeight
-//                )
-//                AppText(
-//                    modifier = modifier,
-//                    text = remainingText,
-//                    style = style,
-//                    textAlign = textAlign,
-//                    overflow = overflow,
-//                    maxLines = maxLines,
-//                    textDecoration = textDecoration,
-//                    lineHeight = lineHeight
-//                )
-//            }
-//        }
     } else {
         AppText(
             modifier = modifier,

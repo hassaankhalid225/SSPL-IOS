@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -15,13 +16,13 @@ keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 
 android {
     namespace = "com.sspl.android"
-    compileSdk = 35
+    compileSdk = 36
     defaultConfig {
         applicationId = "com.sspl"
         minSdk = 23
-        targetSdk = 35
-        versionCode = 7
-        versionName = "1.0.7"
+        targetSdk = 36
+        versionCode = 8
+        versionName = "1.0.8"
     }
     signingConfigs {
         create("sspl") {
@@ -68,26 +69,32 @@ android {
             signingConfig = signingConfigs.getByName("stageRelease")
         }
         create("sspl") {
-            versionCode = 7
-            versionName = "1.0.7"
+            versionCode = 8
+            versionName = "1.0.8"
             dimension = "version"
             applicationIdSuffix = ".android"
             signingConfig = signingConfigs.getByName("sspl")
         }
         create("bhimsoft") {
-            versionCode = 2
-            versionName = "1.0.2"
+            versionCode = 3
+            versionName = "1.0.3"
             dimension = "version"
             applicationIdSuffix = ".sosapp"
             signingConfig = signingConfigs.getByName("bhimsoft")
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "1.8"
+//    kotlinOptions {
+//        jvmTarget = "1.8"
+//    }
+    kotlin {
+        compilerOptions {
+            //jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
+            jvmTarget.set(JvmTarget.JVM_11)
+        }
     }
 }
 
@@ -101,6 +108,6 @@ dependencies {
     implementation(libs.koin.android)
 
     implementation(project.dependencies.platform(libs.firebase.bom)) // Use the latest version
-    implementation(libs.firebase.analytics.ktx)
+    //implementation(libs.firebase.analytics.ktx)
     implementation(libs.firebase.crashlytics)
 }
