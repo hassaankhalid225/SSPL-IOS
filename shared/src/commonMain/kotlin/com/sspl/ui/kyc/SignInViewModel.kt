@@ -19,9 +19,9 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import com.sspl.utils.DateTimeUtils
 
 /**
  * Created by M Imran
@@ -200,7 +200,7 @@ class SignInViewModel(
 
     private fun continueAsGuest() {
         viewModelScope.launch {
-            val email = "${Clock.System.now().toEpochMilliseconds()}." + EMAIL_GUEST_USER
+            val email = "${DateTimeUtils.timeInMilliNow()}." + EMAIL_GUEST_USER
             signUpUseCase.signUpUser(
                 firstName = "Guest",
                 lastName = "User",

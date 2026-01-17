@@ -15,7 +15,9 @@ import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.headersOf
 import kotlinx.serialization.json.JsonObject
-import kotlin.uuid.Uuid
+import com.sspl.core.models.RegisterUserRequest
+import com.sspl.core.models.UpdatePaymentRequest
+// import kotlin.uuid.Uuid removed
 
 class ConferenceRepository(private val client: HttpClient) {
 
@@ -64,8 +66,20 @@ class ConferenceRepository(private val client: HttpClient) {
         conferenceId: Long,body: JsonObject,sessionId: Long
     ): HttpResponse = client.post(
          ConferenceRequest.PostFeedbackFormSessionRequest(conferenceId,sessionId)
-
     ){
         setBody(body)
     }
+
+    suspend fun checkRegistration(conferenceId: Long): HttpResponse =
+        client.get(ConferenceRequest.CheckRegistration(conferenceId))
+
+    suspend fun registerUser(conferenceId: Long, request: RegisterUserRequest): HttpResponse =
+        client.post(ConferenceRequest.RegisterUser(conferenceId)) {
+            setBody(request)
+        }
+
+    suspend fun updatePayment(conferenceId: Long, regId: Long, request: UpdatePaymentRequest): HttpResponse =
+        client.put(ConferenceRequest.UpdatePayment(conferenceId, regId)) {
+            setBody(request)
+        }
 }

@@ -10,14 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.util.UUID
-
-/**
- * Created by M Imran
- * Senior Software Engineer at
- * BhimSoft on 12/02/2025.
- * se.muhammadimran@gmail.com
- */
+import com.sspl.utils.randomUUID
 
 class ExhibitionRegistrationViewModel(
     private val exhibitionRepository: ExhibitionRepository
@@ -94,7 +87,7 @@ class ExhibitionRegistrationViewModel(
             }
 
             is ExhibitionRegistrationEvents.AddProductField -> {
-                val newProduct = ProductField(id = UUID.randomUUID().toString())
+                val newProduct = ProductField(id = randomUUID())
                 _uiState.value = _uiState.value.copy(
                     products = _uiState.value.products + newProduct
                 )

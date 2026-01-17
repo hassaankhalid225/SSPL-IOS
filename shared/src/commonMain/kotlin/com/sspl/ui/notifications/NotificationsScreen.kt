@@ -27,15 +27,11 @@ import com.sspl.theme.windowBackGround
 import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.AppTextSubTitle
 import org.koin.compose.viewmodel.koinViewModel
-import java.text.SimpleDateFormat
-import java.util.*
+import com.sspl.utils.DateTimeUtils
+import com.sspl.platform.formatDateTime
+import kotlinx.datetime.Instant
 
-/**
- * Created by M Imran
- * Senior Software Engineer at
- * BhimSoft on 02/02/2025.
- * se.muhammadimran@gmail.com
- */
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -279,7 +275,7 @@ private fun NotificationCard(
 }
 
 private fun formatTimestamp(timestamp: Long): String {
-    val now = System.currentTimeMillis()
+    val now = DateTimeUtils.timeInMilliNow()
     val diff = now - timestamp
     
     return when {
@@ -288,8 +284,12 @@ private fun formatTimestamp(timestamp: Long): String {
         diff < 86400_000 -> "${diff / 3600_000}h ago"
         diff < 604800_000 -> "${diff / 86400_000}d ago"
         else -> {
-            val sdf = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-            sdf.format(Date(timestamp))
+            val instant = Instant.fromEpochMilliseconds(timestamp)
+            formatDateTime(
+                dateTime = instant.toString(),
+                inFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                outFormat = "MMM dd, yyyy"
+            )
         }
     }
 }

@@ -134,6 +134,13 @@ fun ConferenceList(
                         item.id
                     )
                     navController.navigate(route = Screen.FeedbackScreen.route)
+                },
+                onRegisterClick = {
+                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                        "data",
+                        Json.encodeToString(item)
+                    )
+                    navController.navigate(route = Screen.ConferenceRegistrationScreen.route)
                 }
             )
         }
@@ -146,7 +153,8 @@ fun ConferenceItem(
     position: Int,
     showDivider: Boolean = true,
     onClick: () -> Unit,
-    onFeedbackClick: () -> Unit
+    onFeedbackClick: () -> Unit,
+    onRegisterClick: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth().let {
@@ -261,7 +269,18 @@ fun ConferenceItem(
                     AppTextLabel(
                         textDecoration = TextDecoration.Underline,
                         fontWeight = FontWeight.SemiBold,
-                        text = "MORE DETAILS"
+                        text = "REGISTER NOW",
+                        modifier = Modifier.clickable {
+                            onRegisterClick.invoke()
+                        }
+                    )
+                    AppTextLabel(
+                        textDecoration = TextDecoration.Underline,
+                        fontWeight = FontWeight.SemiBold,
+                        text = "MORE DETAILS",
+                        modifier = Modifier.clickable {
+                            onClick.invoke()
+                        }
                     )
                 }
             }

@@ -35,6 +35,8 @@ import com.sspl.ui.about.AboutScreen
 import com.sspl.ui.conference.programs.ProgramDetailScreen
 import com.sspl.ui.conference.programs.ScientificProgramsScreen
 import com.sspl.ui.conference.programs.SessionDetailScreen
+import com.sspl.ui.conference.registration.ConferenceRegistrationScreen
+import com.sspl.ui.conference.registration.PaymentStatusScreen
 import com.sspl.ui.conference.workshops.WorkshopDetailScreen
 import com.sspl.ui.conference.workshops.WorkshopsScreen
 import com.sspl.ui.feedback.FeedbackScreen
@@ -197,6 +199,14 @@ sealed class Screen(
         title = Res.string.exhibition,
         route = "ExhibitionRegistrationScreen",
     )
+
+    data object ConferenceRegistrationScreen : Screen(
+        route = "ConferenceRegistrationScreen",
+    )
+
+    data object PaymentStatusScreen : Screen(
+        route = "PaymentStatusScreen",
+    )
 }
 
 fun screenByRoute(route: String?): Screen? =
@@ -254,6 +264,12 @@ fun otherScreens(): List<NavItem> = listOf(
     NavItem(
         screen = Screen.ExhibitionRegistrationScreen,
         component = { ExhibitionRegistrationScreen(navController = it) }),
+    NavItem(
+        screen = Screen.ConferenceRegistrationScreen,
+        component = { ConferenceRegistrationScreen(navController = it) }),
+    NavItem(
+        screen = Screen.PaymentStatusScreen,
+        component = { PaymentStatusScreen(navController = it) }),
 )
 
 fun kycScreens(): List<NavItem> = listOf(

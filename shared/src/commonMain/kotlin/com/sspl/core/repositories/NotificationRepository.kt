@@ -3,17 +3,12 @@ package com.sspl.core.repositories
 import com.sspl.core.models.NotificationItem
 import com.sspl.core.models.NotificationType
 import com.sspl.core.models.SessionNotification
+import com.sspl.utils.DateTimeUtils
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-/**
- * Created by M Imran
- * Senior Software Engineer at
- * BhimSoft on 08/01/2025.
- * se.muhammadimran@gmail.com
- */
 
 class NotificationRepository {
     
@@ -24,11 +19,12 @@ class NotificationRepository {
     val unreadCount: StateFlow<Int> = _unreadCount.asStateFlow()
     
     fun addSessionNotification(sessionNotification: SessionNotification) {
+        // Updated to use KMP-compatible DateTimeUtils instead of System.currentTimeMillis()
         val notification = NotificationItem(
-            id = "session_${sessionNotification.sessionId}_${System.currentTimeMillis()}",
+            id = "session_${sessionNotification.sessionId}_${DateTimeUtils.timeInMilliNow()}",
             title = "New Live Session",
             message = "${sessionNotification.scenarioTitle} is now live! Join with code: ${sessionNotification.joinCode}",
-            timestamp = System.currentTimeMillis(),
+            timestamp = DateTimeUtils.timeInMilliNow(),
             isRead = false,
             type = NotificationType.SESSION_LIVE,
             sessionNotification = sessionNotification

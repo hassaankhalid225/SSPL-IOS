@@ -33,6 +33,9 @@ import com.sspl.core.usecases.ValidateUserNameUseCase
 import com.sspl.core.usecases.ValidateUserInstitutionUseCase
 import com.sspl.core.usecases.ValidateUserPmdcNoUseCase
 import com.sspl.core.usecases.ValidateUserRegistrationNumberUseCase
+import com.sspl.core.usecases.CheckRegistrationUseCase
+import com.sspl.core.usecases.RegisterUserUseCase
+import com.sspl.core.usecases.UpdatePaymentUseCase
 import org.koin.dsl.module
 
 /**
@@ -81,5 +84,9 @@ internal val useCaseModules = module {
     factory { JoinSessionUseCase(get()) }
     factory { AutoJoinSessionUseCase(get()) }
     factory { UpdateDeviceTokenUseCase(get()) }
+    factory { UpdateDeviceTokenUseCase(get()) }
     factory { GetBannersUseCase(get()) }
+    factory { CheckRegistrationUseCase(get()) }
+    factory { RegisterUserUseCase(get()) }
+    factory { UpdatePaymentUseCase(get()) }
 }

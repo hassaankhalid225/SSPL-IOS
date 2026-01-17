@@ -48,5 +48,17 @@ sealed class ConferenceRequest {
         val sessionId: Long
     ) : ConferenceRequest()
 
+    @Serializable
+    @Resource("/conferences/{conferenceId}/registrations/check")
+    data class CheckRegistration(val conferenceId: Long) : ConferenceRequest()
+
+    @Serializable
+    @Resource("/conferences/{conferenceId}/register")
+    data class RegisterUser(val conferenceId: Long) : ConferenceRequest()
+
+    @Serializable
+    @Resource("/conferences/{conferenceId}/registrations/{regId}/payment")
+    data class UpdatePayment(val conferenceId: Long, val regId: Long) : ConferenceRequest()
+
 
 }
