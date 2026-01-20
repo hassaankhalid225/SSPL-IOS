@@ -70,11 +70,21 @@ fun ProfileScreen(
     //val user by viewModel.user.collectAsStateWithLifecycle()
     val userDetails by viewModel.userDetails.collectAsStateWithLifecycle()
     val onSignedOut by viewModel.onSignedOut.collectAsStateWithLifecycle()
-    if (onSignedOut) {
-        onParentGraph()
-    }
+    val isGuestUser by viewModel.isGuestUser.collectAsStateWithLifecycle()
+
     LaunchedEffect(Unit) {
         viewModel.getUserDetails()
+    }
+
+    LaunchedEffect(onSignedOut, isGuestUser) {
+        if (onSignedOut || isGuestUser == true) {
+            onParentGraph()
+        }
+    }
+
+    if (isGuestUser == null || isGuestUser == true || onSignedOut) {
+        AppProgressBar()
+        return
     }
     ProfileScreenContent(
         userDetails = userDetails, onSignOut = {

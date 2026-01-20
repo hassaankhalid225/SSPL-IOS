@@ -42,7 +42,7 @@ class ProfileViewModel(
     //throughtout the app single obj
     private val _user = MutableStateFlow<User?>(null)
     val user = _user.asStateFlow()
-    var isGuestUser = MutableStateFlow(true)
+    var isGuestUser = MutableStateFlow<Boolean?>(null)
         private set
 
     //only for profile details
@@ -55,10 +55,9 @@ class ProfileViewModel(
     init {
         viewModelScope.launch {
             println("Called ProfileViewModel")
-            _user.value = userSession.getUser()
-            _user.value?.let { mUser ->
-                isGuestUser.update { mUser.account?.isGuestUser() == true }
-            }
+            val user = userSession.getUser()
+            _user.value = user
+            isGuestUser.update { user?.account?.isGuestUser() ?: true }
         }
     }
 

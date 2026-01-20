@@ -183,7 +183,7 @@ private fun ConferenceDetailContent(
     navController: NavController,
     conference: Conference,
     conferenceDetail: ConferenceDetail,
-    isGuestUser: State<Boolean>,
+    isGuestUser: State<Boolean?>,
     onMarkAttendance: (sessionId: Long) -> Unit = {},
     onMarkAttendanceByImage: (sessionId: Long, ByteArray) -> Unit,
     scaffoldState: SnackbarHostState
@@ -295,7 +295,7 @@ private fun ConferenceDetail(
 @Composable
 private fun ColumnScope.SessionsSchedule(
     sessions: List<Session>,
-    isGuestUser: State<Boolean>,
+    isGuestUser: State<Boolean?>,
     onClick: (Session) -> Unit,
     onMarkAttendance: (sessionId: Long) -> Unit,
     onMarkAttendanceByImage: (sessionId: Long, ByteArray) -> Unit,
@@ -322,7 +322,7 @@ private fun ColumnScope.SessionsSchedule(
 private fun ColumnScope.SessionItem(
     session: Session,
     showDivider: Boolean,
-    isGuestUser: State<Boolean>,
+    isGuestUser: State<Boolean?>,
     onClick: (Session) -> Unit,
     onMarkAttendance: () -> Unit,
     onMarkAttendanceByImage: (ByteArray) -> Unit,
@@ -373,7 +373,7 @@ private fun ColumnScope.SessionItem(
                     AppTextBody(text = venue.title.trim(), color = orange)
                     Spacer(modifier = Modifier.size(8.dp))
                 }
-                if (!session.isBreak && isGuestUser.value.not()) {
+                if (!session.isBreak && isGuestUser.value == false) {
                     Row(
                         modifier = Modifier.align(alignment = Alignment.End),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)

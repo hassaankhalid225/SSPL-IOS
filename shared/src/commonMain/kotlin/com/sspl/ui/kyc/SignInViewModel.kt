@@ -194,7 +194,41 @@ class SignInViewModel(
             email = email, password = password
         ).collect { state ->
             _uiState.update { it.copy(isLoading = state is ApiStates.Loading) }
-            _networkState.emit(state)
+
+            var isHandled = false
+            if (state is ApiStates.Failure) {
+                val errorMsg = state.error.message
+                if (errorMsg.contains(
+                        "Unauthorized",
+                        ignoreCase = true
+                    ) || errorMsg.contains(
+                        "Invalid credentials",
+                        ignoreCase = true
+                    )
+                ) {
+                    _uiState.update {
+                        it.copy(
+                            emailError = "Invalid email or password."
+                        )
+                    }
+                    isHandled = true
+                } else if (errorMsg.contains(
+                        "Account does not exist",
+                        ignoreCase = true
+                    )
+                ) {
+                    _uiState.update {
+                        it.copy(
+                            emailError = "Account does not exist against this email address."
+                        )
+                    }
+                    isHandled = true
+                }
+            }
+
+            if (!isHandled) {
+                _networkState.emit(state)
+            }
         }
     }
 

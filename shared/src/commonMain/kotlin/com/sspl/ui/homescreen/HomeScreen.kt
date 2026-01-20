@@ -159,7 +159,7 @@ fun HomeScreen(
     
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
-        if (isGuestUser.value) {
+        if (isGuestUser.value == true) {
             item {
                 GuestUserWarning(
                     modifier = Modifier

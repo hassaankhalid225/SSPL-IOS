@@ -120,8 +120,57 @@ class SignUpViewModel(
                             password = _uiState.value.password,
                             phoneNumber = _uiState.value.country.dialCode + _uiState.value.phoneNo
                         ).collect { state ->
-                            _uiState.update { it.copy(isLoading = state is ApiStates.Loading) }
-                            _networkState.emit(state)
+                            var isHandled = false
+                            if (state is ApiStates.Failure) {
+                                val errorMsg = state.error.message
+                                if (errorMsg.contains(
+                                        "email",
+                                        ignoreCase = true
+                                    ) && (errorMsg.contains(
+                                        "registered",
+                                        ignoreCase = true
+                                    ) || errorMsg.contains(
+                                        "exist",
+                                        ignoreCase = true
+                                    ) || errorMsg.contains("taken", ignoreCase = true))
+                                ) {
+                                    _uiState.update {
+                                        it.copy(
+                                            emailError = "Email is already registered",
+                                            isLoading = false
+                                        )
+                                    }
+                                    isHandled = true
+                                } else if ((errorMsg.contains(
+                                        "phone",
+                                        ignoreCase = true
+                                    ) || errorMsg.contains(
+                                        "mobile",
+                                        ignoreCase = true
+                                    )) && (errorMsg.contains(
+                                        "registered",
+                                        ignoreCase = true
+                                    ) || errorMsg.contains(
+                                        "exist",
+                                        ignoreCase = true
+                                    ) || errorMsg.contains("taken", ignoreCase = true))
+                                ) {
+                                    _uiState.update {
+                                        it.copy(
+                                            phoneNoError = "Phone number is already registered",
+                                            isLoading = false
+                                        )
+                                    }
+                                    isHandled = true
+                                }
+                            }
+
+                            if (isHandled) {
+                                updateSignUpState()
+                            } else {
+                                _uiState.update { it.copy(isLoading = state is ApiStates.Loading) }
+                                _networkState.emit(state)
+                            }
                         }
 
                     }
