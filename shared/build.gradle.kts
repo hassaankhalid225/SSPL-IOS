@@ -13,7 +13,7 @@ kotlin {
         compilations.all {
             compileTaskProvider.configure {
                 compilerOptions {
-                    jvmTarget.set(JvmTarget.JVM_1_8)
+                    jvmTarget.set(JvmTarget.JVM_11)
                 }
             }
         }
@@ -60,6 +60,7 @@ kotlin {
                 implementation(compose.runtime)
                 implementation(compose.foundation)
                 implementation(compose.material3)
+                implementation(compose.materialIconsExtended)
                 implementation(compose.ui)
                 implementation(compose.components.resources)
                 implementation(compose.components.uiToolingPreview)
@@ -134,7 +135,7 @@ kotlin {
 
 android {
     namespace = "com.sspl"
-    compileSdk = 35
+    compileSdk = 36
 
 //    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
 //    sourceSets["main"].res.srcDirs("src/androidMain/res")
@@ -145,8 +146,8 @@ android {
         minSdk = 23
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 }
 dependencies {

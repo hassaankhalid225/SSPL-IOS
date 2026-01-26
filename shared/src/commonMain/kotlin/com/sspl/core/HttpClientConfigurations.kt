@@ -32,7 +32,7 @@ import kotlinx.serialization.json.Json
  */
 
 
-suspend fun <T : HttpClientEngineConfig> getBaseClient(
+ fun <T : HttpClientEngineConfig> getBaseClient(
     userSession: UserSession,
     engineFactory: HttpClientEngineFactory<T>,
     config: HttpClientConfig<T>.() -> Unit

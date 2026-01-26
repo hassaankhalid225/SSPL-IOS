@@ -2,10 +2,10 @@ package com.sspl.utils
 
 import com.sspl.platform.formatDateTime
 import io.ktor.util.date.GMTDateParser.Companion.MINUTES
-import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 
 object DateTimeUtils {
