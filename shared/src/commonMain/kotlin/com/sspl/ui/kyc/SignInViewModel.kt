@@ -12,6 +12,7 @@ import com.sspl.core.usecases.SignUpUserUseCase
 import com.sspl.utils.EMAIL_GUEST_USER
 import com.sspl.utils.PASSWORD_GUEST_USER
 import com.sspl.utils.PHONE_GUEST_USER
+import com.sspl.core.push.PushNotificationService
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -35,6 +36,7 @@ class SignInViewModel(
     private val passwordValidationUseCase: PasswordValidationUseCase,
     private val loginUserUseCase: LoginUserUseCase,
     private val signUpUseCase: SignUpUserUseCase,
+    private val pushNotificationService: PushNotificationService
 
     ) : ViewModel() {
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -227,6 +229,7 @@ class SignInViewModel(
             }
 
             if (!isHandled) {
+                // Note: registerDeviceToken() is already called in LoginUserUseCase after successful login
                 _networkState.emit(state)
             }
         }
@@ -243,6 +246,7 @@ class SignInViewModel(
                 phoneNumber = PHONE_GUEST_USER
             ).collect { state ->
                 _uiState.update { it.copy(isLoading = state is ApiStates.Loading) }
+                // Note: registerDeviceToken() is already called in SignUpUserUseCase after successful signup
                 _networkState.emit(state)
             }
         }

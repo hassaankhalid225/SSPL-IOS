@@ -13,6 +13,7 @@ import com.google.firebase.messaging.RemoteMessage
 import com.sspl.core.models.SessionNotification
 import com.sspl.core.repositories.NotificationRepository
 import com.sspl.session.UserSession
+import com.sspl.core.push.PushNotificationService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -23,6 +24,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     private val notificationRepository: NotificationRepository by inject()
     private val userSession: UserSession by inject()
+    private val pushNotificationService: PushNotificationService by inject()
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
@@ -53,16 +55,41 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                         showNotification("🚀 Session Started!", scenarioTitle, remoteMessage.data)
                     }
                 }
+                else -> {
+                    // For any other data-only notification that has a title/body
+                    val title = remoteMessage.data["title"]
+                    val body = remoteMessage.data["body"] ?: remoteMessage.data["message"]
+                    
+                    if (title != null || body != null) {
+                        val finalTitle = title ?: "Notification"
+                        val finalBody = body ?: ""
+                        
+                        val notificationType = when(type) {
+                            "announcement" -> com.sspl.core.models.NotificationType.ANNOUNCEMENT
+                            else -> com.sspl.core.models.NotificationType.GENERAL
+                        }
+                        
+                        notificationRepository.addNotification(finalTitle, finalBody, notificationType)
+                        
+                        if (remoteMessage.notification == null) {
+                            showNotification(finalTitle, finalBody, remoteMessage.data)
+                        }
+                    }
+                }
             }
         }
 
-        // Show notification for other types if notification payload exists and was not already handled
+        // Show notification for other messages with a notification payload
+        // only if they were not already handled as session/known types above
         remoteMessage.notification?.let {
             val type = remoteMessage.data["type"]
-            // If it's a session type, we already handled it above if we wanted to
-            // But if it's NOT a session type, or if we want to use the system body:
-            if (type != "session_invite" && type != "session_started") {
-                showNotification(it.title ?: "Notification", it.body ?: "", remoteMessage.data)
+            if (type != "session_invite" && type != "session_started" && type != "announcement") {
+                val title = it.title ?: "Notification"
+                val body = it.body ?: ""
+                showNotification(title, body, remoteMessage.data)
+                
+                // Save to repository
+                notificationRepository.addNotification(title, body)
             }
         }
     }
@@ -71,11 +98,21 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val joinCode = data["join_code"]
         val scenarioTitle = data["scenario_title"] ?: "New Quiz Session"
         val joinUrl = data["join_url"]
+        val sessionId = data["session_id"]
 
         Log.d(TAG, "Session invite received: $joinCode - $scenarioTitle")
 
-        // You can add the invite to a local database or show it in-app
-        // For now, the notification will be shown by showNotification()
+        // Store invite notification in repository for in-app display
+        if (joinCode != null) {
+            val sessionNotification = SessionNotification(
+                sessionId = sessionId?.toIntOrNull() ?: 0,
+                joinCode = joinCode,
+                scenarioTitle = scenarioTitle,
+                joinUrl = joinUrl
+            )
+            notificationRepository.addSessionNotification(sessionNotification)
+            Log.d(TAG, "Session invite stored in repository")
+        }
     }
 
     private fun handleSessionStarted(data: Map<String, String>) {
@@ -179,6 +216,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         // Save new token to shared user session
         serviceScope.launch {
             userSession.setDeviceToken(token)
+            pushNotificationService.registerDeviceToken()
         }
 
         // TODO: Send token to server if user is logged in

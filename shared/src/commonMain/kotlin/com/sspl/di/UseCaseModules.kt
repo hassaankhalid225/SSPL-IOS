@@ -35,7 +35,11 @@ import com.sspl.core.usecases.ValidateUserPmdcNoUseCase
 import com.sspl.core.usecases.ValidateUserRegistrationNumberUseCase
 import com.sspl.core.usecases.CheckRegistrationUseCase
 import com.sspl.core.usecases.RegisterUserUseCase
-import com.sspl.core.usecases.UpdatePaymentUseCase
+import com.sspl.core.usecases.InitiatePaymentUseCase
+import com.sspl.core.usecases.GetConferenceRolesUseCase
+import com.sspl.core.usecases.GetUserRegistrationsUseCase
+import com.sspl.core.usecases.UpdateManualPaymentUseCase
+import com.sspl.core.usecases.GetRegistrationDetailsUseCase
 import org.koin.dsl.module
 
 /**
@@ -69,8 +73,8 @@ internal val useCaseModules = module {
     factory { LikePostUseCase() }
     factory { DislikePostUseCase() }
     factory { CommentOnPostUseCase() }
-    factory { SignUpUserUseCase(get(), get()) }
-    factory { LoginUserUseCase(get(), get()) }
+    factory { SignUpUserUseCase(get(), get(), get()) }
+    factory { LoginUserUseCase(get(), get(), get()) }
     factory { GetConferencesUseCase(get()) }
     factory { GetConferencesDetailsUseCase(get()) }
     factory { PostUserDetailsUseCase(get()) }
@@ -88,5 +92,10 @@ internal val useCaseModules = module {
     factory { GetBannersUseCase(get()) }
     factory { CheckRegistrationUseCase(get()) }
     factory { RegisterUserUseCase(get()) }
-    factory { UpdatePaymentUseCase(get()) }
+    factory { InitiatePaymentUseCase(get()) }
+    factory { GetConferenceRolesUseCase(get()) }
+    factory { GetUserRegistrationsUseCase(get()) }
+    factory { UpdateManualPaymentUseCase(get()) }
+    factory { GetRegistrationDetailsUseCase(get()) }
 }
+

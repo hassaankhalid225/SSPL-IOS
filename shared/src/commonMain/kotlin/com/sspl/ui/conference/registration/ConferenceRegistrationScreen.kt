@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.sspl.Screen
@@ -95,7 +96,7 @@ fun ConferenceRegistrationContent(
     navController: NavController,
     initialTitle: String?
 ) {
-    val roles = state.details.roles ?: emptyList()
+    val roles = state.roles
     
     // Auto-select role if registered
     var selectedRoleIndex by remember(state.isRegistered, state.registration) { 
@@ -108,12 +109,28 @@ fun ConferenceRegistrationContent(
     
     var isExpanded by remember { mutableStateOf(false) }
 
-    var cardNumber by remember { mutableStateOf("") }
-    var expiryDate by remember { mutableStateOf("") }
-    var cvv by remember { mutableStateOf("") }
-    var cardHolderName by remember { mutableStateOf("") }
+    // Payment WebView Dialog
+    if (state.paymentUrl != null) {
+        androidx.compose.ui.window.Dialog(
+            onDismissRequest = { viewModel.onPaymentUrlOpened() },
+            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+             com.sspl.ui.components.PaymentWebView(
+                 url = state.paymentUrl,
+                 onPaymentSuccess = {
+                     viewModel.onPaymentUrlOpened()
+                     viewModel.loadData(state.details.id) // Refresh status
+                 },
+                 onPaymentFailed = {
+                     viewModel.onPaymentUrlOpened()
+                 },
+                 onClose = { viewModel.onPaymentUrlOpened() },
+                 modifier = Modifier.fillMaxSize()
+             )
+        }
+    }
 
-    // If payment succeeds, navigate
+    // If payment succeeds (status updated after refresh), navigate
     LaunchedEffect(state.registration?.paymentStatus) {
         if (state.registration?.paymentStatus == "SUCCESS") {
             navController.currentBackStackEntry?.savedStateHandle?.set("status", true)
@@ -218,52 +235,70 @@ fun ConferenceRegistrationContent(
                 }
             }
         }
+        
+        if (state.registration != null && (state.registration.paymentStatus == "PENDING" || state.registration.paymentStatus == "FAILED")) {
+            var paymentMethod by remember { mutableStateOf("ONLINE") }
+            var transactionId by remember { mutableStateOf("") }
+            var bankName by remember { mutableStateOf("") }
 
-        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = Color.LightGray.copy(alpha = 0.5f))
-
-        // Card Details Section
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            AppTextLabel(text = "Card Details", fontWeight = FontWeight.Bold)
-
-            Card(
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = Color.LightGray.copy(alpha = 0.5f))
+            
+            AppTextLabel(text = "Payment Method", fontWeight = FontWeight.Bold)
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                shape = RoundedCornerShape(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                Card(
+                    modifier = Modifier.weight(1f).clickable { paymentMethod = "ONLINE" },
+                    colors = CardDefaults.cardColors(containerColor = if (paymentMethod == "ONLINE") primary.copy(alpha = 0.1f) else columnColor),
+                    border = if (paymentMethod == "ONLINE") androidx.compose.foundation.BorderStroke(2.dp, primary) else null
                 ) {
-                    AppTextField(
-                        text = cardNumber,
-                        onTextChange = { if (it.length <= 16) cardNumber = it },
-                        placeholder = "Card Number"
-                    )
-
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        AppTextField(
-                            modifier = Modifier.weight(1f),
-                            text = expiryDate,
-                            onTextChange = { if (it.length <= 5) expiryDate = it },
-                            placeholder = "MM/YY"
-                        )
-                        AppTextField(
-                            modifier = Modifier.weight(1f),
-                            text = cvv,
-                            onTextChange = { if (it.length <= 3) cvv = it },
-                            placeholder = "CVV"
-                        )
-                    }
-
-                    AppTextField(
-                        text = cardHolderName,
-                        onTextChange = { cardHolderName = it },
-                        placeholder = "Card Holder Name"
-                    )
+                    Text("Online Payment", modifier = Modifier.padding(16.dp), textAlign = TextAlign.Center)
+                }
+                Card(
+                    modifier = Modifier.weight(1f).clickable { paymentMethod = "BANK" },
+                    colors = CardDefaults.cardColors(containerColor = if (paymentMethod == "BANK") primary.copy(alpha = 0.1f) else columnColor),
+                    border = if (paymentMethod == "BANK") androidx.compose.foundation.BorderStroke(2.dp, primary) else null
+                ) {
+                    Text("Bank Transfer", modifier = Modifier.padding(16.dp), textAlign = TextAlign.Center)
                 }
             }
+
+            if (paymentMethod == "BANK") {
+                Spacer(modifier = Modifier.height(8.dp))
+                AppTextField(
+                    text = transactionId,
+                    onTextChange = { transactionId = it },
+                    placeholder = "Transaction ID"
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                AppTextField(
+                    text = bankName,
+                    onTextChange = { bankName = it },
+                    placeholder = "Bank Name"
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                ButtonWithProgress(
+                    isEnabled = transactionId.isNotBlank() && !state.isLoading,
+                    isLoading = state.isLoading,
+                    buttonText = "SUBMIT TRANSACTION",
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    onClick = { viewModel.updateManualPayment(transactionId, bankName) }
+                )
+            }
+            
+            if (paymentMethod == "ONLINE") {
+                 ButtonWithProgress(
+                    isEnabled = !state.isLoading,
+                    isLoading = state.isLoading,
+                    buttonText = "PAY ONLINE NOW",
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    onClick = { viewModel.initiatePayment() }
+                )
+            }
         }
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = Color.LightGray.copy(alpha = 0.5f))
 
         state.error?.let {
             Text(text = it, color = Color.Red, modifier = Modifier.padding(8.dp))
@@ -271,42 +306,45 @@ fun ConferenceRegistrationContent(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Pay Now Button
-        ButtonWithProgress(
-            isEnabled = roles.isNotEmpty(),
-            isLoading = state.isLoading,
-            buttonText = if (state.isRegistered) "PAY NOW (${state.registration?.paymentStatus})" else "REGISTER & PAY",
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-            onClick = {
-                if (state.isRegistered) {
-                    viewModel.updatePayment("CARD")
-                } else {
-                    // Chain registration then payment
+        // Action Button
+        val isRegistered = state.isRegistered
+        val paymentStatus = state.registration?.paymentStatus
+        
+        val buttonText = when {
+            !isRegistered -> "REGISTER"
+            paymentStatus == "PENDING" || paymentStatus == "FAILED" -> "PAY NOW"
+            paymentStatus == "SUCCESS" -> "PAID"
+            else -> "REGISTERED"
+        }
+        
+        val isButtonEnabled = when {
+             state.isLoading -> false
+             !isRegistered -> roles.isNotEmpty()
+             paymentStatus == "PENDING" || paymentStatus == "FAILED" -> true
+             else -> false // Disable if already paid
+        }
+
+        if (state.registration == null) {
+            ButtonWithProgress(
+                isEnabled = isButtonEnabled,
+                isLoading = state.isLoading,
+                buttonText = buttonText,
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                onClick = {
                     roles.getOrNull(selectedRoleIndex)?.let { role ->
                         viewModel.register(role.id)
-                        // Note: after register success, UI will update state.isRegistered = true. 
-                        // But we want to auto-pay.
-                        // The logic in ViewModel for `register` updates uiState.
-                        // Ideally we should chain it in ViewModel or handle "Success" event side-effect here.
-                        // But for simplicity, we require "Pay Now" click again OR user expects auto.
-                        // Given currently separating concerns, let's keep it manual or update logic.
-                        // Actually, I can call updatePayment in a side effect if registration just became success.
-                        // Or just let user click again "Pay Now".
-                        // "REGISTER & PAY" implies both.
-                        // I'll leave it as "Register" action, user will see status change.
-                        // But better user experience: ViewModel could handle `registerAndPay`.
-                        // But I didn't add that. I'll stick to manual trigger or just assume user triggers payment after reg.
-                        // Wait, if I change text to "PAY NOW" it implies one click.
-                        // Let's modify onClick to launch coroutine scope to await/observe? No within composable callback.
-                        // I should add `registerAndPay` to VM if I want atomic feeling.
-                        // But for now, let's keep it simple: If not registered, Register. The user might have to click again to Pay if not chained.
-                        // I will update VM to auto-call payment if I could, but `register` is a function.
-                        // I'll update existing `register` in VM to accept a boolean `thenPay`? No.
-                        // Let's just call `register` here. The user will see "Pay Now" after registration success if payment is pending (which it is).
                     }
                 }
-            }
-        )
+            )
+        } else if (state.registration.paymentStatus == "SUCCESS") {
+            ButtonWithProgress(
+                isEnabled = false,
+                isLoading = false,
+                buttonText = "PAID",
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                onClick = { }
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
     }

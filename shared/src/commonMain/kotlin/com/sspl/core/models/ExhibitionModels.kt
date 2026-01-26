@@ -3,12 +3,6 @@ package com.sspl.core.models
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/**
- * Created by M Imran
- * Senior Software Engineer at
- * BhimSoft on 08/01/2025.
- * se.muhammadimran@gmail.com
- */
 
 @Serializable
 enum class SponsorCategory {
@@ -38,32 +32,24 @@ data class ExhibitionProduct(
 @Serializable
 data class ExhibitionStall(
     val id: Int,
-    @SerialName("creator_id") val creatorId: Int,
+    @SerialName("creator_id") val creatorId: Int? = null,
     @SerialName("stall_no") val stallNo: String? = null,
     val category: SponsorCategory = SponsorCategory.BASIC,
     @SerialName("company_name") val companyName: String,
-    @SerialName("company_logo") val companyLogo: String = "",
+    @SerialName("company_logo") val companyLogo: String? = "",
     @SerialName("contact_person") val contactPerson: String,
     @SerialName("contact_num") val contactNum: String = "",
     val email: String,
     val status: ReviewStatus = ReviewStatus.PENDING,
     val products: List<ExhibitionProduct> = emptyList(),
-    @SerialName("created_at") val createdAt: String,
-    @SerialName("updated_at") val updatedAt: String
+    @SerialName("created_at") val createdAt: String? = null,
+    @SerialName("updated_at") val updatedAt: String? = null
 )
 
 @Serializable
 data class ExhibitionListResponse(
     val records: List<ExhibitionStall>,
     val meta: PaginationMeta
-)
-
-@Serializable
-data class PaginationMeta(
-    @SerialName("total_records") val totalRecords: Int,
-    @SerialName("current_page") val currentPage: Int,
-    @SerialName("total_pages") val totalPages: Int,
-    val limit: Int
 )
 
 @Serializable

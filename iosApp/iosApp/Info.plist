@@ -49,11 +49,18 @@
 	<string>Using to get coordinates of user to mark down attendance while checking whether is user in range of told coordinates</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Using to get coordinates of user to mark down attendance while checking whether is user in range of told coordinates</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app requires access to your photo library to let you upload a profile picture.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
 		<false/>
 	</dict>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>processing</string>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UILaunchStoryboardName</key>
@@ -76,6 +83,17 @@
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array> 
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>sspl</string>
+			</array>
+			<key>CFBundleURLName</key>
+			<string>com.sspl.sosapp.payment</string>
+		</dict>
 	</array>
 </dict>
 </plist>

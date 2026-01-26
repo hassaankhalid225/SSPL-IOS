@@ -109,7 +109,7 @@ fun HomeScreen(
         Item(
             title = stringResource(Res.string.exhibition),
             icon = IconResource.fromDrawableResource(Res.drawable.ic_exhibition),
-            toScreen = Screen.ExhibitionRegistrationScreen
+            toScreen = Screen.ExhibitionsScreen
         ),
         Item(
             title = stringResource(Res.string.about_us),
