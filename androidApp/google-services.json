@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:900679697282:android:f724620db73f09e75e059b",
+        "mobilesdk_app_id": "1:900679697282:android:2884326b5bf88df75e059b",
         "android_client_info": {
-          "package_name": "com.sspl.sosapp"
+          "package_name": "com.sspl"
         }
       },
       "oauth_client": [

@@ -92,7 +92,7 @@
 				<string>sspl</string>
 			</array>
 			<key>CFBundleURLName</key>
-			<string>com.sspl.sosapp.payment</string>
+			<string>com.sspl.payment</string>
 		</dict>
 	</array>
 </dict>

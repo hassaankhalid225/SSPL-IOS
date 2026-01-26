@@ -17,7 +17,7 @@ android {
     namespace = "com.sspl.android"
     compileSdk = 35
     defaultConfig {
-        applicationId = "com.sspl.sosapp"
+        applicationId = "com.sspl"
         minSdk = 23
         targetSdk = 35
         versionCode = 7

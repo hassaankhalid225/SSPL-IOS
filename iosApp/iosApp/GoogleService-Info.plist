@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.sspl.sosapp</string>
+	<string>com.sspl</string>
 	<key>PROJECT_ID</key>
 	<string>sspl-661a2</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:900679697282:ios:587a54f58780760d5e059b</string>
+	<string>1:900679697282:ios:15a9b83bbe685f225e059b</string>
 </dict>
 </plist>
