@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -12,30 +11,26 @@ plugins {
 
 val keystorePropertiesFile = rootProject.file("keystore.properties")
 val keystoreProperties = Properties()
-keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
 
 android {
     namespace = "com.sspl.android"
     compileSdk = 36
     defaultConfig {
-        applicationId = "com.sspl"
+        applicationId = "com.sspl.android"
         minSdk = 23
         targetSdk = 36
-        versionCode = 8
-        versionName = "1.0.8"
+        versionCode = 4
+        versionName = "1.0.4"
     }
     signingConfigs {
-        create("sspl") {
-            storeFile = file(keystoreProperties["storeFile"] as String)
-            keyAlias = keystoreProperties["keyAlias"] as String
-            keyPassword = keystoreProperties["keyPassword"] as String
-            storePassword = keystoreProperties["storePassword"] as String
-        }
-        create("bhimsoft") {
-            storeFile = file(keystoreProperties["bhimsoft_storeFile"] as String)
-            keyAlias = keystoreProperties["keyAlias"] as String
-            keyPassword = keystoreProperties["keyPassword"] as String
-            storePassword = keystoreProperties["storePassword"] as String
+        create("release") {
+            keyAlias = keystoreProperties["keyAlias"] as? String
+            keyPassword = keystoreProperties["keyPassword"] as? String
+            storeFile = if (keystoreProperties["storeFile"] != null) file(keystoreProperties["storeFile"] as String) else null
+            storePassword = keystoreProperties["storePassword"] as? String
         }
         create("stageRelease") {
             storeFile = file("../keystore/stagerelease.keystore")
@@ -54,47 +49,24 @@ android {
     }
     buildTypes {
         getByName("release") {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
         }
         getByName("debug") {
+            signingConfig = signingConfigs.getByName("stageRelease")
             isMinifyEnabled = false
         }
     }
-
-    flavorDimensions += "version"
-    productFlavors {
-        create("stage") {
-            dimension = "version"
-            signingConfig = signingConfigs.getByName("stageRelease")
-        }
-        create("sspl") {
-            versionCode = 8
-            versionName = "1.0.8"
-            dimension = "version"
-            signingConfig = signingConfigs.getByName("sspl")
-        }
-        create("bhimsoft") {
-            versionCode = 3
-            versionName = "1.0.3"
-            dimension = "version"
-            signingConfig = signingConfigs.getByName("bhimsoft")
-        }
-    }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
-//    kotlinOptions {
-//        jvmTarget = "1.8"
-//    }
     kotlin {
         compilerOptions {
-            //jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
-            jvmTarget.set(JvmTarget.JVM_11)
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
         }
     }
 }
-
 dependencies {
     implementation(projects.shared)
     implementation(libs.androidx.activity.compose)
@@ -108,7 +80,7 @@ dependencies {
     //implementation(libs.firebase.analytics.ktx)
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.messaging)
-    
+
     // Pusher for real-time notifications
     implementation(libs.pusher.java.client)
 }
