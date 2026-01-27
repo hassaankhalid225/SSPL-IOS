@@ -14,4 +14,8 @@ object ProfileRequest {
     @Serializable
     @Resource("/profiles/me")
     data object GetUserProfile
+
+    @Serializable
+    @Resource("/users/device-token")
+    data object UpdateDeviceToken
 }

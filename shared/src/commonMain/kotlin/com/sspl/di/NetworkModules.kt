@@ -30,7 +30,6 @@ import org.koin.dsl.module
  */
 
 internal val networkModules = module {
-     singleOf(::provideHttpClient)
     factoryOf(::provideHttpClient)
 }
 

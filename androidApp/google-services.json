@@ -1,45 +1,36 @@
 {
   "project_info": {
-    "project_number": "751181473167",
-    "project_id": "ssp-lahore",
-    "storage_bucket": "ssp-lahore.firebasestorage.app"
+    "project_number": "900679697282",
+    "project_id": "sspl-661a2",
+    "storage_bucket": "sspl-661a2.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:751181473167:android:48d38fbbb5b43dadf617fa",
+        "mobilesdk_app_id": "1:900679697282:android:2884326b5bf88df75e059b",
         "android_client_info": {
-          "package_name": "com.sspl.android"
+          "package_name": "com.sspl"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "900679697282-tvol0r4v4f2ls2v5ofhr52nhnhcesj5m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyC_41CUgx70RSoqmgcEOFbZGnvoRrp9TlI"
+          "current_key": "AIzaSyDAa45bzvvWIbYVmsPg7PQGEm8aF2UY488"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:751181473167:android:5d0856e85a849011f617fa",
-        "android_client_info": {
-          "package_name": "com.sspl.sosapp"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyC_41CUgx70RSoqmgcEOFbZGnvoRrp9TlI"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "900679697282-tvol0r4v4f2ls2v5ofhr52nhnhcesj5m.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

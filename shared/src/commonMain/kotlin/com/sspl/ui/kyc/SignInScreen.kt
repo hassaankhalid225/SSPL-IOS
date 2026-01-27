@@ -130,6 +130,9 @@ fun LoginScreen(
             onForgotPassword = {
                  navController.navigate(Screen.ForgotPasswordScreen.route)
              },
+            onExhibitionClick = {
+                navController.navigate(Screen.ExhibitionRegistrationScreen.route)
+            },
             modifier = modifier
         )
 
@@ -155,7 +158,8 @@ fun LoginScreenContent(
     createNewAccount: () -> Unit,
     showPassword: Boolean = false,
     onForgotPassword: () -> Unit = {},
-    isOtpMode: Boolean = false
+    isOtpMode: Boolean = false,
+    onExhibitionClick: () -> Unit = {}
 ) {
     Box(modifier.fillMaxSize()) {
         Image(
@@ -247,15 +251,18 @@ fun LoginScreenContent(
             Spacer(modifier = Modifier.height(10.dp))
             DividerWithText("or")
 
-            // OTP/Email Sign-in Toggle Button
+            // Exhibition Registration Button (Prominent)
             Spacer(modifier = Modifier.height(10.dp))
-//            AppRoundedCornerButton(
-//                onClick = { onEvents(LoginScreenUiEvents.ToggleOtpMode) },
-//                title = if (isOtpMode) stringResource(Res.string.sign_in_via_email) else stringResource(
-//                    Res.string.sign_in_via_phone
-//                )
-//            )
+            ButtonWithProgress(
+                isEnabled = true,
+                isLoading = false,
+                buttonText = "Exhibition Registration",
+                modifier = Modifier.imePadding()
+            ) {
+                onExhibitionClick()
+            }
 
+            // Continue As Guest Button
             ButtonWithProgress(
                 isEnabled = true,
                 isLoading = isLoading,
@@ -330,9 +337,3 @@ fun DividerWithText(text: String) {
         HorizontalDivider(modifier = Modifier.weight(1f))
     }
 }
-
-
-
-
-
-

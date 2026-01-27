@@ -1,5 +1,4 @@
-package com.sspl.core
-
+ package com.sspl.core
 import com.sspl.session.UserSession
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
@@ -44,7 +43,7 @@ import kotlinx.serialization.json.Json
 //            publicStorage(CacheStorage.Disabled) // Disables response caching
 //        }
         install(ContentNegotiation) {
-            json(Json {
+            json(Json { 
                 ignoreUnknownKeys = true
                 prettyPrint = true
                 isLenient = true
@@ -56,7 +55,7 @@ import kotlinx.serialization.json.Json
             sanitizeHeader { header -> header == HttpHeaders.Authorization }
         }
         defaultRequest {
-            url("http://188.245.244.112:3000")
+            url("${com.sspl.utils.BASE_URL}/")
             contentType(ContentType.Application.Json)
             val token = userSession.token
             token?.let {

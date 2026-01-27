@@ -37,7 +37,39 @@ class ForgotPasswordViewModel(
                 viewModelScope.launch {
                     initResetPasswordUseCase(_uiState.value.emailText).collect { state ->
                         _uiState.update { it.copy(isLoadingInitPassword = state is ApiStates.Loading) }
-                        _initPasswordStatus.emit(state)
+
+                        var isHandled = false
+                        if (state is ApiStates.Failure) {
+                            val errorMsg = state.error.message
+                            if (errorMsg.contains(
+                                    "Unauthorized",
+                                    ignoreCase = true
+                                )
+                            ) {
+                                _uiState.update {
+                                    it.copy(
+                                        emailError = "This email is not registered with us."
+                                    )
+                                }
+                                isHandled = true
+                            } else if (errorMsg.contains(
+                                    "Account does not exist",
+                                    ignoreCase = true
+                                )
+                            ) {
+                                _uiState.update {
+                                    it.copy(
+                                        emailError = "Account does not exist against this email address."
+                                    )
+                                }
+                                isHandled = true
+                            }
+                        }
+
+                        if (!isHandled) {
+                            _initPasswordStatus.emit(state)
+                        }
+
                         if (state is ApiStates.Success) {
                             _uiState.update {
                                 it.copy(

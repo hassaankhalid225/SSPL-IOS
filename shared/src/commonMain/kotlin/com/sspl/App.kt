@@ -24,6 +24,7 @@ import com.sspl.theme.MyApplicationTheme
 import com.sspl.ui.SplashScreen
 import org.koin.compose.KoinContext
 import org.koin.compose.koinInject
+import coil3.network.ktor3.KtorNetworkFetcherFactory
 
 /**
  * Created by M Imran
@@ -58,12 +59,44 @@ private fun MainScreenContent(
     val currentScreen = remember {
         mutableStateOf<Screen>(Screen.SplashScreen)
     }
+    
+    // Banner state
+    val showBannerDialog = remember { mutableStateOf(false) }
+    val banners = remember { mutableStateOf<List<com.sspl.core.models.Banner>>(emptyList()) }
+    val getBannersUseCase: com.sspl.core.usecases.GetBannersUseCase = koinInject()
+    
     LaunchedEffect(Unit) {
         val newScreen = userSession.token?.let {
             Screen.MainScreen
         } ?: Screen.SignInScreen
         currentScreen.value = newScreen
+        
+        // Fetch banners for all users (Guest & Authenticated)
+        getBannersUseCase().collect { state ->
+            when (state) {
+                is com.sspl.core.ApiStates.Success -> {
+                    val activeBanners = state.data?.banners?.filter { it.isActive } ?: emptyList()
+                    val welcomeBanner = activeBanners.find { it.type == "WELCOME" }
+                    
+                    if (welcomeBanner != null) {
+                        banners.value = listOf(welcomeBanner)
+                        showBannerDialog.value = true
+                    }
+                }
+                else -> {}
+            }
+        }
     }
+    
+    // Show banner dialog
+    if (showBannerDialog.value && banners.value.isNotEmpty()) {
+        com.sspl.ui.components.BannerDialog(
+            banners = banners.value,
+            baseUrl = com.sspl.utils.BASE_URL,
+            onDismiss = { showBannerDialog.value = false }
+        )
+    }
+    
     if(currentScreen.value==Screen.SplashScreen){
         SplashScreen(navController)
     }else {
@@ -94,4 +127,8 @@ private fun MainScreenContent(
 }
 
 fun getAsyncImageLoader(context: PlatformContext) =
-    ImageLoader.Builder(context).build()
+    ImageLoader.Builder(context)
+        .components {
+            add(KtorNetworkFetcherFactory())
+        }
+        .build()

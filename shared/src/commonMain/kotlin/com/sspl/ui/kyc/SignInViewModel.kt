@@ -12,6 +12,7 @@ import com.sspl.core.usecases.SignUpUserUseCase
 import com.sspl.utils.EMAIL_GUEST_USER
 import com.sspl.utils.PASSWORD_GUEST_USER
 import com.sspl.utils.PHONE_GUEST_USER
+import com.sspl.core.push.PushNotificationService
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -21,7 +22,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Clock
+import com.sspl.utils.DateTimeUtils
 
 /**
  * Created by M Imran
@@ -35,6 +36,7 @@ class SignInViewModel(
     private val passwordValidationUseCase: PasswordValidationUseCase,
     private val loginUserUseCase: LoginUserUseCase,
     private val signUpUseCase: SignUpUserUseCase,
+    private val pushNotificationService: PushNotificationService
 
     ) : ViewModel() {
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -194,13 +196,48 @@ class SignInViewModel(
             email = email, password = password
         ).collect { state ->
             _uiState.update { it.copy(isLoading = state is ApiStates.Loading) }
-            _networkState.emit(state)
+
+            var isHandled = false
+            if (state is ApiStates.Failure) {
+                val errorMsg = state.error.message
+                if (errorMsg.contains(
+                        "Unauthorized",
+                        ignoreCase = true
+                    ) || errorMsg.contains(
+                        "Invalid credentials",
+                        ignoreCase = true
+                    )
+                ) {
+                    _uiState.update {
+                        it.copy(
+                            emailError = "Invalid email or password."
+                        )
+                    }
+                    isHandled = true
+                } else if (errorMsg.contains(
+                        "Account does not exist",
+                        ignoreCase = true
+                    )
+                ) {
+                    _uiState.update {
+                        it.copy(
+                            emailError = "Account does not exist against this email address."
+                        )
+                    }
+                    isHandled = true
+                }
+            }
+
+            if (!isHandled) {
+                // Note: registerDeviceToken() is already called in LoginUserUseCase after successful login
+                _networkState.emit(state)
+            }
         }
     }
 
     private fun continueAsGuest() {
         viewModelScope.launch {
-            val email = "${Clock.System.now().toEpochMilliseconds()}." + EMAIL_GUEST_USER
+            val email = "${DateTimeUtils.timeInMilliNow()}." + EMAIL_GUEST_USER
             signUpUseCase.signUpUser(
                 firstName = "Guest",
                 lastName = "User",
@@ -209,6 +246,7 @@ class SignInViewModel(
                 phoneNumber = PHONE_GUEST_USER
             ).collect { state ->
                 _uiState.update { it.copy(isLoading = state is ApiStates.Loading) }
+                // Note: registerDeviceToken() is already called in SignUpUserUseCase after successful signup
                 _networkState.emit(state)
             }
         }

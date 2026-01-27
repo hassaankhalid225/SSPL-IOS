@@ -15,7 +15,9 @@ import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.headersOf
 import kotlinx.serialization.json.JsonObject
-import kotlin.uuid.Uuid
+import com.sspl.core.models.RegisterUserRequest
+import com.sspl.core.models.ManualPaymentRequest
+// import kotlin.uuid.Uuid removed
 
 class ConferenceRepository(private val client: HttpClient) {
 
@@ -64,8 +66,38 @@ class ConferenceRepository(private val client: HttpClient) {
         conferenceId: Long,body: JsonObject,sessionId: Long
     ): HttpResponse = client.post(
          ConferenceRequest.PostFeedbackFormSessionRequest(conferenceId,sessionId)
-
     ){
         setBody(body)
     }
+
+    suspend fun checkRegistration(conferenceId: Long): HttpResponse =
+        client.get(ConferenceRequest.CheckRegistration(conferenceId))
+
+    suspend fun registerUser(conferenceId: Long, request: RegisterUserRequest): HttpResponse =
+        client.post(ConferenceRequest.RegisterUser(conferenceId)) {
+            setBody(request)
+        }
+
+    suspend fun getConferenceRoles(conferenceId: Long): HttpResponse =
+        client.get(ConferenceRequest.ByRoles(conferenceId))
+
+    suspend fun getUserRegistrations(
+        conferenceId: Long,
+        page: Int = 1,
+        limit: Int = 20,
+        paymentStatus: String? = null
+    ): HttpResponse =
+        client.get(ConferenceRequest.Registrations(conferenceId, page, limit, paymentStatus))
+
+    suspend fun updatePayment(
+        conferenceId: Long,
+        registrationId: Long,
+        request: ManualPaymentRequest
+    ): HttpResponse =
+        client.put(ConferenceRequest.UpdatePayment(conferenceId, registrationId)) {
+            setBody(request)
+        }
+
+    suspend fun getRegistrationById(conferenceId: Long, registrationId: Long): HttpResponse =
+        client.get(ConferenceRequest.GetRegistrationById(conferenceId, registrationId))
 }

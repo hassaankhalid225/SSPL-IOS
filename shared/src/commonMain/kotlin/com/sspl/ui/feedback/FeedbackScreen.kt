@@ -95,6 +95,7 @@ fun FeedbackScreen(navController: NavController, viewModel: FeedbackViewModel = 
                     scaffoldState.showSnackbar(status.data?.message.orEmpty())
                     navController.popBackStack()
                 }
+                ApiStates.Idle -> {} // Do nothing
             }
 
         }
@@ -107,6 +108,10 @@ fun FeedbackScreen(navController: NavController, viewModel: FeedbackViewModel = 
 
         is ApiStates.Failure -> {
             com.sspl.ui.components.Error(Modifier.fillMaxSize(),feedbackForm.error)
+        }
+
+        ApiStates.Idle -> {
+            // Do nothing, waiting for data
         }
 
         is ApiStates.Success -> {

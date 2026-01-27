@@ -8,25 +8,22 @@ import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 
-/**
- * Created by M Imran
- * Senior Software Engineer at
- * BhimSoft on 05/01/2025.
- * se.muhammadimran@gmail.com
- */
-
-const val FORMAT_DEFAULT_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
-const val FORMAT_DAY_MONTH = "dd MMM"
+object DateTimeUtils {
+    // KMP-compatible method to get current time in milliseconds
+    fun timeInMilliNow() = Clock.System.now().toEpochMilliseconds()
+}
 
 /**
  * MMM, yyyy EEEE
  */
+const val FORMAT_DEFAULT_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+const val FORMAT_DAY_MONTH = "dd MMM"
 const val FORMAT_MONTH_YEAR_WEEKDAY = "MMM, yyyy EEEE"
-
 const val FORMAT_TIME_24HOUR = "HH:mm"
 const val FORMAT_TIME_12HOUR = "hh:mm a"
 const val DASH = "\u2014"
 const val VERTICAL_DOTS = "⋮"
+
 
 /**
  * @param dateTime as 2025-02-03T12:12:28.000Z
@@ -96,7 +93,8 @@ fun isNowAfter(
 
     val utcInstant = Instant.parse(targetTime) // Parse the UTC time
     val localTimeZone = TimeZone.of(timeZone.id) // Get the local timezone
-    val targetedDateTime = utcInstant.toLocalDateTime(localTimeZone) // Convert to local time
+    val targetedDateTime =
+        utcInstant.toLocalDateTime(localTimeZone) // Convert to local time
 
     println(">>> targetTime In: $targetTime")
     println(">>> Now: $now")
@@ -120,9 +118,11 @@ fun isInRange(
     if (startDateTimeUtc.isNullOrEmpty() || endDateTimeUtc.isNullOrEmpty()) return false
     val localTimeZone = TimeZone.of(timeZone.id)
     val now = dateTimeNow()
-    val startLocalDateTime = Instant.parse(startDateTimeUtc).toLocalDateTime(localTimeZone)
+    val startLocalDateTime =
+        Instant.parse(startDateTimeUtc).toLocalDateTime(localTimeZone)
     val endLocalDateTime =
-        Instant.parse(endDateTimeUtc).plus(graceMinutes.minutes).toLocalDateTime(localTimeZone)
+        Instant.parse(endDateTimeUtc).plus(graceMinutes.minutes)
+            .toLocalDateTime(localTimeZone)
 
 
     return startLocalDateTime <= now && now <= endLocalDateTime

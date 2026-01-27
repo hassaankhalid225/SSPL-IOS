@@ -12,7 +12,8 @@ data class Conference(
     @SerialName("start_date") val startDate: String?,
     @SerialName("end_date") val endDate: String?,
     @SerialName("created_at") val createdAt: String?,
-    @SerialName("updated_at") val updatedAt: String?
+    @SerialName("updated_at") val updatedAt: String?,
+    @SerialName("venue") val venue: Venue? = null
 ) {
     fun isWorkshop(): Boolean = type == ConferenceType.WORKSHOP
 }

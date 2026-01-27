@@ -18,6 +18,8 @@ import com.sspl.resources.ic_forum
 import com.sspl.resources.ic_user
 import com.sspl.resources.log_in
 import com.sspl.resources.notifications
+import com.sspl.resources.exhibition
+import com.sspl.resources.exhibition_details
 import com.sspl.resources.profile
 import com.sspl.resources.program_detail
 import com.sspl.resources.scientific_programs
@@ -34,6 +36,9 @@ import com.sspl.ui.about.AboutScreen
 import com.sspl.ui.conference.programs.ProgramDetailScreen
 import com.sspl.ui.conference.programs.ScientificProgramsScreen
 import com.sspl.ui.conference.programs.SessionDetailScreen
+import com.sspl.ui.conference.registration.ConferenceRegistrationScreen
+import com.sspl.ui.conference.registration.PaymentStatusScreen
+import com.sspl.ui.conference.registration.MyRegistrationsScreen
 import com.sspl.ui.conference.workshops.WorkshopDetailScreen
 import com.sspl.ui.conference.workshops.WorkshopsScreen
 import com.sspl.ui.feedback.FeedbackScreen
@@ -48,6 +53,9 @@ import com.sspl.ui.posts.PostScreen
 import com.sspl.ui.session.SessionScreen
 import com.sspl.ui.settings.SettingsScreen
 import com.sspl.ui.settings.deleteaccount.DeleteAccountScreen
+import com.sspl.ui.exhibition.ExhibitionRegistrationScreen
+import com.sspl.ui.exhibition.ExhibitionsScreen
+import com.sspl.ui.exhibition.ExhibitionDetailScreen
 import com.sspl.ui.userdetails.EditProfileScreen
 import com.sspl.ui.userdetails.ProfileScreen
 import com.sspl.ui.userdetails.UserDetailsScreen
@@ -190,6 +198,33 @@ sealed class Screen(
         title = Res.string.delete_account,
         route = "DeleteAccountScreen",
     )
+
+    data object ExhibitionRegistrationScreen : Screen(
+        title = Res.string.exhibition,
+        route = "ExhibitionRegistrationScreen",
+    )
+
+    data object ExhibitionsScreen : Screen(
+        title = Res.string.exhibition,
+        route = "ExhibitionsScreen",
+    )
+
+    data object ExhibitionDetailScreen : Screen(
+        title = Res.string.exhibition_details,
+        route = "ExhibitionDetailScreen",
+    )
+
+    data object ConferenceRegistrationScreen : Screen(
+        route = "ConferenceRegistrationScreen",
+    )
+
+    data object PaymentStatusScreen : Screen(
+        route = "PaymentStatusScreen",
+    )
+
+    data object MyRegistrationsScreen : Screen(
+        route = "MyRegistrationsScreen",
+    )
 }
 
 fun screenByRoute(route: String?): Screen? =
@@ -244,12 +279,36 @@ fun otherScreens(): List<NavItem> = listOf(
     NavItem(
         screen = Screen.DeleteAccountScreen,
         component = { DeleteAccountScreen(navController = it) }),
+    NavItem(
+        screen = Screen.ExhibitionRegistrationScreen,
+        component = { ExhibitionRegistrationScreen(navController = it) }),
+    NavItem(
+        screen = Screen.ExhibitionsScreen,
+        component = { ExhibitionsScreen(navController = it) }),
+    NavItem(
+        screen = Screen.ExhibitionDetailScreen,
+        component = { ExhibitionDetailScreen(navController = it) }),
+    NavItem(
+        screen = Screen.ConferenceRegistrationScreen,
+        component = { ConferenceRegistrationScreen(navController = it) }),
+    NavItem(
+        screen = Screen.PaymentStatusScreen,
+        component = { PaymentStatusScreen(navController = it) }),
+    NavItem(
+        screen = Screen.MyRegistrationsScreen,
+        component = { 
+             val confId = it.previousBackStackEntry?.savedStateHandle?.get<Long>("conferenceId") ?: 0L
+             MyRegistrationsScreen(conferenceId = confId, navController = it) 
+        }),
 )
 
 fun kycScreens(): List<NavItem> = listOf(
     NavItem(screen = Screen.SplashScreen, component = { SplashScreen(navController = it) }),
     NavItem(screen = Screen.SignUpScreen, component = { SignUpScreen(navController = it) }),
     NavItem(screen = Screen.SignInScreen, component = { LoginScreen(navController = it) }),
+    NavItem(
+        screen = Screen.ExhibitionRegistrationScreen,
+        component = { ExhibitionRegistrationScreen(navController = it) }),
     NavItem(screen = Screen.OtpScreen, component = { OtpScreen(navController = it) }),
     NavItem(
         screen = Screen.ForgotPasswordScreen,

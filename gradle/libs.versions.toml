@@ -57,7 +57,7 @@ koin-android = { module = "io.insert-koin:koin-android" }
 #Coil
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil3" }
 coil-compose-core = { module = "io.coil-kt.coil3:coil-compose-core", version.ref = "coil3" }
-coil-network-ktor = { module = "io.coil-kt.coil3:coil-network-ktor", version.ref = "coil3" }
+coil-network-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil3" }
 coil = { module = "io.coil-kt.coil3:coil", version.ref = "coil3" }
 
 #location
@@ -92,6 +92,8 @@ accompanist-permissions = { module = "com.google.accompanist:accompanist-permiss
 peekaboo-image-picker = { module = "io.github.onseok:peekaboo-image-picker", version.ref = "peekabooImagePicker" }
 androidx-foundation-layout-android = { group = "androidx.compose.foundation", name = "foundation-layout-android", version.ref = "foundationLayoutAndroid" }
 permissions-compose = { module = "dev.icerock.moko:permissions-compose", version.ref = "permissionsCompose" }
+firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
+pusher-java-client = { module = "com.pusher:pusher-java-client", version = "2.4.4" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

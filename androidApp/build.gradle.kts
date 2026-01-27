@@ -65,21 +65,18 @@ android {
     productFlavors {
         create("stage") {
             dimension = "version"
-            applicationIdSuffix = ".android"
             signingConfig = signingConfigs.getByName("stageRelease")
         }
         create("sspl") {
             versionCode = 8
             versionName = "1.0.8"
             dimension = "version"
-            applicationIdSuffix = ".android"
             signingConfig = signingConfigs.getByName("sspl")
         }
         create("bhimsoft") {
             versionCode = 3
             versionName = "1.0.3"
             dimension = "version"
-            applicationIdSuffix = ".sosapp"
             signingConfig = signingConfigs.getByName("bhimsoft")
         }
     }
@@ -110,4 +107,8 @@ dependencies {
     implementation(project.dependencies.platform(libs.firebase.bom)) // Use the latest version
     //implementation(libs.firebase.analytics.ktx)
     implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.messaging)
+    
+    // Pusher for real-time notifications
+    implementation(libs.pusher.java.client)
 }

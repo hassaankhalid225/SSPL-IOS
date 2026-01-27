@@ -9,7 +9,7 @@ package com.sspl.utils
 
 /**
  * DO NOT Change this email
- */
+ */ 
 const val EMAIL_GUEST_USER = "guest@gmail.com"
 
 /**
@@ -17,3 +17,4 @@ const val EMAIL_GUEST_USER = "guest@gmail.com"
  */
 const val PASSWORD_GUEST_USER = "GuestUser@123"
 const val PHONE_GUEST_USER = "+923334254002"
+const val BASE_URL = "http://188.245.244.112:3000"

@@ -104,6 +104,7 @@ fun WorkshopDetailScreen(
                 is ApiStates.Failure -> status.error.message?.let { scaffoldState.showSnackbar(it) }
                 ApiStates.Loading -> scaffoldState.showSnackbar("Please wait...")
                 is ApiStates.Success -> scaffoldState.showSnackbar("Attendance marked successfully")
+                ApiStates.Idle -> {} // Do nothing
             }
         }
     }
@@ -113,6 +114,7 @@ fun WorkshopDetailScreen(
                 is ApiStates.Failure -> status.error.message?.let { scaffoldState.showSnackbar(it) }
                 ApiStates.Loading -> scaffoldState.showSnackbar("Uploading image...")
                 is ApiStates.Success -> scaffoldState.showSnackbar("Image uploaded for attendance approval!")
+                ApiStates.Idle -> {} // Do nothing
             }
         }
     }
@@ -127,6 +129,10 @@ fun WorkshopDetailScreen(
 
         ApiStates.Loading -> {
             AppProgressBar()
+        }
+
+        ApiStates.Idle -> {
+            // Do nothing, waiting for data
         }
 
         is ApiStates.Success -> {
@@ -170,7 +176,7 @@ fun WorkshopDetailScreen(
 @Composable
 private fun WorkshopDetailContent(
     conference: Conference,
-    isGuestUser: State<Boolean>,
+    isGuestUser: State<Boolean?>,
     conferenceDetail: ConferenceDetail,
     onMarkAttendance: (sessionId: Long) -> Unit,
     onMarkAttendanceByImage: (sessionId: Long, ByteArray) -> Unit,
@@ -261,7 +267,7 @@ private fun WorkshopDetail(
 @Composable
 private fun SessionsSchedule(
     sessions: List<Session>,
-    isGuestUser: State<Boolean>,
+    isGuestUser: State<Boolean?>,
     onMarkAttendance: (sessionId: Long) -> Unit = {},
     onMarkAttendanceByImage: (sessionId: Long, ByteArray) -> Unit,
     onFeedBackClicked: (sessionId:Long) -> Unit,
@@ -283,7 +289,7 @@ private fun SessionsSchedule(
             if (!session.breakdown.isNullOrEmpty()) {
                 SessionBreakDown(session.breakdown)
             }
-            if (!session.isBreak && isGuestUser.value.not()) {
+            if (!session.isBreak && isGuestUser.value == false) {
                 val shouldShowFeedback = isNowAfter(
                     targetTime = session.endsAt,
                     graceMinutes = 24 * 60

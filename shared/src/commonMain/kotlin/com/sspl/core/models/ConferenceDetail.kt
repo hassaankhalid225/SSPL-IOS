@@ -14,7 +14,9 @@ data class ConferenceDetail(
     @SerialName("created_at") val createdAt: String?,
     @SerialName("updated_at") val updatedAt: String?,
     @SerialName("add_on_sets") val addOnSets: List<AddOnSet>?,
-    @SerialName("days") val days: List<Day>?
+    @SerialName("days") val days: List<Day>?,
+    @SerialName("roles") val roles: List<Role>? = null,
+    @SerialName("venue") val venue: Venue? = null
 )
 
 @Serializable
@@ -81,7 +83,8 @@ data class Speaker(
 @Serializable
 data class Venue(
     @SerialName("id") val id: Long,
-    @SerialName("title") val title: String?,
+    @SerialName("name") val name: String? = null,
+    @SerialName("title") val title: String? = null,
     @SerialName("address") val address: String?,
     @SerialName("lat") val lat: Double?,
     @SerialName("lng") val lng: Double?,
