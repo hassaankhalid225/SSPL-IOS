@@ -40,7 +40,7 @@ import com.sspl.ui.conference.registration.ConferenceRegistrationScreen
 import com.sspl.ui.conference.registration.PaymentStatusScreen
 import com.sspl.ui.conference.registration.MyRegistrationsScreen
 import com.sspl.ui.conference.workshops.WorkshopDetailScreen
-import com.sspl.ui.conference.workshops.WorkshopsScreen
+import com.sspl.ui.conference.workshops.WorkshopsScreenV2
 import com.sspl.ui.feedback.FeedbackScreen
 import com.sspl.ui.homescreen.HomeScreen
 import com.sspl.ui.kyc.ForgotPasswordScreen
@@ -266,7 +266,7 @@ fun otherScreens(): List<NavItem> = listOf(
         component = { EditProfileScreen(navController = it) }),
 
     NavItem(screen = Screen.CreatePostScreen, component = { CreatePostScreen(navController = it) }),
-    NavItem(screen = Screen.WorkshopsScreen, component = { WorkshopsScreen(navController = it) }),
+    NavItem(screen = Screen.WorkshopsScreen, component = { WorkshopsScreenV2(navController = it) }),
     NavItem(
         screen = Screen.WorkshopDetailScreen,
         component = { WorkshopDetailScreen(navController = it) }),

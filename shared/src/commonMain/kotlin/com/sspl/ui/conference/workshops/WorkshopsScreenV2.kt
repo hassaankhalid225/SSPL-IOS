@@ -60,10 +60,10 @@ import org.koin.compose.viewmodel.koinViewModel
  * se.muhammadimran@gmail.com
  */
 
-private const val TAG = ">>>WorkshopsScreen"
+private const val TAG = ">>>WorkshopsScreenV2"
 
 @Composable
-fun WorkshopsScreen(
+fun WorkshopsScreenV2(
     navController: NavController,
     viewModel: ConferenceViewModel = koinViewModel()
 ) {
