@@ -237,65 +237,17 @@ fun ConferenceRegistrationContent(
         }
         
         if (state.registration != null && (state.registration.paymentStatus == "PENDING" || state.registration.paymentStatus == "FAILED")) {
-            var paymentMethod by remember { mutableStateOf("ONLINE") }
-            var transactionId by remember { mutableStateOf("") }
-            var bankName by remember { mutableStateOf("") }
-
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = Color.LightGray.copy(alpha = 0.5f))
             
-            AppTextLabel(text = "Payment Method", fontWeight = FontWeight.Bold)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Card(
-                    modifier = Modifier.weight(1f).clickable { paymentMethod = "ONLINE" },
-                    colors = CardDefaults.cardColors(containerColor = if (paymentMethod == "ONLINE") primary.copy(alpha = 0.1f) else columnColor),
-                    border = if (paymentMethod == "ONLINE") androidx.compose.foundation.BorderStroke(2.dp, primary) else null
-                ) {
-                    Text("Online Payment", modifier = Modifier.padding(16.dp), textAlign = TextAlign.Center)
-                }
-                Card(
-                    modifier = Modifier.weight(1f).clickable { paymentMethod = "BANK" },
-                    colors = CardDefaults.cardColors(containerColor = if (paymentMethod == "BANK") primary.copy(alpha = 0.1f) else columnColor),
-                    border = if (paymentMethod == "BANK") androidx.compose.foundation.BorderStroke(2.dp, primary) else null
-                ) {
-                    Text("Bank Transfer", modifier = Modifier.padding(16.dp), textAlign = TextAlign.Center)
-                }
-            }
+            Spacer(modifier = Modifier.height(16.dp))
 
-            if (paymentMethod == "BANK") {
-                Spacer(modifier = Modifier.height(8.dp))
-                AppTextField(
-                    text = transactionId,
-                    onTextChange = { transactionId = it },
-                    placeholder = "Transaction ID"
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                AppTextField(
-                    text = bankName,
-                    onTextChange = { bankName = it },
-                    placeholder = "Bank Name"
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                ButtonWithProgress(
-                    isEnabled = transactionId.isNotBlank() && !state.isLoading,
-                    isLoading = state.isLoading,
-                    buttonText = "SUBMIT TRANSACTION",
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    onClick = { viewModel.updateManualPayment(transactionId, bankName) }
-                )
-            }
-            
-            if (paymentMethod == "ONLINE") {
-                 ButtonWithProgress(
-                    isEnabled = !state.isLoading,
-                    isLoading = state.isLoading,
-                    buttonText = "PAY ONLINE NOW",
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    onClick = { viewModel.initiatePayment() }
-                )
-            }
+            ButtonWithProgress(
+                isEnabled = !state.isLoading,
+                isLoading = state.isLoading,
+                buttonText = "PAY ONLINE NOW",
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                onClick = { viewModel.initiatePayment() }
+            )
         }
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = Color.LightGray.copy(alpha = 0.5f))
