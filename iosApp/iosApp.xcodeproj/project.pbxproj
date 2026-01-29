@@ -11,6 +11,7 @@
 		058557D9273AAEEB004C7B11 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 058557D8273AAEEB004C7B11 /* Preview Assets.xcassets */; };
 		2152FB042600AC8F00CF470E /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2152FB032600AC8F00CF470E /* iOSApp.swift */; };
 		7555FF83242A565900829871 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7555FF82242A565900829871 /* ContentView.swift */; };
+		AF0B4F782F2B7F4B0035EAA2 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = AF0B4F772F2B7F4B0035EAA2 /* GoogleService-Info.plist */; };
 		AFA793F62D26D1E800996C15 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AFA793F52D26D1E800996C15 /* SplashScreen.storyboard */; };
 		B151B6662F2010F2001064D2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B151B6652F2010F2001064D2 /* AppDelegate.swift */; };
 		B151B6AA2F2027EC001064D2 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = B151B6A92F2027EC001064D2 /* FirebaseAnalytics */; };
@@ -41,7 +42,6 @@
 		B151B6DC2F2027EC001064D2 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = B151B6DB2F2027EC001064D2 /* FirebaseStorage */; };
 		B151B6DE2F2027EC001064D2 /* FirebaseStorageCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = B151B6DD2F2027EC001064D2 /* FirebaseStorageCombine-Community */; };
 		B151B6E02F2027EC001064D2 /* FirebaseVertexAI-Preview in Frameworks */ = {isa = PBXBuildFile; productRef = B151B6DF2F2027EC001064D2 /* FirebaseVertexAI-Preview */; };
-		B15873332F21369E00E5882C /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B15873322F21369D00E5882C /* GoogleService-Info.plist */; };
 		B1F338752F22E15B009FA57E /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F338732F22E15B009FA57E /* NotificationManager.swift */; };
 		B1F338762F22E15B009FA57E /* SessionWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F338742F22E15B009FA57E /* SessionWebView.swift */; };
 /* End PBXBuildFile section */
@@ -66,10 +66,10 @@
 		7555FF7B242A565900829871 /* iosApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7555FF82242A565900829871 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		7555FF8C242A565B00829871 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AF0B4F772F2B7F4B0035EAA2 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		AFA793F52D26D1E800996C15 /* SplashScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = SplashScreen.storyboard; sourceTree = "<group>"; };
 		B151B6652F2010F2001064D2 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B151B6E52F204076001064D2 /* iosApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = iosApp.entitlements; sourceTree = "<group>"; };
-		B15873322F21369D00E5882C /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		B1F338732F22E15B009FA57E /* NotificationManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 		B1F338742F22E15B009FA57E /* SessionWebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SessionWebView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -141,6 +141,7 @@
 		7555FF7D242A565900829871 /* iosApp */ = {
 			isa = PBXGroup;
 			children = (
+				AF0B4F772F2B7F4B0035EAA2 /* GoogleService-Info.plist */,
 				B151B6E52F204076001064D2 /* iosApp.entitlements */,
 				058557BA273AAA24004C7B11 /* Assets.xcassets */,
 				7555FF82242A565900829871 /* ContentView.swift */,
@@ -148,7 +149,6 @@
 				2152FB032600AC8F00CF470E /* iOSApp.swift */,
 				B1F338732F22E15B009FA57E /* NotificationManager.swift */,
 				B1F338742F22E15B009FA57E /* SessionWebView.swift */,
-				B15873322F21369D00E5882C /* GoogleService-Info.plist */,
 				B151B6652F2010F2001064D2 /* AppDelegate.swift */,
 				058557D7273AAEEB004C7B11 /* Preview Content */,
 				AFA793F52D26D1E800996C15 /* SplashScreen.storyboard */,
@@ -258,7 +258,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				058557D9273AAEEB004C7B11 /* Preview Assets.xcassets in Resources */,
-				B15873332F21369E00E5882C /* GoogleService-Info.plist in Resources */,
+				AF0B4F782F2B7F4B0035EAA2 /* GoogleService-Info.plist in Resources */,
 				AFA793F62D26D1E800996C15 /* SplashScreen.storyboard in Resources */,
 				058557BB273AAA24004C7B11 /* Assets.xcassets in Resources */,
 			);
@@ -435,7 +435,7 @@
 				CODE_SIGN_ENTITLEMENTS = iosApp/iosApp.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_ASSET_PATHS = "\"iosApp/Preview Content\"";
 				DEVELOPMENT_TEAM = A4L7DKT7HQ;
 				ENABLE_PREVIEWS = YES;
@@ -451,13 +451,13 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.3;
+				MARKETING_VERSION = 1.0.6;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
 					shared,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.sspl;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ssplahore.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
@@ -473,7 +473,7 @@
 				CODE_SIGN_ENTITLEMENTS = iosApp/iosApp.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_ASSET_PATHS = "\"iosApp/Preview Content\"";
 				DEVELOPMENT_TEAM = A4L7DKT7HQ;
 				ENABLE_PREVIEWS = YES;
@@ -489,13 +489,13 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.3;
+				MARKETING_VERSION = 1.0.6;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
 					shared,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.sspl;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ssplahore.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;

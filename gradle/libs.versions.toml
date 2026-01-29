@@ -1,5 +1,6 @@
 [versions]
 agp = "8.13.2"
+androidKMGradlePlugin = "9.0"
 firebaseBom = "34.7.0"
 kotlin = "2.3.0"
 compose = "1.10.0"
@@ -98,6 +99,7 @@ pusher-java-client = { module = "com.pusher:pusher-java-client", version = "2.4.
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
+androidMutiplatformLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "androidKMGradlePlugin" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 
 kotlinCocoapods = { id = "org.jetbrains.kotlin.native.cocoapods", version.ref = "kotlin" }

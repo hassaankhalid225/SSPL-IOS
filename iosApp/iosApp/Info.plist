@@ -20,6 +20,17 @@
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.0.5</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.sspl.payment</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>sspl</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>5</string>
 	<key>LSRequiresIPhoneOS</key>
@@ -83,17 +94,6 @@
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array> 
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>sspl</string>
-			</array>
-			<key>CFBundleURLName</key>
-			<string>com.sspl.payment</string>
-		</dict>
 	</array>
 </dict>
 </plist>
