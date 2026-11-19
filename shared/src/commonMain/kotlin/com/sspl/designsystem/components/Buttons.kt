@@ -219,3 +219,101 @@ fun StickyCtaBar(
     }
 }
 
+@Composable
+fun SsplPrimaryButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    loading: Boolean = false,
+    leadingIcon: (@Composable () -> Unit)? = null,
+    trailingIcon: (@Composable () -> Unit)? = null
+) {
+    val bg = if (enabled) AppTheme.colors.primary else AppTheme.colors.border
+    val contentColor = if (enabled) Color.White else AppTheme.colors.muted
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = 48.dp)
+            .clip(AppTheme.shapes.button)
+            .background(bg)
+            .clickable(enabled = enabled && !loading, onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        if (loading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(20.dp),
+                color = Color.White,
+                strokeWidth = 2.dp
+            )
+        } else {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                leadingIcon?.invoke()
+                Text(
+                    text = text,
+                    style = AppTheme.typography.bodyLarge.copy(
+                        color = contentColor,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                )
+                trailingIcon?.invoke()
+            }
+        }
+    }
+}
+
+@Composable
+fun SsplSecondaryButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    loading: Boolean = false,
+    leadingIcon: (@Composable () -> Unit)? = null,
+    trailingIcon: (@Composable () -> Unit)? = null
+) {
+    val strokeColor = if (enabled) AppTheme.colors.primary else AppTheme.colors.border
+    val contentColor = if (enabled) AppTheme.colors.primary else AppTheme.colors.muted
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = 48.dp)
+            .clip(AppTheme.shapes.button)
+            .border(1.dp, strokeColor, AppTheme.shapes.button)
+            .background(AppTheme.colors.surface)
+            .clickable(enabled = enabled && !loading, onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        if (loading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(20.dp),
+                color = AppTheme.colors.primary,
+                strokeWidth = 2.dp
+            )
+        } else {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                leadingIcon?.invoke()
+                Text(
+                    text = text,
+                    style = AppTheme.typography.bodyLarge.copy(
+                        color = contentColor,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                )
+                trailingIcon?.invoke()
+            }
+        }
+    }
+}
+
+

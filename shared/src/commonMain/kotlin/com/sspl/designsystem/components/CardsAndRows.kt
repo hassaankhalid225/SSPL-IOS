@@ -45,6 +45,7 @@ import com.sspl.designsystem.theme.AppTheme
 @Composable
 fun SsplCard(
     modifier: Modifier = Modifier,
+    backgroundColor: Color? = null,
     onClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
@@ -56,7 +57,7 @@ fun SsplCard(
             ),
         shape = AppTheme.shapes.card,
         colors = CardDefaults.cardColors(
-            containerColor = AppTheme.colors.surface
+            containerColor = backgroundColor ?: AppTheme.colors.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, AppTheme.colors.border)

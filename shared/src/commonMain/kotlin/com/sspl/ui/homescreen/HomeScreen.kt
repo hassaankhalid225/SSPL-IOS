@@ -239,7 +239,7 @@ fun HomeScreen(
                         subtitle = "Scientific Sessions",
                         icon = Icons.Default.WorkspacePremium,
                         modifier = Modifier.weight(1f),
-                        onClick = { navController.navigate(Screen.ScientificProgramsScreen.route) }
+                        onClick = { navController.navigate(Screen.ConferencesScreen.route) }
                     )
                 }
                 Spacer(modifier = Modifier.height(10.dp))
@@ -287,7 +287,12 @@ fun HomeScreen(
                     ) {
                         items(upcomingEvents) { event ->
                             UpcomingEventCard(event = event) {
-                                navController.navigate(Screen.ScientificProgramsScreen.route)
+                                if (event.id != null && event.id > 0) {
+                                    navController.currentBackStackEntry?.savedStateHandle?.set("eventId", event.id)
+                                    navController.navigate(Screen.EventDetailScreen.route)
+                                } else {
+                                    navController.navigate(Screen.ScientificProgramsScreen.route)
+                                }
                             }
                         }
                     }

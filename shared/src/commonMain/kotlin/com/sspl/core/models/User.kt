@@ -65,6 +65,8 @@ data class User(
     val pmdcNo: String? get() = profile?.pmdcNumber
     val designation: String? get() = profile?.title
     val instituteName: String? get() = profile?.institute
+    val institution: String? get() = profile?.institute
+    val email: String? get() = account?.email
     val country: String? get() = profile?.country
     val city: String? get() = null
 }

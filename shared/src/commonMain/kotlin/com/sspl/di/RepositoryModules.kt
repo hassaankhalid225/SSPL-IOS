@@ -11,6 +11,7 @@ import com.sspl.core.push.DeviceTokenManager
 import com.sspl.core.push.PushNotificationService
 import com.sspl.core.repositories.PaymentRepository
 import com.sspl.core.repositories.PublicRepository
+import com.sspl.core.repositories.EventRepository
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
@@ -40,4 +41,5 @@ internal val repositoryModules = module {
     
     // Public / CMS
     factoryOf(::PublicRepository)
+    factoryOf(::EventRepository)
 }

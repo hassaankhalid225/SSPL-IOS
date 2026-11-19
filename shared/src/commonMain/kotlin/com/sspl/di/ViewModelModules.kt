@@ -4,6 +4,10 @@ import com.sspl.ui.about.AboutSocietyViewModel
 import com.sspl.ui.conference.AttendanceViewModel
 import com.sspl.ui.conference.ConferenceDetailViewModel
 import com.sspl.ui.conference.ConferenceViewModel
+import com.sspl.ui.conference.EventsListViewModel
+import com.sspl.ui.conference.EventDetailViewModel
+import com.sspl.ui.conference.EventArchiveViewModel
+import com.sspl.ui.conference.registration.PaymentStatusViewModel
 import com.sspl.ui.feedback.FeedbackViewModel
 import com.sspl.ui.homescreen.HomeScreenViewModel
 import com.sspl.ui.kyc.ForgotPasswordViewModel
@@ -58,6 +62,10 @@ internal val viewModelModules = module {
     viewModelOf(::ScenarioJoinViewModel)
     viewModelOf(::ConferenceRegistrationViewModel)
     viewModelOf(::MyRegistrationsViewModel)
+    viewModelOf(::EventsListViewModel)
+    viewModelOf(::EventDetailViewModel)
+    viewModelOf(::EventArchiveViewModel)
+    viewModelOf(::PaymentStatusViewModel)
 
 
 //    viewModelOf(::PlayerScreenViewModel)

@@ -46,6 +46,11 @@ import com.sspl.ui.terms.TermsScreen
 import com.sspl.ui.conference.programs.ProgramDetailScreen
 import com.sspl.ui.conference.programs.ScientificProgramsScreen
 import com.sspl.ui.conference.programs.SessionDetailScreen
+import com.sspl.ui.conference.EventsListScreen
+import com.sspl.ui.conference.EventDetailScreen
+import com.sspl.ui.conference.EventRegistrationScreen
+import com.sspl.ui.conference.ConferencesScreen
+import com.sspl.ui.conference.EventArchiveScreen
 import com.sspl.ui.conference.registration.ConferenceRegistrationScreen
 import com.sspl.ui.conference.registration.PaymentStatusScreen
 import com.sspl.ui.conference.registration.MyRegistrationsScreen
@@ -216,6 +221,11 @@ sealed class Screen(
     data object VerifyCertificateScreen : Screen(route = "VerifyCertificateScreen")
     data object MembersDirectoryScreen : Screen(route = "MembersDirectoryScreen")
     data object FellowshipHubScreen : Screen(route = "FellowshipHubScreen")
+    data object EventsListScreen : Screen(route = "EventsListScreen")
+    data object EventDetailScreen : Screen(route = "EventDetailScreen")
+    data object EventRegistrationScreen : Screen(route = "EventRegistrationScreen")
+    data object ConferencesScreen : Screen(route = "ConferencesScreen")
+    data object EventArchiveScreen : Screen(route = "EventArchiveScreen")
 }
 
 fun screenByRoute(route: String?): Screen? =
@@ -291,6 +301,11 @@ fun otherScreens(): List<NavItem> = listOf(
     NavItem(screen = Screen.VerifyCertificateScreen, component = { VerifyCertificateScreen(navController = it) }),
     NavItem(screen = Screen.MembersDirectoryScreen, component = { MembersDirectoryScreen(navController = it) }),
     NavItem(screen = Screen.FellowshipHubScreen, component = { MemberGuideScreen(navController = it) }),
+    NavItem(screen = Screen.EventsListScreen, component = { EventsListScreen(navController = it) }),
+    NavItem(screen = Screen.EventDetailScreen, component = { EventDetailScreen(navController = it) }),
+    NavItem(screen = Screen.EventRegistrationScreen, component = { EventRegistrationScreen(navController = it) }),
+    NavItem(screen = Screen.ConferencesScreen, component = { ConferencesScreen(navController = it) }),
+    NavItem(screen = Screen.EventArchiveScreen, component = { EventArchiveScreen(navController = it) }),
 )
 
 fun kycScreens(): List<NavItem> = listOf(

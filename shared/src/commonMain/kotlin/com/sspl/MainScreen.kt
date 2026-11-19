@@ -54,6 +54,11 @@ fun MainScreen(onParentGraph: () -> Unit) {
         Screen.VerifyCertificateScreen -> Route.VerifyCertificate()
         Screen.MembersDirectoryScreen -> Route.MembersDirectory
         Screen.ScientificProgramsScreen -> Route.Events
+        Screen.EventsListScreen -> Route.Events
+        Screen.EventDetailScreen -> Route.Events
+        Screen.EventRegistrationScreen -> Route.Events
+        Screen.ConferencesScreen -> Route.Conferences
+        Screen.EventArchiveScreen -> Route.Events
         Screen.WorkshopsScreen -> Route.Workshops()
         Screen.ProfileScreen -> Route.Profile
         Screen.SettingsScreen -> Route.Settings
@@ -76,7 +81,12 @@ fun MainScreen(onParentGraph: () -> Unit) {
         Screen.DownloadsScreen -> "Downloads"
         Screen.VerifyCertificateScreen -> "Verify Certificate"
         Screen.MembersDirectoryScreen -> "Members Directory"
-        Screen.ScientificProgramsScreen -> "Scientific Programs"
+        Screen.ScientificProgramsScreen -> "Events & CME"
+        Screen.EventsListScreen -> "Events & CME"
+        Screen.EventDetailScreen -> "Event Details"
+        Screen.EventRegistrationScreen -> "Registration"
+        Screen.ConferencesScreen -> "Annual Conferences"
+        Screen.EventArchiveScreen -> "Event Archive"
         Screen.WorkshopsScreen -> "Workshops"
         Screen.ProfileScreen -> "My Profile"
         Screen.SettingsScreen -> "Settings"
@@ -129,7 +139,11 @@ fun MainScreen(onParentGraph: () -> Unit) {
                 is Route.VerifyCertificate -> Screen.VerifyCertificateScreen
                 is Route.MembersDirectory -> Screen.MembersDirectoryScreen
                 is Route.Events -> Screen.ScientificProgramsScreen
-                is Route.Conferences -> Screen.ScientificProgramsScreen
+                is Route.EventDetail -> Screen.EventDetailScreen
+                is Route.EventRegistration -> Screen.EventRegistrationScreen
+                is Route.Conferences -> Screen.ConferencesScreen
+                is Route.EventArchive -> Screen.EventArchiveScreen
+                is Route.PaymentStatus -> Screen.PaymentStatusScreen
                 is Route.Workshops -> Screen.WorkshopsScreen
                 is Route.MyRegistrations -> Screen.MyRegistrationsScreen
                 is Route.Profile -> Screen.ProfileScreen

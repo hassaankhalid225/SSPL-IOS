@@ -3,6 +3,7 @@ package com.sspl.ui.conference.workshops
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,22 +14,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.HowToReg
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -37,30 +36,23 @@ import com.sspl.Screen
 import com.sspl.core.ApiStates
 import com.sspl.core.models.Conference
 import com.sspl.core.models.ConferenceType
+import com.sspl.designsystem.components.BadgeVariant
+import com.sspl.designsystem.components.SsplBadge
+import com.sspl.designsystem.components.SsplCard
+import com.sspl.designsystem.components.SsplPrimaryButton
+import com.sspl.designsystem.components.SsplSecondaryButton
+import com.sspl.designsystem.tokens.SsplColorTokens
+import com.sspl.designsystem.tokens.SsplSpacingTokens
+import com.sspl.designsystem.tokens.SsplTypographyTokens
 import com.sspl.platform.formatDateTime
-import com.sspl.theme.boxColor
-import com.sspl.theme.columnColor
-import com.sspl.theme.dividerColor
-import com.sspl.ui.components.AppProgressBar
-import com.sspl.ui.components.AppTextBody
-import com.sspl.ui.components.AppTextLabel
-import com.sspl.ui.components.AppTextSubTitle
 import com.sspl.ui.components.Error
 import com.sspl.ui.conference.ConferenceViewModel
+import com.sspl.ui.conference.DateBadge
 import com.sspl.utils.FORMAT_DAY_MONTH
 import com.sspl.utils.FORMAT_DEFAULT_DATE_TIME
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.koin.compose.viewmodel.koinViewModel
-
-/**
- * Created by M Imran
- * Senior Software Engineer at
- * BhimSoft on 31/01/2025.
- * se.muhammadimran@gmail.com
- */
-
-private const val TAG = ">>>WorkshopsScreenV2"
 
 @Composable
 fun WorkshopsScreenV2(
@@ -69,165 +61,191 @@ fun WorkshopsScreenV2(
 ) {
     val uiState by viewModel.conferences.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) {
-        println("$TAG LaunchedEffect(Unit)")
         viewModel.getAllConferences(ConferenceType.WORKSHOP)
     }
-    when (uiState) {
-        is ApiStates.Loading -> {
-            AppProgressBar()
-        }
 
-        is ApiStates.Failure -> {
-            Error(
-                modifier = Modifier.fillMaxSize(),
-                error = (uiState as ApiStates.Failure).error
-            )
-        }
-
-        ApiStates.Idle -> {
-            // Do nothing, waiting for data
-        }
-
-        is ApiStates.Success -> {
-            (uiState as ApiStates.Success<List<Conference>>).data?.let {
-                println("$TAG Data: $it")
-                WorkshopsList(
-                    conferences = it,
-                    navController = navController
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun WorkshopsList(
-    conferences: List<Conference>,
-    navController: NavController
-) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(all = 16.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(SsplColorTokens.background)
     ) {
-        itemsIndexed(conferences, key = { i, _ -> i }) { i, item ->
-            WorkshopItem(
-                item = item,
-                position = i,
-                showDivider = i != conferences.size - 1,
-                navController = navController
-            ) {
-                navController.currentBackStackEntry?.savedStateHandle?.set(
-                    "data",
-                    Json.encodeToString(item)
+        when (val state = uiState) {
+            is ApiStates.Loading -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = SsplColorTokens.primary)
+                }
+            }
+
+            is ApiStates.Failure -> {
+                Error(
+                    modifier = Modifier.fillMaxSize(),
+                    error = state.error
                 )
-                navController.navigate(route = Screen.WorkshopDetailScreen.route)
+            }
+
+            ApiStates.Idle -> {}
+
+            is ApiStates.Success -> {
+                val conferences = state.data ?: emptyList()
+                if (conferences.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize().padding(SsplSpacingTokens.xl),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                imageVector = Icons.Default.Build,
+                                contentDescription = null,
+                                modifier = Modifier.size(56.dp),
+                                tint = SsplColorTokens.muted
+                            )
+                            Spacer(modifier = Modifier.height(SsplSpacingTokens.sm))
+                            Text(
+                                text = "No Workshops Available",
+                                style = SsplTypographyTokens.headlineSmall,
+                                color = SsplColorTokens.textPrimary
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Pre-event workshops and hands-on courses will appear here.",
+                                style = SsplTypographyTokens.bodySmall.copy(color = SsplColorTokens.textSecondary)
+                            )
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(SsplSpacingTokens.md),
+                        verticalArrangement = Arrangement.spacedBy(SsplSpacingTokens.md)
+                    ) {
+                        items(conferences, key = { it.id }) { item ->
+                            ModernWorkshopCard(
+                                item = item,
+                                onViewDetails = {
+                                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                                        "data",
+                                        Json.encodeToString(item)
+                                    )
+                                    navController.navigate(route = Screen.WorkshopDetailScreen.route)
+                                },
+                                onRegister = {
+                                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                                        "data",
+                                        Json.encodeToString(item)
+                                    )
+                                    navController.navigate(route = Screen.ConferenceRegistrationScreen.route)
+                                }
+                            )
+                        }
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun WorkshopItem(
-    item: Conference, position: Int, showDivider: Boolean = true, 
-    navController: NavController,
-    onClick: () -> Unit
+private fun ModernWorkshopCard(
+    item: Conference,
+    onViewDetails: () -> Unit,
+    onRegister: () -> Unit
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth().let {
-            if (position == 0) {
-                it.then(
-                    Modifier.clip(
-                        shape = RoundedCornerShape(16.dp, 16.dp, 16.dp, 0.dp)
-                    )
-                )
-            } else if (!showDivider) {
-                Modifier.clip(
-                    shape = RoundedCornerShape(0.dp, 16.dp, 16.dp, 16.dp)
-                )
-            } else {
-                Modifier.clip(
-                    shape = RoundedCornerShape(0.dp, 16.dp, 16.dp, 0.dp)
-                )
-            }
-        }.background(
-            color = columnColor
-        ).clickable {
-            onClick.invoke()
-        }) {
-        Column(
-            modifier = Modifier.fillMaxWidth(.22F)
-        ) {
-            val annotatedString = buildAnnotatedString {
-                withStyle(
-                    style = SpanStyle(
-                        color = MaterialTheme.colorScheme.tertiary,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                ) {
-                    append(
-                        formatDateTime(
-                            dateTime = item.startDate ?: "",
-                            inFormat = FORMAT_DEFAULT_DATE_TIME,
-                            outFormat = FORMAT_DAY_MONTH
-                        ).uppercase()
-                    )
-                }
-            }
-            Text(
-                text = annotatedString,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-                    .padding(top = 8.dp, start = 8.dp, end = 8.dp)
-            )
-        }
-        Column(
-            modifier = Modifier.fillMaxWidth(1F).clip(
-                shape = RoundedCornerShape(0.dp, 16.dp, 16.dp, 0.dp)
-            ).background(color = boxColor)
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(all = 8.dp)
+    SsplCard(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onViewDetails
+    ) {
+        Column(modifier = Modifier.padding(SsplSpacingTokens.md)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(SsplSpacingTokens.sm)
             ) {
-                AppTextSubTitle(
-                    text = item.title ?: ""
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-
-                AppTextBody(
-                    text = item.summary ?: ""
-                )
-                Spacer(modifier = Modifier.size(16.dp))
-                Row(
-                    modifier = Modifier.padding(top = 8.dp).align(alignment = Alignment.End),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    AppTextLabel(
-                        text = "REGISTER NOW",
-                        textDecoration = TextDecoration.Underline,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.clickable {
-                            navController.currentBackStackEntry?.savedStateHandle?.set(
-                                "data",
-                                Json.encodeToString(item)
-                            )
-                            navController.navigate(route = Screen.ConferenceRegistrationScreen.route)
-                        }
+                // Date badge
+                val dayStr = try {
+                    formatDateTime(
+                        dateTime = item.startDate ?: "",
+                        inFormat = FORMAT_DEFAULT_DATE_TIME,
+                        outFormat = "dd"
                     )
-                    AppTextLabel(
-                        text = "MORE DETAILS",
-                        textDecoration = TextDecoration.Underline,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.clickable {
-                            onClick.invoke()
-                        }
+                } catch (e: Exception) { "--" }
+
+                val monthStr = try {
+                    formatDateTime(
+                        dateTime = item.startDate ?: "",
+                        inFormat = FORMAT_DEFAULT_DATE_TIME,
+                        outFormat = "MMM"
+                    ).uppercase()
+                } catch (e: Exception) { "TBA" }
+
+                val yearStr = try {
+                    formatDateTime(
+                        dateTime = item.startDate ?: "",
+                        inFormat = FORMAT_DEFAULT_DATE_TIME,
+                        outFormat = "yyyy"
+                    )
+                } catch (e: Exception) { "" }
+
+                DateBadge(month = monthStr, day = dayStr, year = yearStr)
+
+                Column(modifier = Modifier.weight(1f)) {
+                    SsplBadge(text = "WORKSHOP", variant = BadgeVariant.PRIMARY)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = item.title ?: "Surgical Workshop",
+                        style = SsplTypographyTokens.headlineSmall.copy(fontSize = 17.sp),
+                        color = SsplColorTokens.textPrimary
                     )
                 }
             }
-            if (showDivider) {
-                Spacer(
-                    modifier = Modifier.fillMaxWidth().height(2.dp).padding(end = 12.dp)
-                        .background(color = dividerColor)
+
+            if (!item.summary.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(SsplSpacingTokens.sm))
+                Text(
+                    text = item.summary,
+                    style = SsplTypographyTokens.bodySmall.copy(color = SsplColorTokens.textSecondary),
+                    maxLines = 2
+                )
+            }
+
+            if (item.venue != null) {
+                Spacer(modifier = Modifier.height(SsplSpacingTokens.xs))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = SsplColorTokens.accent
+                    )
+                    Text(
+                        text = item.venue.address ?: item.venue.name ?: "Venue TBA",
+                        style = SsplTypographyTokens.caption.copy(color = SsplColorTokens.muted)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(SsplSpacingTokens.md))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(SsplSpacingTokens.sm)
+            ) {
+                SsplSecondaryButton(
+                    text = "Register",
+                    onClick = onRegister,
+                    modifier = Modifier.weight(1f),
+                    leadingIcon = {
+                        Icon(imageVector = Icons.Default.HowToReg, contentDescription = null, modifier = Modifier.size(16.dp))
+                    }
+                )
+                SsplPrimaryButton(
+                    text = "View Details",
+                    onClick = onViewDetails,
+                    modifier = Modifier.weight(1f),
+                    trailingIcon = {
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(16.dp))
+                    }
                 )
             }
         }
