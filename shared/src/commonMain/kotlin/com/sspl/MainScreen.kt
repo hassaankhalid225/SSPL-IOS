@@ -39,8 +39,7 @@ fun MainScreen(onParentGraph: () -> Unit) {
                 currentScreen = currentScreen,
                 onHamburgClicked = { navController.navigate(route = Screen.ProfileScreen.route) },
                 canNavigateBack = navController.previousBackStackEntry != null,
-                navigateUp = { navController.navigateUp() },
-                addButtonClick = { navController.navigate(route = Screen.CreatePostScreen.route) },
+                navigateUp = { navController.navigateUp() }
             )
         },
 //        bottomBar = {

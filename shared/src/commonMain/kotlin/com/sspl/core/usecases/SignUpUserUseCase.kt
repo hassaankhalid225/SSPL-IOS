@@ -44,6 +44,7 @@ class SignUpUserUseCase(
             if (response.status.isSuccess()) {
                 val result = response.body<UserResponse>()
                 result.accessToken?.let { userSession.setToken(it) }
+                result.refreshToken?.let { userSession.setRefreshToken(it) }
                 result.user?.let { userSession.setUser(it) }
                 
                 // Register device token after successful signup

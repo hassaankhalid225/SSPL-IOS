@@ -96,12 +96,6 @@ sealed class Screen(
         icon = IconResource.fromDrawableResource(drawable = Res.drawable.ic_user)
     )
 
-    data object ForumScreen : Screen(
-        title = Res.string.forum,
-        route = "ForumScreen",
-        icon = IconResource.fromDrawableResource(drawable = Res.drawable.ic_forum)
-    )
-
     data object ScientificProgramsScreen : Screen(
         title = Res.string.scientific_programs,
         route = "ScientificPrograms",
@@ -165,11 +159,6 @@ sealed class Screen(
         route = "SessionScreen",
     )
 
-    data object CreatePostScreen : Screen(
-        title = Res.string.create_post,
-        route = "CreatePostScreen",
-    )
-
     data object OtpScreen : Screen(
         title = Res.string.verify_otp,
         route = "OtpScreen",
@@ -199,21 +188,6 @@ sealed class Screen(
         route = "DeleteAccountScreen",
     )
 
-    data object ExhibitionRegistrationScreen : Screen(
-        title = Res.string.exhibition,
-        route = "ExhibitionRegistrationScreen",
-    )
-
-    data object ExhibitionsScreen : Screen(
-        title = Res.string.exhibition,
-        route = "ExhibitionsScreen",
-    )
-
-    data object ExhibitionDetailScreen : Screen(
-        title = Res.string.exhibition_details,
-        route = "ExhibitionDetailScreen",
-    )
-
     data object ConferenceRegistrationScreen : Screen(
         route = "ConferenceRegistrationScreen",
     )
@@ -232,8 +206,7 @@ fun screenByRoute(route: String?): Screen? =
 
 fun navItems(): List<NavItem> =
     listOf(
-        NavItem(screen = Screen.HomeScreen, component = { HomeScreen(navController = it) }),
-        NavItem(screen = Screen.ForumScreen, component = { PostScreen(navController = it) }),
+        NavItem(screen = Screen.HomeScreen, component = { HomeScreen(navController = it) })
     )
 
 fun otherScreens(): List<NavItem> = listOf(
@@ -265,7 +238,6 @@ fun otherScreens(): List<NavItem> = listOf(
         screen = Screen.EditProfile,
         component = { EditProfileScreen(navController = it) }),
 
-    NavItem(screen = Screen.CreatePostScreen, component = { CreatePostScreen(navController = it) }),
     NavItem(screen = Screen.WorkshopsScreen, component = { WorkshopsScreenV2(navController = it) }),
     NavItem(
         screen = Screen.WorkshopDetailScreen,
@@ -279,15 +251,6 @@ fun otherScreens(): List<NavItem> = listOf(
     NavItem(
         screen = Screen.DeleteAccountScreen,
         component = { DeleteAccountScreen(navController = it) }),
-    NavItem(
-        screen = Screen.ExhibitionRegistrationScreen,
-        component = { ExhibitionRegistrationScreen(navController = it) }),
-    NavItem(
-        screen = Screen.ExhibitionsScreen,
-        component = { ExhibitionsScreen(navController = it) }),
-    NavItem(
-        screen = Screen.ExhibitionDetailScreen,
-        component = { ExhibitionDetailScreen(navController = it) }),
     NavItem(
         screen = Screen.ConferenceRegistrationScreen,
         component = { ConferenceRegistrationScreen(navController = it) }),
@@ -306,15 +269,10 @@ fun kycScreens(): List<NavItem> = listOf(
     NavItem(screen = Screen.SplashScreen, component = { SplashScreen(navController = it) }),
     NavItem(screen = Screen.SignUpScreen, component = { SignUpScreen(navController = it) }),
     NavItem(screen = Screen.SignInScreen, component = { LoginScreen(navController = it) }),
-    NavItem(
-        screen = Screen.ExhibitionRegistrationScreen,
-        component = { ExhibitionRegistrationScreen(navController = it) }),
     NavItem(screen = Screen.OtpScreen, component = { OtpScreen(navController = it) }),
     NavItem(
         screen = Screen.ForgotPasswordScreen,
         component = { ForgotPasswordScreen(navController = it) }),
-
-
     NavItem(
         screen = Screen.UserDetailsScreen,
         component = { UserDetailsScreen(navController = it) }),

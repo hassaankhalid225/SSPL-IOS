@@ -10,13 +10,24 @@ data class UserResponse(
     @SerialName("access_token")
     val accessToken: String?,
 
+    @SerialName("refresh_token")
+    val refreshToken: String? = null,
+
     @SerialName("user")
     val user: User?
 )
 
 @Serializable
+data class UserMembershipPlan(
+    val id: Long? = null,
+    val name: String? = null,
+    val title: String? = null
+)
+
+@Serializable
 data class User(
-    val id: Long = 0L, // Manually added as per requirement
+    val id: Long = 0L,
+    val prefix: String? = null,
     @SerialName("first_name")
     val firstName: String? = null,
 
@@ -25,6 +36,21 @@ data class User(
 
     val gender: String? = null,
     val role: String? = null,
+    val roles: List<String> = emptyList(),
+
+    @SerialName("profile_picture")
+    val profilePicture: String? = null,
+
+    val cnic: String? = null,
+
+    @SerialName("membership_status")
+    val membershipStatus: String? = null,
+
+    @SerialName("membership_plan")
+    val membershipPlan: UserMembershipPlan? = null,
+
+    @SerialName("plan_id")
+    val planId: Long? = null,
 
     @SerialName("profile")
     val profile: Profile? = null,
@@ -32,7 +58,8 @@ data class User(
     @SerialName("account")
     val account: Account? = null
 ) {
-    fun fullName() = "$firstName $lastName"
+    fun fullName() = "$firstName $lastName".trim()
+    fun isGuest() = account?.isGuestUser() == true
 }
 
 @Serializable

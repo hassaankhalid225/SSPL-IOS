@@ -37,6 +37,7 @@ class LoginUserUseCase(
                 val authResponse = response.body<UserResponse>()
                 println(authResponse.toString())
                 authResponse.accessToken?.let { userSession.setToken(it) }
+                authResponse.refreshToken?.let { userSession.setRefreshToken(it) }
                 authResponse.user?.let { userSession.setUser(it) }
                 
                 pushNotificationService.registerDeviceToken()

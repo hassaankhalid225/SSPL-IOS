@@ -67,7 +67,6 @@ import com.sspl.ui.components.AppTextLabel
 import com.sspl.ui.components.AppTextSubTitle
 import com.sspl.ui.components.ButtonWithProgress
 import com.sspl.ui.components.Error
-import com.sspl.ui.postcreation.DescriptionTextEditor
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 

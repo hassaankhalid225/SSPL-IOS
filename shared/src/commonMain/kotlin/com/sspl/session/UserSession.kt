@@ -17,6 +17,7 @@ import kotlinx.serialization.json.Json
 class UserSession(private val storage: Storage) {
     companion object {
         private const val TOKEN_KEY = "user_token_key"
+        private const val REFRESH_TOKEN_KEY = "refresh_token_key"
         private const val USER_KEY = "user_object_key"
         private const val DEVICE_TOKEN_KEY = "device_token_key"
         private const val PROFILE_IMAGE_KEY = "profile_image_key"
@@ -48,6 +49,15 @@ class UserSession(private val storage: Storage) {
             return field
         }
 
+    var refreshToken: String? = null
+        private set
+        get() {
+            if (field == null) {
+                runBlocking { field = getRefreshToken() }
+            }
+            return field
+        }
+
     var deviceToken: String? = null
         private set
         get() {
@@ -58,12 +68,19 @@ class UserSession(private val storage: Storage) {
         }
 
     private suspend fun getToken(): String? = storage.getString(TOKEN_KEY)
+    private suspend fun getRefreshToken(): String? = storage.getString(REFRESH_TOKEN_KEY)
     private suspend fun getDeviceToken(): String? = storage.getString(DEVICE_TOKEN_KEY)
 
     suspend fun setToken(token: String) {
         println(">>>Token: Saving $token")
         this.token = token
         storage.putString(TOKEN_KEY, token)
+    }
+
+    suspend fun setRefreshToken(token: String) {
+        println(">>>RefreshToken: Saving $token")
+        this.refreshToken = token
+        storage.putString(REFRESH_TOKEN_KEY, token)
     }
 
     suspend fun setDeviceToken(token: String) {
@@ -75,6 +92,11 @@ class UserSession(private val storage: Storage) {
     suspend fun resetToken() {
         storage.remove(TOKEN_KEY)
         this.token = null
+    }
+
+    suspend fun resetRefreshToken() {
+        storage.remove(REFRESH_TOKEN_KEY)
+        this.refreshToken = null
     }
 
     suspend fun setUser(user: User) {
@@ -95,11 +117,14 @@ class UserSession(private val storage: Storage) {
     }
 
     suspend fun resetUser() {
+        storage.remove(TOKEN_KEY)
+        storage.remove(REFRESH_TOKEN_KEY)
         storage.remove(USER_KEY)
         storage.remove(PROFILE_IMAGE_KEY)
         _userFlow.value = null
         _profileImageFlow.value = null
         token = null
+        refreshToken = null
     }
 
     suspend fun setProfileImage(base64: String?) {

@@ -21,6 +21,14 @@ object AuthRequest {
     data class Login(val parent: AuthRequest = AuthRequest)
 
     @Serializable
+    @Resource("/refresh")
+    data class Refresh(val parent: AuthRequest = AuthRequest)
+
+    @Serializable
+    @Resource("/me")
+    data class Me(val parent: AuthRequest = AuthRequest)
+
+    @Serializable
     @Resource("/delete-account/init")
     data class DeleteAccount(val parent: AuthRequest = AuthRequest)
 

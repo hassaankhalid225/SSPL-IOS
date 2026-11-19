@@ -97,19 +97,9 @@ fun HomeScreen(
             toScreen = Screen.WorkshopsScreen
         ),
         Item(
-            title = stringResource(Res.string.forum),
-            icon = IconResource.fromDrawableResource(Res.drawable.ic_forum),
-            toScreen = Screen.ForumScreen
-        ),
-        Item(
             title = stringResource(Res.string.profile),
             icon = IconResource.fromDrawableResource(Res.drawable.ic_user),
             toScreen = Screen.ProfileScreen
-        ),
-        Item(
-            title = stringResource(Res.string.exhibition),
-            icon = IconResource.fromDrawableResource(Res.drawable.ic_exhibition),
-            toScreen = Screen.ExhibitionsScreen
         ),
         Item(
             title = stringResource(Res.string.about_us),

@@ -130,9 +130,6 @@ fun LoginScreen(
             onForgotPassword = {
                  navController.navigate(Screen.ForgotPasswordScreen.route)
              },
-            onExhibitionClick = {
-                navController.navigate(Screen.ExhibitionRegistrationScreen.route)
-            },
             modifier = modifier
         )
 
@@ -158,8 +155,7 @@ fun LoginScreenContent(
     createNewAccount: () -> Unit,
     showPassword: Boolean = false,
     onForgotPassword: () -> Unit = {},
-    isOtpMode: Boolean = false,
-    onExhibitionClick: () -> Unit = {}
+    isOtpMode: Boolean = false
 ) {
     Box(modifier.fillMaxSize()) {
         Image(
@@ -250,17 +246,6 @@ fun LoginScreenContent(
             // Divider with "or" text
             Spacer(modifier = Modifier.height(10.dp))
             DividerWithText("or")
-
-            // Exhibition Registration Button (Prominent)
-            Spacer(modifier = Modifier.height(10.dp))
-            ButtonWithProgress(
-                isEnabled = true,
-                isLoading = false,
-                buttonText = "Exhibition Registration",
-                modifier = Modifier.imePadding()
-            ) {
-                onExhibitionClick()
-            }
 
             // Continue As Guest Button
             ButtonWithProgress(

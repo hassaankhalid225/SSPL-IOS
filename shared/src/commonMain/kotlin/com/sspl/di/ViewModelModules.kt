@@ -10,12 +10,7 @@ import com.sspl.ui.kyc.ForgotPasswordViewModel
 import com.sspl.ui.kyc.SignInViewModel
 import com.sspl.ui.kyc.SignUpViewModel
 import com.sspl.ui.otp.OtpViewModel
-import com.sspl.ui.postcreation.PostCreationViewModel
-import com.sspl.ui.posts.PostViewModel
 import com.sspl.ui.settings.deleteaccount.DeleteAccountViewModel
-import com.sspl.ui.exhibition.ExhibitionRegistrationViewModel
-import com.sspl.ui.exhibition.ExhibitionsViewModel
-import com.sspl.ui.exhibition.ExhibitionDetailViewModel
 import com.sspl.ui.userdetails.EditProfileViewModel
 import com.sspl.ui.userdetails.ProfileViewModel
 import com.sspl.ui.userdetails.UserDetailViewModel
@@ -51,19 +46,14 @@ internal val viewModelModules = module {
     viewModelOf(::ConferenceDetailViewModel)
     viewModelOf(::SignInViewModel)
     viewModelOf(::SignUpViewModel)
-    viewModelOf(::PostViewModel)
     viewModelOf(::OtpViewModel)
     viewModelOf(::UserDetailViewModel)
     viewModelOf(::DeleteAccountViewModel)
-    viewModelOf(::PostCreationViewModel)
     viewModelOf(::AttendanceViewModel)
     viewModelOf(::AboutSocietyViewModel)
     viewModelOf(::ForgotPasswordViewModel)
     viewModelOf(::FeedbackViewModel)
     viewModelOf(::EditProfileViewModel)
-    viewModelOf(::ExhibitionRegistrationViewModel)
-    viewModelOf(::ExhibitionsViewModel)
-    viewModelOf(::ExhibitionDetailViewModel)
     viewModelOf(::NotificationsViewModel)
     viewModelOf(::ScenarioJoinViewModel)
     viewModelOf(::ConferenceRegistrationViewModel)

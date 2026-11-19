@@ -1,19 +1,14 @@
 package com.sspl.di
 
 import com.sspl.core.usecases.AutoJoinSessionUseCase
-import com.sspl.core.usecases.CommentOnPostUseCase
 import com.sspl.core.usecases.DeleteAccountUseCase
-import com.sspl.core.usecases.DislikePostUseCase
 import com.sspl.core.usecases.EmailValidationUseCase
 import com.sspl.core.usecases.GetBannersUseCase
 import com.sspl.core.usecases.GetConferencesDetailsUseCase
 import com.sspl.core.usecases.GetConferencesUseCase
 import com.sspl.core.usecases.GetFeedbackFormUseCase
-import com.sspl.core.usecases.GetPostDetailsUseCase
-import com.sspl.core.usecases.GetPostsUseCase
 import com.sspl.core.usecases.GetUserDetailsUseCase
 import com.sspl.core.usecases.JoinSessionUseCase
-import com.sspl.core.usecases.LikePostUseCase
 import com.sspl.core.usecases.LoginUserUseCase
 import com.sspl.core.usecases.MarkAttendanceViaImageUseCase
 import com.sspl.core.usecases.MarkAttendanceViaLocationUseCase
@@ -57,7 +52,6 @@ internal val useCaseModules = module {
     single { EmailValidationUseCase() }
     single { PasswordValidationUseCase() }
     single { PhoneNumberValidationUseCase() }
-    single { PhoneNumberValidationUseCase() }
     single { ValidateUserNameUseCase() }
     single { ValidateUserCityUseCase() }
     single { ValidateUserCountryUseCase() }
@@ -69,10 +63,6 @@ internal val useCaseModules = module {
     factory { GetFeedbackFormUseCase(get()) }
     factory { InitResetPasswordUseCase(get()) }
     factory { UpdatePasswordUseCase(get()) }
-    factory { GetPostsUseCase(get()) }
-    factory { LikePostUseCase() }
-    factory { DislikePostUseCase() }
-    factory { CommentOnPostUseCase() }
     factory { SignUpUserUseCase(get(), get(), get()) }
     factory { LoginUserUseCase(get(), get(), get()) }
     factory { GetConferencesUseCase(get()) }
@@ -80,14 +70,12 @@ internal val useCaseModules = module {
     factory { PostUserDetailsUseCase(get()) }
     factory { GetUserDetailsUseCase(get()) }
     factory { UpdateUserBasicInfoUseCase(get()) }
-    factory { GetPostDetailsUseCase(get()) }
     factory { MarkAttendanceViaImageUseCase(get()) }
     factory { MarkAttendanceViaLocationUseCase(get()) }
     factory { DeleteAccountUseCase(get(), get()) }
     factory { PostFeedbackFormUseCase(get()) }
     factory { JoinSessionUseCase(get()) }
     factory { AutoJoinSessionUseCase(get()) }
-    factory { UpdateDeviceTokenUseCase(get()) }
     factory { UpdateDeviceTokenUseCase(get()) }
     factory { GetBannersUseCase(get()) }
     factory { CheckRegistrationUseCase(get()) }

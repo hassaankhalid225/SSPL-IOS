@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import com.sspl.platform.createGpsChecker
 import com.sspl.platform.shared.PermissionCallback
 import com.sspl.platform.shared.createPermissionsManager
-import com.sspl.ui.postcreation.CameraPermissionDeniedDialog
+import com.sspl.designsystem.components.ConfirmDialog
 import dev.jordond.compass.Coordinates
 import dev.jordond.compass.Priority
 import dev.jordond.compass.geolocation.GeolocatorResult
@@ -110,11 +110,17 @@ fun MarkAttendanceButton(
         launchSetting = false
     }
     if (permissionRationalDialog) {
-        CameraPermissionDeniedDialog(onDismiss = { permissionRationalDialog = false },
-            onOpenSettings = {
+        ConfirmDialog(
+            title = "Camera Permission Required",
+            message = "Camera access is needed to take a selfie for attendance. Please grant camera permission in Settings.",
+            confirmText = "Open Settings",
+            dismissText = "Cancel",
+            onConfirm = {
                 permissionRationalDialog = false
                 launchSetting = true
-            })
+            },
+            onDismiss = { permissionRationalDialog = false }
+        )
     }
 
     var isGettingLocation by remember {

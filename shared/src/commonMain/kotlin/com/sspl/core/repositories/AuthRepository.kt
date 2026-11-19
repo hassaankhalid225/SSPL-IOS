@@ -12,6 +12,14 @@ import io.ktor.client.plugins.resources.get
 import io.ktor.client.plugins.resources.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class RefreshTokenRequestBody(
+    @SerialName("refresh_token")
+    val refreshToken: String
+)
 
 /**
  * Created by M Imran
@@ -25,6 +33,14 @@ class AuthRepository(private val client: HttpClient) {
         client.post(AuthRequest.Login()) {
             setBody(body)
         }
+
+    suspend fun refreshToken(token: String): HttpResponse =
+        client.post(AuthRequest.Refresh()) {
+            setBody(RefreshTokenRequestBody(refreshToken = token))
+        }
+
+    suspend fun getMe(): HttpResponse =
+        client.get(AuthRequest.Me())
 
     suspend fun signUp(body: User): HttpResponse =
         client.post(AuthRequest.SignUp()) {

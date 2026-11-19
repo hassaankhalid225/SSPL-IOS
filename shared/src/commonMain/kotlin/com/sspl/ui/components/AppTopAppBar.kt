@@ -98,14 +98,6 @@ fun MyTopAppBar(
             actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
         ),
         actions = {
-            if (currentScreen == Screen.ForumScreen) {
-                IconButton(onClick = addButtonClick) {
-                    Icon(
-                        imageVector = Icons.Sharp.Add,
-                        contentDescription = null
-                    )
-                }
-            }
 //            if (currentScreen == Screen.HomeScreen) {
 //                IconButton(onClick = onCartClicked) {
 //                    Icon(
