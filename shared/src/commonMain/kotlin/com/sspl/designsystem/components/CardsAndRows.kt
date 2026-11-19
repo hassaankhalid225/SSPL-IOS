@@ -73,12 +73,17 @@ fun SectionHeader(
     title: String,
     modifier: Modifier = Modifier,
     actionText: String? = null,
-    onActionClick: (() -> Unit)? = null
+    onActionClick: (() -> Unit)? = null,
+    action: String? = null,
+    onAction: (() -> Unit)? = null
 ) {
+    val effectiveActionText = actionText ?: action
+    val effectiveOnActionClick = onActionClick ?: onAction
+
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = AppTheme.spacing.screenHorizontal, vertical = 6.dp),
+            .padding(vertical = 6.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -89,14 +94,14 @@ fun SectionHeader(
                 fontWeight = FontWeight.Bold
             )
         )
-        if (actionText != null && onActionClick != null) {
+        if (effectiveActionText != null && effectiveOnActionClick != null) {
             Row(
-                modifier = Modifier.clickable(onClick = onActionClick),
+                modifier = Modifier.clickable(onClick = effectiveOnActionClick),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Text(
-                    text = actionText,
+                    text = effectiveActionText,
                     style = AppTheme.typography.labelMedium.copy(
                         color = AppTheme.colors.primary,
                         fontWeight = FontWeight.SemiBold
@@ -200,13 +205,28 @@ fun InfoGrid(
     }
 }
 
+@OptIn(kotlin.io.encoding.ExperimentalEncodingApi::class)
 @Composable
 fun AvatarImage(
-    url: String?,
-    initials: String,
+    url: String? = null,
+    imageUrl: String? = null,
+    base64Image: String? = null,
+    name: String? = null,
+    initials: String = name?.split(" ")?.filter { it.isNotBlank() }?.map { it.first() }?.take(2)?.joinToString("") ?: "",
     size: Dp = 44.dp,
     modifier: Modifier = Modifier
 ) {
+    val effectiveUrl = imageUrl ?: url
+    val imageBytes = remember(base64Image) {
+        if (!base64Image.isNullOrBlank()) {
+            try {
+                kotlin.io.encoding.Base64.decode(base64Image)
+            } catch (_: Exception) {
+                null
+            }
+        } else null
+    }
+
     Box(
         modifier = modifier
             .size(size)
@@ -215,16 +235,24 @@ fun AvatarImage(
             .border(1.dp, AppTheme.colors.border, CircleShape),
         contentAlignment = Alignment.Center
     ) {
-        if (!url.isNullOrBlank()) {
+        if (imageBytes != null) {
             AsyncImage(
-                model = url,
-                contentDescription = null,
+                model = imageBytes,
+                contentDescription = name,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.size(size)
+            )
+        } else if (!effectiveUrl.isNullOrBlank()) {
+            AsyncImage(
+                model = effectiveUrl,
+                contentDescription = name,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.size(size)
             )
         } else {
+            val displayInitials = if (initials.isNotBlank()) initials.take(2).uppercase() else "SS"
             Text(
-                text = initials.take(2).uppercase(),
+                text = displayInitials,
                 style = AppTheme.typography.titleMedium.copy(
                     color = AppTheme.colors.primaryDark,
                     fontWeight = FontWeight.Bold,

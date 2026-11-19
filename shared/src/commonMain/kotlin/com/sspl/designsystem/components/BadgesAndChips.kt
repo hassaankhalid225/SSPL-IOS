@@ -114,9 +114,11 @@ fun RoleChip(
 
 @Composable
 fun MembershipBadge(
-    label: String,
+    label: String = "Member",
+    status: String? = null,
     modifier: Modifier = Modifier
 ) {
+    val textLabel = status?.replace('_', ' ')?.uppercase() ?: label
     Row(
         modifier = modifier
             .clip(AppTheme.shapes.chip)
@@ -132,7 +134,7 @@ fun MembershipBadge(
                 .background(AppTheme.colors.accent)
         )
         Text(
-            text = label,
+            text = textLabel,
             style = AppTheme.typography.labelSmall.copy(
                 color = Color.White,
                 fontWeight = FontWeight.SemiBold

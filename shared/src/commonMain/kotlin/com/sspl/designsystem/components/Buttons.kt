@@ -32,8 +32,10 @@ fun PrimaryButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     loading: Boolean = false,
+    isLoading: Boolean = false,
     icon: ImageVector? = null
 ) {
+    val isSpinning = loading || isLoading
     val bg = if (enabled) AppTheme.colors.primary else AppTheme.colors.border
     val contentColor = if (enabled) Color.White else AppTheme.colors.muted
 
@@ -43,11 +45,11 @@ fun PrimaryButton(
             .defaultMinSize(minHeight = 48.dp)
             .clip(AppTheme.shapes.button)
             .background(bg)
-            .clickable(enabled = enabled && !loading, onClick = onClick)
+            .clickable(enabled = enabled && !isSpinning, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center
     ) {
-        if (loading) {
+        if (isSpinning) {
             CircularProgressIndicator(
                 modifier = Modifier.size(20.dp),
                 color = Color.White,
@@ -84,8 +86,11 @@ fun SecondaryButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    loading: Boolean = false,
+    isLoading: Boolean = false,
     icon: ImageVector? = null
 ) {
+    val isSpinning = loading || isLoading
     val strokeColor = if (enabled) AppTheme.colors.primary else AppTheme.colors.border
     val contentColor = if (enabled) AppTheme.colors.primary else AppTheme.colors.muted
 
@@ -95,29 +100,37 @@ fun SecondaryButton(
             .defaultMinSize(minHeight = 48.dp)
             .clip(AppTheme.shapes.button)
             .border(1.5.dp, strokeColor, AppTheme.shapes.button)
-            .clickable(enabled = enabled, onClick = onClick)
+            .clickable(enabled = enabled && !isSpinning, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            if (icon != null) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = contentColor,
-                    modifier = Modifier.size(18.dp)
+        if (isSpinning) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(20.dp),
+                color = contentColor,
+                strokeWidth = 2.dp
+            )
+        } else {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                if (icon != null) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = contentColor,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+                Text(
+                    text = text,
+                    style = AppTheme.typography.bodyLarge.copy(
+                        color = contentColor,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 )
             }
-            Text(
-                text = text,
-                style = AppTheme.typography.bodyLarge.copy(
-                    color = contentColor,
-                    fontWeight = FontWeight.SemiBold
-                )
-            )
         }
     }
 }

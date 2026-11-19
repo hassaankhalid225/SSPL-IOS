@@ -9,69 +9,56 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.core.ApiStates
+import com.sspl.designsystem.components.ErrorState
+import com.sspl.designsystem.components.PasswordField
+import com.sspl.ui.components.PhoneWithCountrySelector
+import com.sspl.designsystem.components.PrimaryButton
+import com.sspl.designsystem.components.SecondaryButton
+import com.sspl.designsystem.components.SsplCard
+import com.sspl.designsystem.components.SsplTextField
+import com.sspl.designsystem.components.TextButtonLink
+import com.sspl.ui.components.countrypicker.Country
+import com.sspl.designsystem.theme.AppTheme
 import com.sspl.resources.Res
 import com.sspl.resources.app_logo
-import com.sspl.resources.create_new_account
-import com.sspl.resources.enter_your_mail
-import com.sspl.resources.enter_your_password
-import com.sspl.resources.forgot_password
-import com.sspl.resources.get_updates
-import com.sspl.resources.login
-import com.sspl.resources.login_here
-import com.sspl.resources.login_screen_background
-import com.sspl.resources.continue_as_guest
-import com.sspl.resources.sign_in_via_phone
-import com.sspl.theme.primary
-import com.sspl.ui.components.AppRoundedCornerButton
-import com.sspl.ui.components.AppTextField
-import com.sspl.ui.components.AppTextLabel
-import com.sspl.ui.components.AppTextSmall
-import com.sspl.ui.components.ButtonWithProgress
-import com.sspl.ui.components.PasswordTextField
-import com.sspl.ui.components.PhoneWithCountrySelector
-import com.sspl.ui.components.countrypicker.Country
-import com.sspl.ui.feedback.FeedbackScreenContent
-import com.sspl.utils.IconResource
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
- * Created by M Imran
- * Senior Software Engineer at
- * BhimSoft on 09/01/2025.
- * se.muhammadimran@gmail.com
+ * A2: Modernized Login Screen with Guest Mode and Design System integration.
  */
-
 @Composable
 fun LoginScreen(
     navController: NavController,
@@ -80,7 +67,6 @@ fun LoginScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scaffoldState = remember { SnackbarHostState() }
-
 
     LaunchedEffect(Unit) {
         viewModel.oneTimeEvents.collect { event ->
@@ -91,6 +77,7 @@ fun LoginScreen(
             }
         }
     }
+
     LaunchedEffect(Unit) {
         viewModel.networkState.collect { result ->
             when (result) {
@@ -103,14 +90,15 @@ fun LoginScreen(
                         launchSingleTop = true
                     }
                 }
-
                 else -> Unit
             }
         }
     }
 
-    Scaffold(snackbarHost = { SnackbarHost(scaffoldState) }) { padding ->
-
+    Scaffold(
+        snackbarHost = { SnackbarHost(scaffoldState) },
+        containerColor = AppTheme.colors.background
+    ) { padding ->
         LoginScreenContent(
             email = uiState.email,
             password = uiState.password,
@@ -122,20 +110,18 @@ fun LoginScreen(
             passwordErrorMsg = uiState.passwordError,
             isLoginEnabled = uiState.isLoginEnabled,
             phoneErrorMsg = uiState.phoneNoError,
-            isLoading = uiState.isLoading, showCountryChooser = uiState.showCountryChooser,
+            isLoading = uiState.isLoading,
+            showCountryChooser = uiState.showCountryChooser,
             onEvents = viewModel::onEvent,
             createNewAccount = {
                 navController.navigate(Screen.SignUpScreen.route)
             },
             onForgotPassword = {
-                 navController.navigate(Screen.ForgotPasswordScreen.route)
-             },
-            modifier = modifier
+                navController.navigate(Screen.ForgotPasswordScreen.route)
+            },
+            modifier = modifier.padding(padding)
         )
-
     }
-
-
 }
 
 @Composable
@@ -146,7 +132,7 @@ fun LoginScreenContent(
     passwordErrorMsg: String?,
     isLoginEnabled: Boolean = false,
     phoneErrorMsg: String?,
-    isLoading: Boolean = true,
+    isLoading: Boolean = false,
     selectedCountry: Country,
     showCountryChooser: Boolean = false,
     email: String = "",
@@ -157,168 +143,188 @@ fun LoginScreenContent(
     onForgotPassword: () -> Unit = {},
     isOtpMode: Boolean = false
 ) {
-    Box(modifier.fillMaxSize()) {
-        Image(
-            modifier= Modifier.fillMaxSize(),
-            painter = painterResource(Res.drawable.login_screen_background),
-            contentDescription = null,
-            contentScale = ContentScale.FillBounds
-        )
-        Box(
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(AppTheme.colors.background)
+    ) {
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.15f)
-                .background(
-                    brush = Brush.verticalGradient(
-                        listOf(
-                            MaterialTheme.colorScheme.primary,
-                            MaterialTheme.colorScheme.primary.copy(alpha = .8F),
-                            MaterialTheme.colorScheme.primary.copy(alpha = .5F),
-                            MaterialTheme.colorScheme.primary.copy(alpha = .1F),
-                            Color.Transparent
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 20.dp)
+                .imePadding(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // SSPL Logo & Header
+            Image(
+                painter = painterResource(Res.drawable.app_logo),
+                contentDescription = "SSPL Logo",
+                modifier = Modifier.size(90.dp)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Welcome Back",
+                style = AppTheme.typography.headlineMedium.copy(
+                    color = AppTheme.colors.heading,
+                    fontWeight = FontWeight.Bold
+                ),
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Text(
+                text = "Sign in to access your SSPL portal & membership",
+                style = AppTheme.typography.bodyMedium.copy(
+                    color = AppTheme.colors.muted
+                ),
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Main Input Card
+            SsplCard(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // Form Section
+                AnimatedVisibility(visible = !isOtpMode) {
+                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        SsplTextField(
+                            value = email,
+                            onValueChange = { onEvents(LoginScreenUiEvents.OnEmailTextChange(it)) },
+                            label = "Email Address",
+                            placeholder = "doctor@example.com",
+                            leadingIcon = Icons.Default.Email,
+                            errorMessage = emailErrorMsg,
+                            isError = emailErrorMsg != null
                         )
+
+                        PasswordField(
+                            value = password,
+                            onValueChange = { onEvents(LoginScreenUiEvents.OnPasswordTextChange(it)) },
+                            label = "Password",
+                            placeholder = "Enter your password",
+                            isVisible = showPassword,
+                            onToggleVisibility = { onEvents(LoginScreenUiEvents.TogglePasswordVisibility) },
+                            errorMessage = passwordErrorMsg,
+                            isError = passwordErrorMsg != null
+                        )
+
+                        // Forgot password link
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.CenterEnd
+                        ) {
+                            TextButtonLink(
+                                text = "Forgot Password?",
+                                onClick = onForgotPassword
+                            )
+                        }
+                    }
+                }
+
+                AnimatedVisibility(visible = isOtpMode) {
+                    PhoneWithCountrySelector(
+                        selectedCountry = selectedCountry,
+                        errorMessage = phoneErrorMsg,
+                        phone = phone,
+                        onPhoneNumberChange = { onEvents(LoginScreenUiEvents.OnPhoneNoChange(it)) },
+                        showCountryChooser = showCountryChooser,
+                        onCountryChange = { onEvents(LoginScreenUiEvents.OnCountryChange(it)) },
+                        toggleCountryPicker = { onEvents(LoginScreenUiEvents.ToggleCountryChooser) }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // Sign In Button
+                PrimaryButton(
+                    text = if (isOtpMode) "Send OTP Code" else "Sign In",
+                    onClick = { onEvents(LoginScreenUiEvents.OnSave) },
+                    isLoading = isLoading,
+                    enabled = isLoginEnabled && !isLoading,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Toggle Email / Phone login mode
+                Spacer(modifier = Modifier.height(10.dp))
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    TextButtonLink(
+                        text = if (isOtpMode) "Sign in with Email & Password" else "Sign in via Phone OTP",
+                        onClick = { onEvents(LoginScreenUiEvents.ToggleOtpMode) }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Divider with "OR"
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f),
+                    color = AppTheme.colors.border
+                )
+                Text(
+                    text = "  OR  ",
+                    style = AppTheme.typography.labelSmall.copy(
+                        color = AppTheme.colors.muted,
+                        fontWeight = FontWeight.Bold
                     )
                 )
-        )
-        Column(
-            modifier = modifier
-                .fillMaxSize().verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Title Section
-            Spacer(Modifier.weight(0.15f))
-            HeaderSection(
-                iconResource = IconResource.fromDrawableResource(drawable = Res.drawable.app_logo),
-                title = stringResource(Res.string.login_here),
-                subTitle = stringResource(Res.string.get_updates)
-            )
-            Spacer(Modifier.weight(0.15f))
-
-            // Form Section (Email/Password or Phone)
-            AnimatedVisibility(visible = !isOtpMode) {
-                LoginFields(
-                    modifier = modifier,
-                    email = email,
-                    emailErrorMsg = emailErrorMsg,
-                    password = password,
-                    passwordErrorMsg = passwordErrorMsg,
-                    showPassword = showPassword,
-                    onEmailChange = { onEvents(LoginScreenUiEvents.OnEmailTextChange(it)) },
-                    onPasswordChange = { onEvents(LoginScreenUiEvents.OnPasswordTextChange(it)) },
-                    onPasswordToggle = { onEvents(LoginScreenUiEvents.TogglePasswordVisibility) },
-                    onForgotPassword = onForgotPassword
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f),
+                    color = AppTheme.colors.border
                 )
             }
 
-            AnimatedVisibility(visible = isOtpMode) {
-                PhoneWithCountrySelector(
-                    selectedCountry = selectedCountry,
-                    errorMessage = phoneErrorMsg,
-                    phone = phone,
-                    onPhoneNumberChange = { onEvents(LoginScreenUiEvents.OnPhoneNoChange(it)) },
-                    showCountryChooser = showCountryChooser,
-                    onCountryChange = { onEvents(LoginScreenUiEvents.OnCountryChange(it)) },
-                    toggleCountryPicker = { onEvents(LoginScreenUiEvents.ToggleCountryChooser) }
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Continue as Guest Button
+            SecondaryButton(
+                text = "Continue as Guest",
+                onClick = { onEvents(LoginScreenUiEvents.ContinueAsGuest) },
+                icon = Icons.Default.Person,
+                isLoading = isLoading,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Footer: Don't have an account? Sign Up
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Don't have an account? ",
+                    style = AppTheme.typography.bodyMedium.copy(
+                        color = AppTheme.colors.muted
+                    )
+                )
+                Text(
+                    text = "Sign Up",
+                    style = AppTheme.typography.bodyMedium.copy(
+                        color = AppTheme.colors.secondary,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    modifier = Modifier.clickable { createNewAccount() }
                 )
             }
 
-            // Login Button
-            Spacer(modifier = Modifier.height(10.dp))
-            ButtonWithProgress(
-                isEnabled = isLoginEnabled,
-                isLoading = isLoading,
-                buttonText = stringResource(Res.string.login),
-                modifier = Modifier.imePadding()
-            ) {
-                onEvents(LoginScreenUiEvents.OnSave)
-            }
-            // Create Account Section
-            Spacer(modifier = Modifier.height(10.dp))
-            AppTextLabel(
-                text = stringResource(Res.string.create_new_account),
-                fontSize = 12.sp,
-                textDecoration = TextDecoration.Underline,
-                modifier = Modifier.clickable { createNewAccount() }
-            )
-
-            // Divider with "or" text
-            Spacer(modifier = Modifier.height(10.dp))
-            DividerWithText("or")
-
-            // Continue As Guest Button
-            ButtonWithProgress(
-                isEnabled = true,
-                isLoading = isLoading,
-                buttonText = stringResource(Res.string.continue_as_guest),
-                modifier = Modifier.imePadding()
-            ) {
-                onEvents(LoginScreenUiEvents.ContinueAsGuest)
-            }
-            Spacer(Modifier.weight(0.2f))
+            Spacer(modifier = Modifier.height(24.dp))
         }
-    }
-}
-
-@Composable
-fun LoginFields(
-    modifier: Modifier = Modifier,
-    email: String,
-    emailErrorMsg: String?,
-    password: String,
-    passwordErrorMsg: String?,
-    showPassword: Boolean,
-    onEmailChange: (String) -> Unit,
-    onPasswordChange: (String) -> Unit,
-    onPasswordToggle: () -> Unit,
-    onForgotPassword: () -> Unit
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        modifier = modifier
-    ) {
-        AppTextField(
-            placeholder = stringResource(Res.string.enter_your_mail),
-            modifier = Modifier.fillMaxWidth(),
-            text = email,
-            errorMessage = emailErrorMsg,
-            isError = emailErrorMsg != null,
-            onTextChange = onEmailChange
-        )
-
-        PasswordTextField(
-            placeholder = stringResource(Res.string.enter_your_password),
-            modifier = Modifier.fillMaxWidth(),
-            text = password,
-            errorMessage = passwordErrorMsg,
-            isError = passwordErrorMsg != null,
-            onTogglePassword = onPasswordToggle,
-            isPasswordVisible = showPassword,
-            onTextChange = onPasswordChange
-        )
-
-        AppTextSmall(
-            text = stringResource(Res.string.forgot_password),
-            color = primary,
-            style = MaterialTheme.typography.bodySmall.copy(
-                fontSize = 12.sp,
-                textDecoration = TextDecoration.Underline
-            ),
-            modifier = Modifier.align(Alignment.End).clickable { onForgotPassword() }
-        )
-    }
-}
-
-@Composable
-fun DividerWithText(text: String) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        HorizontalDivider(modifier = Modifier.weight(1f))
-        AppTextSmall(text)
-        HorizontalDivider(modifier = Modifier.weight(1f))
     }
 }

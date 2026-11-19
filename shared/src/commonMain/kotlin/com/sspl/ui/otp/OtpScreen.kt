@@ -1,6 +1,7 @@
 package com.sspl.ui.otp
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,43 +16,45 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.Screen
-import com.sspl.resources.Res
-import com.sspl.resources.enter_otp_sent_to_your_number
-import com.sspl.resources.resend_it_now
-import com.sspl.resources.still_waiting_for_your_otp
-import com.sspl.resources.verification_code
-import com.sspl.ui.components.AppTextSmall
-import com.sspl.ui.components.AppTextSubTitle
-import com.sspl.ui.components.AppTextTitle
+import com.sspl.designsystem.components.PrimaryButton
+import com.sspl.designsystem.components.SsplCard
+import com.sspl.designsystem.components.TextButtonLink
+import com.sspl.designsystem.theme.AppTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
+/**
+ * A4: Modernized OTP Verification Screen with Design System styling.
+ */
 @Composable
 fun OtpScreen(
     navController: NavController,
@@ -70,7 +73,6 @@ fun OtpScreen(
                         scaffoldState.showSnackbar(result.message)
                     }
                 }
-
                 OtpOneTimeEvents.Success -> {
                     navController.navigate(Screen.MainScreen.route) {
                         popUpTo(Screen.SignInScreen.route) {
@@ -83,100 +85,121 @@ fun OtpScreen(
         }
     }
 
-    OtpScreenScaffold(
-        scaffoldState = scaffoldState,
-        content = {
-            OtpScreenContent(
-                modifier = modifier,
-                uiState = uiState,
-                onEvent = remember { viewModel::onEvent }
-            )
-        }
-    )
-}
-
-@Composable
-fun OtpScreenScaffold(
-    scaffoldState: SnackbarHostState,
-    content: @Composable () -> Unit
-) {
     Scaffold(
-        snackbarHost = { SnackbarHost(scaffoldState) }
-    ) { _ ->
-        Box(modifier = Modifier) {
-            content()
-        }
-    }
-}
-
-@Composable
-fun OtpScreenContent(
-    modifier: Modifier = Modifier,
-    uiState: OtpState,
-    onEvent: (OtpEvent) -> Unit
-) {
-    Box(modifier = modifier.fillMaxSize().background(Color.White)) {
-        val contentAlpha by remember(uiState.isVerifying) {
-            derivedStateOf { if (uiState.isVerifying) 0.3f else 1f }
-        }
-
-        Column(
-            modifier = Modifier
+        snackbarHost = { SnackbarHost(scaffoldState) },
+        containerColor = AppTheme.colors.background
+    ) { padding ->
+        Box(
+            modifier = modifier
                 .fillMaxSize()
-                .alpha(contentAlpha),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+                .padding(padding)
+                .background(AppTheme.colors.background)
         ) {
-            AppTextTitle(
-                text = stringResource(Res.string.verification_code),
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            AppTextSubTitle(
-                text = stringResource(Res.string.enter_otp_sent_to_your_number),
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-            OtpView(
-                otpLength = 6,
-                otpValue = uiState.otpValue,
-                onOtpChange = { onEvent(OtpEvent.OtpValueChanged(it)) },
-                onOtpEntered = { onEvent(OtpEvent.VerifyOtp(it)) }
-            )
-            ResendOtpRow(
-                isVerifying = uiState.isVerifying,
-                onResendClick = { onEvent(OtpEvent.ResendOtp) }
-            )
-        }
-
-        if (uiState.isVerifying) {
-            CircularProgressIndicator(
+            Column(
                 modifier = Modifier
-                    .size(50.dp)
-                    .align(Alignment.Center)
-            )
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Top bar with back navigation
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = AppTheme.colors.onPrimary
+                        )
+                    }
+                    Text(
+                        text = "Phone Verification",
+                        style = AppTheme.typography.titleMedium.copy(
+                            color = AppTheme.colors.heading,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(28.dp))
+
+                Text(
+                    text = "Verification Code",
+                    style = AppTheme.typography.headlineMedium.copy(
+                        color = AppTheme.colors.heading,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Please enter the 6-digit code sent to your mobile number",
+                    style = AppTheme.typography.bodyMedium.copy(
+                        color = AppTheme.colors.muted
+                    ),
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(28.dp))
+
+                SsplCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(20.dp)
+                    ) {
+                        OtpView(
+                            otpLength = 6,
+                            otpValue = uiState.otpValue,
+                            onOtpChange = { viewModel.onEvent(OtpEvent.OtpValueChanged(it)) },
+                            onOtpEntered = { viewModel.onEvent(OtpEvent.VerifyOtp(it)) }
+                        )
+
+                        PrimaryButton(
+                            text = "Verify & Continue",
+                            onClick = { viewModel.onEvent(OtpEvent.VerifyOtp(uiState.otpValue)) },
+                            isLoading = uiState.isVerifying,
+                            enabled = uiState.otpValue.length == 6 && !uiState.isVerifying,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        // Resend OTP row
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Didn't receive code? ",
+                                style = AppTheme.typography.bodyMedium.copy(color = AppTheme.colors.muted)
+                            )
+                            TextButtonLink(
+                                text = "Resend Code",
+                                onClick = { viewModel.onEvent(OtpEvent.ResendOtp) }
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (uiState.isVerifying) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(AppTheme.colors.background.copy(alpha = 0.5f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        color = AppTheme.colors.secondary,
+                        strokeWidth = 3.dp
+                    )
+                }
+            }
         }
     }
 }
-
-@Composable
-fun ResendOtpRow(
-    isVerifying: Boolean,
-    onResendClick: () -> Unit
-) {
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        AppTextSmall(text = stringResource(Res.string.still_waiting_for_your_otp))
-        AppTextSmall(
-            text = stringResource(Res.string.resend_it_now),
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.clickable(enabled = !isVerifying) {
-                onResendClick()
-            }
-        )
-    }
-}
-
 
 @Composable
 fun OtpView(
@@ -190,24 +213,24 @@ fun OtpView(
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
-        delay(100) // Short delay to ensure the view is ready
+        delay(150)
         focusRequester.requestFocus()
     }
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
+        modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-
         Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             repeat(otpLength) { index ->
+                val char = otpValue.getOrNull(index)?.toString() ?: ""
+                val isFocused = otpValue.length == index
                 OtpDigit(
-                    value = otpValue.getOrNull(index)?.toString() ?: "",
+                    value = char,
+                    isFocused = isFocused,
                     onClick = {
                         scope.launch {
                             focusManager.clearFocus(force = true)
@@ -219,40 +242,61 @@ fun OtpView(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
         BasicTextField(
             value = otpValue,
             onValueChange = { newValue ->
-                if (newValue.length <= otpLength) {
-                    onOtpChange(newValue.filter { it.isDigit() })
-                    if (newValue.length == otpLength) {
-                        onOtpEntered(newValue)
-                        focusManager.clearFocus() // Dismiss keyboard when all digits are entered
+                val filtered = newValue.filter { it.isDigit() }
+                if (filtered.length <= otpLength) {
+                    onOtpChange(filtered)
+                    if (filtered.length == otpLength) {
+                        onOtpEntered(filtered)
+                        focusManager.clearFocus()
                     }
                 }
             },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
             modifier = Modifier
-                .fillMaxWidth()
-                .height(0.dp)
+                .size(0.dp)
                 .focusRequester(focusRequester)
         )
     }
 }
 
 @Composable
-fun OtpDigit(value: String, onClick: () -> Unit) {
+fun OtpDigit(
+    value: String,
+    isFocused: Boolean,
+    onClick: () -> Unit
+) {
+    val borderColor = if (isFocused) {
+        AppTheme.colors.secondary
+    } else if (value.isNotEmpty()) {
+        AppTheme.colors.primaryLight
+    } else {
+        AppTheme.colors.border
+    }
+
     Box(
         modifier = Modifier
-            .size(50.dp)
+            .size(46.dp)
             .clip(RoundedCornerShape(8.dp))
-            .background(Color.LightGray.copy(alpha = 0.3f))
+            .background(AppTheme.colors.surface)
+            .border(
+                width = if (isFocused) 2.dp else 1.dp,
+                color = borderColor,
+                shape = RoundedCornerShape(8.dp)
+            )
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        AppTextSubTitle(
+        Text(
             text = value,
+            style = AppTheme.typography.titleLarge.copy(
+                color = AppTheme.colors.heading,
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                textAlign = TextAlign.Center
+            )
         )
     }
 }

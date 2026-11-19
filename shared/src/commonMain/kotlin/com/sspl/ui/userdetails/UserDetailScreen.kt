@@ -1,57 +1,59 @@
 package com.sspl.ui.userdetails
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Business
+import androidx.compose.material.icons.filled.LocationCity
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.MedicalServices
+import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.core.ApiStates
+import com.sspl.designsystem.components.PrimaryButton
+import com.sspl.designsystem.components.SsplCard
+import com.sspl.designsystem.components.SsplTextField
+import com.sspl.designsystem.components.StepIndicator
+import com.sspl.designsystem.components.TextButtonLink
+import com.sspl.designsystem.theme.AppTheme
 import com.sspl.resources.Res
-import com.sspl.resources.city
-import com.sspl.resources.country
-import com.sspl.resources.designation
-import com.sspl.resources.enter_pmdc_number
-import com.sspl.resources.enter_registration_number
-import com.sspl.resources.fill_out_the_details_below_to_finish_setting_up_your_account
-import com.sspl.resources.institution_name
-import com.sspl.resources.login_screen_background
-import com.sspl.resources.personal_details
-import com.sspl.resources.save_details
-import com.sspl.resources.skip_for_now
-import com.sspl.ui.components.AppTextField
-import com.sspl.ui.components.AppTextLabel
-import com.sspl.ui.components.ButtonWithProgress
+import com.sspl.resources.app_logo
 import com.sspl.ui.components.CountrySelectorField
-
-import com.sspl.ui.components.countrypicker.allCountries
-import com.sspl.ui.kyc.HeaderSection
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
+/**
+ * A3 (Step 2): Professional KYC profile setup.
+ */
 @Composable
 fun UserDetailsScreen(
     navController: NavController,
@@ -67,7 +69,6 @@ fun UserDetailsScreen(
                 is ApiStates.Failure -> {
                     scaffoldState.showSnackbar(event.error.message)
                 }
-
                 is ApiStates.Success -> {
                     navController.navigate(Screen.MainScreen.route) {
                         popUpTo(Screen.UserDetailsScreen.route) {
@@ -76,15 +77,18 @@ fun UserDetailsScreen(
                         launchSingleTop = true
                     }
                 }
-
                 else -> Unit
             }
         }
     }
-    Scaffold(snackbarHost = { SnackbarHost(scaffoldState) }) { _ ->
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(scaffoldState) },
+        containerColor = AppTheme.colors.background
+    ) { padding ->
         UserDetailsScreenContent(
-            modifier = modifier,
-            pmdcNumber = uiState.pmDcNumber?:"",
+            modifier = modifier.padding(padding),
+            pmdcNumber = uiState.pmDcNumber ?: "",
             pmdcNumberError = uiState.pmDcNumberError,
             isSaveEnabled = uiState.isSaveEnabled,
             isLoading = uiState.isLoading,
@@ -101,7 +105,7 @@ fun UserDetailsScreen(
             registrationNumber = uiState.registrationNumber,
             onSkip = {
                 navController.navigate(Screen.MainScreen.route) {
-                    popUpTo(Screen.SignInScreen.route) {
+                    popUpTo(Screen.UserDetailsScreen.route) {
                         inclusive = true
                     }
                     launchSingleTop = true
@@ -133,113 +137,137 @@ fun UserDetailsScreenContent(
     onSkip: () -> Unit,
     onEvent: (UserDetailsUiEvents) -> Unit
 ) {
-    Box(modifier.fillMaxSize()) {
-        // Background Image
-        Image(
-            painter = painterResource(Res.drawable.login_screen_background),
-            contentDescription = null,
-            contentScale = ContentScale.FillBounds
-        )
-
-        // Main Column
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(AppTheme.colors.background)
+    ) {
         Column(
-            modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 20.dp)
+                .imePadding(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header Section
-            Spacer(Modifier.weight(0.15f))
-            HeaderSection(
-                title = stringResource(Res.string.personal_details),
-                subTitle = stringResource(Res.string.fill_out_the_details_below_to_finish_setting_up_your_account)
-            )
-            Spacer(Modifier.weight(0.15f))
-
-            // LoginFields Section (Handles all input fields)
-            UserDetailFields(
-                pmdcNumber = pmdcNumber,
-                pmdcNumberError = pmdcNumberError,
-                institution = institution,
-                institutionError = institutionError,
-                country = country,
-                countryError = countryError,
-                city = city,
-                registrationError = registrationError,
-                showCountryPicker = showCountryPicker,
-                cityError = cityError,
-                designation = designation,
-                designationError = designationError,
-                registrationNumber = registrationNumber,
-                onEvent = onEvent
-            )
-
-            // Save Button
             Spacer(modifier = Modifier.height(10.dp))
-            ButtonWithProgress(
-                modifier = Modifier.imePadding(),
-                isEnabled = isSaveEnabled,
-                isLoading = isLoading,
-                buttonText = stringResource(Res.string.save_details)
-            ) {
-                onEvent(UserDetailsUiEvents.OnSave)
-            }
-            AppTextLabel(text = stringResource(Res.string.skip_for_now),
-                fontSize = 12.sp,
-                textDecoration = TextDecoration.Underline,
-                modifier = Modifier.clickable { onSkip() })
 
-            Spacer(Modifier.weight(0.7f))  // Remaining space to push content up
+            // Logo & Header
+            Image(
+                painter = painterResource(Res.drawable.app_logo),
+                contentDescription = "SSPL Logo",
+                modifier = Modifier.size(70.dp)
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "Professional Profile",
+                style = AppTheme.typography.headlineMedium.copy(
+                    color = AppTheme.colors.heading,
+                    fontWeight = FontWeight.Bold
+                ),
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = "Provide your medical credentials for membership verification",
+                style = AppTheme.typography.bodyMedium.copy(
+                    color = AppTheme.colors.muted
+                ),
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Step Indicator (Step 2 of 2)
+            StepIndicator(
+                currentStep = 2,
+                totalSteps = 2,
+                stepLabels = listOf("Account Info", "Professional KYC")
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Fields Card
+            SsplCard(modifier = Modifier.fillMaxWidth()) {
+                Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    SsplTextField(
+                        value = pmdcNumber,
+                        onValueChange = { onEvent(UserDetailsUiEvents.OnPmDcNumberTextChange(it)) },
+                        label = "PMDC / Medical Council Number",
+                        placeholder = "e.g. 12345-P",
+                        leadingIcon = Icons.Default.MedicalServices,
+                        errorMessage = pmdcNumberError,
+                        isError = pmdcNumberError != null
+                    )
+
+                    SsplTextField(
+                        value = designation,
+                        onValueChange = { onEvent(UserDetailsUiEvents.OnDesignationTextChange(it)) },
+                        label = "Designation / Title",
+                        placeholder = "e.g. Consultant Plastic Surgeon",
+                        leadingIcon = Icons.Default.Work,
+                        errorMessage = designationError,
+                        isError = designationError != null
+                    )
+
+                    SsplTextField(
+                        value = institution,
+                        onValueChange = { onEvent(UserDetailsUiEvents.OnInstitutionTextChange(it)) },
+                        label = "Hospital / Institution",
+                        placeholder = "e.g. Civil Hospital / Dow University",
+                        leadingIcon = Icons.Default.Business,
+                        errorMessage = institutionError,
+                        isError = institutionError != null
+                    )
+
+                    SsplTextField(
+                        value = city,
+                        onValueChange = { onEvent(UserDetailsUiEvents.OnCityTextChange(it)) },
+                        label = "City",
+                        placeholder = "e.g. Karachi",
+                        leadingIcon = Icons.Default.LocationCity,
+                        errorMessage = cityError,
+                        isError = cityError != null
+                    )
+
+                    CountrySelectorField(
+                        country = country,
+                        onCountryChange = { onEvent(UserDetailsUiEvents.OnCountryChange(it?.name ?: "")) },
+                        errorMessage = countryError,
+                        toggleCountryPicker = { onEvent(UserDetailsUiEvents.ToggleCountryPicker) },
+                        showCountryChooser = showCountryPicker
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    PrimaryButton(
+                        text = "Complete Profile",
+                        onClick = { onEvent(UserDetailsUiEvents.OnSave) },
+                        isLoading = isLoading,
+                        enabled = isSaveEnabled && !isLoading,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Skip for now
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                TextButtonLink(
+                    text = "Skip for now, I'll complete it later",
+                    onClick = onSkip
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
-
-@Composable
-fun UserDetailFields(
-    pmdcNumber: String,
-    pmdcNumberError: String?,
-    institution: String,
-    institutionError: String?,
-    showCountryPicker: Boolean,
-    country: String,
-    countryError: String?,
-    city: String,
-    cityError: String?,
-    registrationError: String?,
-    designation: String,
-    designationError: String?,
-    registrationNumber: String?,
-    onEvent: (UserDetailsUiEvents) -> Unit
-) {
-    // Grouping all input fields into one section using AppTextField
-    AppTextField(placeholder = stringResource(Res.string.enter_pmdc_number),
-        text = pmdcNumber,
-        errorMessage = pmdcNumberError,
-        onTextChange = { onEvent(UserDetailsUiEvents.OnPmDcNumberTextChange(it)) })
-    AppTextField(placeholder = stringResource(Res.string.institution_name),
-        text = institution,
-        errorMessage = institutionError,
-        onTextChange = { onEvent(UserDetailsUiEvents.OnInstitutionTextChange(it)) })
-    CountrySelectorField(
-        country = country,
-        onCountryChange = { onEvent.invoke(UserDetailsUiEvents.OnCountryChange(it?.name?:"")) },
-        errorMessage = countryError, toggleCountryPicker = {
-            onEvent.invoke(UserDetailsUiEvents.ToggleCountryPicker)
-        },
-        showCountryChooser = showCountryPicker
-    )
-
-//    AppTextField(placeholder = stringResource(Res.string.city),
-//        text = city,
-//        errorMessage = cityError,
-//        onTextChange = { onEvent(UserDetailsUiEvents.OnCityTextChange(it)) })
-    AppTextField(placeholder = stringResource(Res.string.designation),
-        text = designation,
-        errorMessage = designationError,
-        onTextChange = { onEvent(UserDetailsUiEvents.OnDesignationTextChange(it)) })
-    AppTextField(placeholder = stringResource(Res.string.enter_registration_number),
-        text = registrationNumber ?: "",
-        errorMessage = registrationError,
-        onTextChange = { onEvent(UserDetailsUiEvents.OnRegistrationNumberTextChange(it)) })
-}
-

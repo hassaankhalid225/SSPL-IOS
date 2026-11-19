@@ -26,6 +26,7 @@ data class SsplColorTokens(
     val primaryDark: Color = Color(0xFF053762),
     val tertiary: Color = Color(0xFF032746),
     val accent: Color = Color(0xFF0095B8),
+    val secondary: Color = Color(0xFFF5B041),
     val primaryLight: Color = Color(0xFF0876A8),
     val surface: Color = Color(0xFFFFFFFF),
     val background: Color = Color(0xFFF6F9FC),
@@ -75,10 +76,13 @@ data class SsplShapeTokens(
 @Immutable
 data class SsplTypographyTokens(
     val displaySmall: TextStyle,
+    val headlineMedium: TextStyle,
+    val headlineSmall: TextStyle,
     val titleLarge: TextStyle,
     val titleMedium: TextStyle,
     val bodyLarge: TextStyle,
     val bodyMedium: TextStyle,
+    val bodySmall: TextStyle,
     val labelMedium: TextStyle,
     val labelSmall: TextStyle
 )
@@ -149,6 +153,18 @@ fun SsplTheme(
             fontSize = 22.sp,
             color = colors.heading
         ),
+        headlineMedium = TextStyle(
+            fontFamily = fontFamily,
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp,
+            color = colors.heading
+        ),
+        headlineSmall = TextStyle(
+            fontFamily = fontFamily,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 17.sp,
+            color = colors.heading
+        ),
         titleLarge = TextStyle(
             fontFamily = fontFamily,
             fontWeight = FontWeight.SemiBold,
@@ -172,6 +188,12 @@ fun SsplTheme(
             fontWeight = FontWeight.Normal,
             fontSize = 13.sp,
             color = colors.body
+        ),
+        bodySmall = TextStyle(
+            fontFamily = fontFamily,
+            fontWeight = FontWeight.Normal,
+            fontSize = 12.sp,
+            color = colors.muted
         ),
         labelMedium = TextStyle(
             fontFamily = fontFamily,

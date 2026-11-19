@@ -56,28 +56,20 @@ private fun MainScreenContent(
     userSession: UserSession = koinInject(),
 ) {
     val navController = rememberNavController()
-    val currentScreen = remember {
-        mutableStateOf<Screen>(Screen.SplashScreen)
-    }
-    
+
     // Banner state
     val showBannerDialog = remember { mutableStateOf(false) }
     val banners = remember { mutableStateOf<List<com.sspl.core.models.Banner>>(emptyList()) }
     val getBannersUseCase: com.sspl.core.usecases.GetBannersUseCase = koinInject()
-    
+
     LaunchedEffect(Unit) {
-        val newScreen = userSession.token?.let {
-            Screen.MainScreen
-        } ?: Screen.SignInScreen
-        currentScreen.value = newScreen
-        
         // Fetch banners for all users (Guest & Authenticated)
         getBannersUseCase().collect { state ->
             when (state) {
                 is com.sspl.core.ApiStates.Success -> {
                     val activeBanners = state.data?.banners?.filter { it.isActive } ?: emptyList()
                     val welcomeBanner = activeBanners.find { it.type == "WELCOME" }
-                    
+
                     if (welcomeBanner != null) {
                         banners.value = listOf(welcomeBanner)
                         showBannerDialog.value = true
@@ -87,7 +79,7 @@ private fun MainScreenContent(
             }
         }
     }
-    
+
     // Show banner dialog
     if (showBannerDialog.value && banners.value.isNotEmpty()) {
         com.sspl.ui.components.BannerDialog(
@@ -96,31 +88,26 @@ private fun MainScreenContent(
             onDismiss = { showBannerDialog.value = false }
         )
     }
-    
-    if(currentScreen.value==Screen.SplashScreen){
-        SplashScreen(navController)
-    }else {
-        NavHost(
-            navController = navController,
-            startDestination = currentScreen.value.route,
-            modifier = Modifier
-                .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.systemBars)
-//                .padding(paddingValues)
-        ) {
-            composable(route = Screen.MainScreen.route) {
-                MainScreen( onParentGraph = {
-                    navController.navigate(Screen.SignInScreen.route) {
-                        popUpTo(Screen.MainScreen.route) {
-                            inclusive = true
-                        }
+
+    NavHost(
+        navController = navController,
+        startDestination = Screen.SplashScreen.route,
+        modifier = Modifier
+            .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.systemBars)
+    ) {
+        composable(route = Screen.MainScreen.route) {
+            MainScreen(onParentGraph = {
+                navController.navigate(Screen.SignInScreen.route) {
+                    popUpTo(Screen.MainScreen.route) {
+                        inclusive = true
                     }
-                })
-            }
-            kycScreens().forEach { navItem ->
-                composable(route = navItem.screen.route) {
-                    navItem.component.invoke(navController)
                 }
+            })
+        }
+        kycScreens().forEach { navItem ->
+            composable(route = navItem.screen.route) {
+                navItem.component.invoke(navController)
             }
         }
     }

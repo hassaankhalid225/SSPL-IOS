@@ -48,14 +48,9 @@ import com.sspl.ui.kyc.LoginScreen
 import com.sspl.ui.kyc.SignUpScreen
 import com.sspl.ui.notifications.NotificationsScreen
 import com.sspl.ui.otp.OtpScreen
-import com.sspl.ui.postcreation.CreatePostScreen
-import com.sspl.ui.posts.PostScreen
 import com.sspl.ui.session.SessionScreen
 import com.sspl.ui.settings.SettingsScreen
 import com.sspl.ui.settings.deleteaccount.DeleteAccountScreen
-import com.sspl.ui.exhibition.ExhibitionRegistrationScreen
-import com.sspl.ui.exhibition.ExhibitionsScreen
-import com.sspl.ui.exhibition.ExhibitionDetailScreen
 import com.sspl.ui.userdetails.EditProfileScreen
 import com.sspl.ui.userdetails.ProfileScreen
 import com.sspl.ui.userdetails.UserDetailsScreen

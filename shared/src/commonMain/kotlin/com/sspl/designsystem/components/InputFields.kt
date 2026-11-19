@@ -52,7 +52,10 @@ fun SsplTextField(
     modifier: Modifier = Modifier,
     placeholder: String? = null,
     error: String? = null,
-    leadingIcon: @Composable (() -> Unit)? = null,
+    errorMessage: String? = null,
+    isError: Boolean = false,
+    leadingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
+    leadingIconContent: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
     enabled: Boolean = true,
     readOnly: Boolean = false,
@@ -61,6 +64,19 @@ fun SsplTextField(
     keyboardType: KeyboardType = KeyboardType.Text,
     keyboardActions: KeyboardActions = KeyboardActions.Default
 ) {
+    val effectiveError = error ?: errorMessage
+    val effectiveIsError = isError || effectiveError != null
+    val effectiveLeadingIcon: @Composable (() -> Unit)? = leadingIconContent ?: leadingIcon?.let { icon ->
+        {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (effectiveIsError) AppTheme.colors.error else AppTheme.colors.primary,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+    }
+
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -68,7 +84,7 @@ fun SsplTextField(
         Text(
             text = label,
             style = AppTheme.typography.labelMedium.copy(
-                color = if (error != null) AppTheme.colors.error else AppTheme.colors.heading,
+                color = if (effectiveIsError) AppTheme.colors.error else AppTheme.colors.heading,
                 fontWeight = FontWeight.Medium
             )
         )
@@ -79,13 +95,13 @@ fun SsplTextField(
             placeholder = if (placeholder != null) {
                 { Text(placeholder, style = AppTheme.typography.bodyMedium.copy(color = AppTheme.colors.muted)) }
             } else null,
-            leadingIcon = leadingIcon,
+            leadingIcon = effectiveLeadingIcon,
             trailingIcon = trailingIcon,
             enabled = enabled,
             readOnly = readOnly,
             singleLine = singleLine,
             maxLines = maxLines,
-            isError = error != null,
+            isError = effectiveIsError,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             keyboardActions = keyboardActions,
             shape = AppTheme.shapes.button,
@@ -101,9 +117,9 @@ fun SsplTextField(
             ),
             textStyle = AppTheme.typography.bodyLarge
         )
-        AnimatedVisibility(visible = error != null) {
+        AnimatedVisibility(visible = effectiveError != null) {
             Text(
-                text = error.orEmpty(),
+                text = effectiveError.orEmpty(),
                 style = AppTheme.typography.labelSmall.copy(
                     color = AppTheme.colors.error
                 ),
@@ -121,32 +137,70 @@ fun PasswordField(
     modifier: Modifier = Modifier,
     placeholder: String = "••••••••",
     error: String? = null,
+    errorMessage: String? = null,
+    isError: Boolean = false,
+    isVisible: Boolean? = null,
+    onToggleVisibility: (() -> Unit)? = null,
     enabled: Boolean = true,
     keyboardActions: KeyboardActions = KeyboardActions.Default
 ) {
-    var passwordVisible by remember { mutableStateOf(false) }
+    var internalVisible by remember { mutableStateOf(false) }
+    val passwordVisible = isVisible ?: internalVisible
+    val toggle = onToggleVisibility ?: { internalVisible = !internalVisible }
+    val effectiveError = error ?: errorMessage
 
-    SsplTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = label,
-        placeholder = placeholder,
-        error = error,
-        enabled = enabled,
-        singleLine = true,
-        keyboardType = KeyboardType.Password,
-        keyboardActions = keyboardActions,
-        modifier = modifier,
-        trailingIcon = {
-            IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                Icon(
-                    imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                    contentDescription = if (passwordVisible) "Hide password" else "Show password",
-                    tint = AppTheme.colors.muted
-                )
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            text = label,
+            style = AppTheme.typography.labelMedium.copy(
+                color = if (effectiveError != null) AppTheme.colors.error else AppTheme.colors.heading,
+                fontWeight = FontWeight.Medium
+            )
+        )
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text(placeholder, style = AppTheme.typography.bodyMedium.copy(color = AppTheme.colors.muted)) },
+            enabled = enabled,
+            singleLine = true,
+            isError = effectiveError != null || isError,
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            keyboardActions = keyboardActions,
+            shape = AppTheme.shapes.button,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = AppTheme.colors.primary,
+                unfocusedBorderColor = AppTheme.colors.border,
+                errorBorderColor = AppTheme.colors.error,
+                focusedContainerColor = AppTheme.colors.surface,
+                unfocusedContainerColor = AppTheme.colors.surface,
+                errorContainerColor = AppTheme.colors.surface,
+                focusedTextColor = AppTheme.colors.heading,
+                unfocusedTextColor = AppTheme.colors.body
+            ),
+            textStyle = AppTheme.typography.bodyLarge,
+            trailingIcon = {
+                IconButton(onClick = toggle) {
+                    Icon(
+                        imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                        contentDescription = if (passwordVisible) "Hide password" else "Show password",
+                        tint = AppTheme.colors.muted
+                    )
+                }
             }
+        )
+        AnimatedVisibility(visible = effectiveError != null) {
+            Text(
+                text = effectiveError.orEmpty(),
+                style = AppTheme.typography.labelSmall.copy(color = AppTheme.colors.error),
+                modifier = Modifier.padding(start = 4.dp)
+            )
         }
-    )
+    }
 }
 
 @Composable

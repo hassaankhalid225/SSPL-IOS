@@ -60,6 +60,12 @@ data class User(
 ) {
     fun fullName() = "$firstName $lastName".trim()
     fun isGuest() = account?.isGuestUser() == true
+
+    val pmdcNo: String? get() = profile?.pmdcNumber
+    val designation: String? get() = profile?.title
+    val instituteName: String? get() = profile?.institute
+    val country: String? get() = profile?.country
+    val city: String? get() = null
 }
 
 @Serializable
