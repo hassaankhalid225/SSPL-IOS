@@ -323,3 +323,20 @@ data class EventArchiveResponse(
     val data: List<EventArchiveRecord> = emptyList()
 )
 
+@Serializable
+data class MyRegistrationsData(
+    val all: List<Registration> = emptyList(),
+    val conferences: List<Registration> = emptyList(),
+    val workshops: List<Registration> = emptyList(),
+    @SerialName("monthly_meetings") val monthlyMeetings: List<Registration> = emptyList(),
+    @SerialName("conference_events") val conferenceEvents: List<Registration> = emptyList(),
+    @SerialName("can_register_conference") val canRegisterConference: Boolean = true,
+    @SerialName("active_conference_registration") val activeConferenceRegistration: Registration? = null
+)
+
+@Serializable
+data class MyRegistrationsResponse(
+    val success: Boolean = true,
+    val data: MyRegistrationsData? = null
+)
+

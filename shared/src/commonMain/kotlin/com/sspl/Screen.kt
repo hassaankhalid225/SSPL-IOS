@@ -69,6 +69,22 @@ import com.sspl.ui.settings.deleteaccount.DeleteAccountScreen
 import com.sspl.ui.userdetails.EditProfileScreen
 import com.sspl.ui.userdetails.ProfileScreen
 import com.sspl.ui.userdetails.UserDetailsScreen
+import com.sspl.ui.portal.PortalOverviewScreen
+import com.sspl.ui.portal.MembershipScreen
+import com.sspl.ui.portal.MembershipPlansScreen
+import com.sspl.ui.portal.EventPortalScreen
+import com.sspl.ui.portal.AbstractSubmissionScreen
+import com.sspl.ui.portal.MySubmissionsScreen
+import com.sspl.ui.portal.PresentationsScreen
+import com.sspl.ui.portal.MyCertificatesScreen
+import com.sspl.ui.fellowship.FellowshipHubScreen
+import com.sspl.ui.fellowship.TrainingCentersScreen
+import com.sspl.ui.fellowship.FellowshipGuidelinesScreen
+import com.sspl.ui.fellowship.FellowApplicationScreen
+import com.sspl.ui.fellowship.CenterApplicationScreen
+import com.sspl.ui.fellowship.FellowDashboardScreen
+import com.sspl.ui.fellowship.TrainerDashboardScreen
+import com.sspl.ui.fellowship.FellowshipFeedbackScreen
 import com.sspl.utils.IconResource
 import org.jetbrains.compose.resources.StringResource
 
@@ -226,6 +242,25 @@ sealed class Screen(
     data object EventRegistrationScreen : Screen(route = "EventRegistrationScreen")
     data object ConferencesScreen : Screen(route = "ConferencesScreen")
     data object EventArchiveScreen : Screen(route = "EventArchiveScreen")
+
+    // Phase 5: My Portal (D1–D9)
+    data object PortalOverviewScreen : Screen(route = "PortalOverviewScreen")
+    data object MembershipScreen : Screen(route = "MembershipScreen")
+    data object MembershipPlansScreen : Screen(route = "MembershipPlansScreen")
+    data object EventPortalScreen : Screen(route = "EventPortalScreen")
+    data object AbstractSubmissionScreen : Screen(route = "AbstractSubmissionScreen")
+    data object MySubmissionsScreen : Screen(route = "MySubmissionsScreen")
+    data object PresentationsScreen : Screen(route = "PresentationsScreen")
+    data object MyCertificatesScreen : Screen(route = "MyCertificatesScreen")
+
+    // Phase 6: Fellowship (E1–E8)
+    data object TrainingCentresScreen : Screen(route = "TrainingCentresScreen")
+    data object FellowshipGuidelinesScreen : Screen(route = "FellowshipGuidelinesScreen")
+    data object ApplyAsFellowScreen : Screen(route = "ApplyAsFellowScreen")
+    data object ApplyAsTrainingCentreScreen : Screen(route = "ApplyAsTrainingCentreScreen")
+    data object FellowDashboardScreen : Screen(route = "FellowDashboardScreen")
+    data object TrainerDashboardScreen : Screen(route = "TrainerDashboardScreen")
+    data object FellowshipFeedbackScreen : Screen(route = "FellowshipFeedbackScreen")
 }
 
 fun screenByRoute(route: String?): Screen? =
@@ -300,12 +335,31 @@ fun otherScreens(): List<NavItem> = listOf(
     NavItem(screen = Screen.DownloadsScreen, component = { DownloadsScreen(navController = it) }),
     NavItem(screen = Screen.VerifyCertificateScreen, component = { VerifyCertificateScreen(navController = it) }),
     NavItem(screen = Screen.MembersDirectoryScreen, component = { MembersDirectoryScreen(navController = it) }),
-    NavItem(screen = Screen.FellowshipHubScreen, component = { MemberGuideScreen(navController = it) }),
+    NavItem(screen = Screen.FellowshipHubScreen, component = { FellowshipHubScreen(navController = it) }),
     NavItem(screen = Screen.EventsListScreen, component = { EventsListScreen(navController = it) }),
     NavItem(screen = Screen.EventDetailScreen, component = { EventDetailScreen(navController = it) }),
     NavItem(screen = Screen.EventRegistrationScreen, component = { EventRegistrationScreen(navController = it) }),
     NavItem(screen = Screen.ConferencesScreen, component = { ConferencesScreen(navController = it) }),
     NavItem(screen = Screen.EventArchiveScreen, component = { EventArchiveScreen(navController = it) }),
+
+    // Phase 5: My Portal (D1–D9)
+    NavItem(screen = Screen.PortalOverviewScreen, component = { PortalOverviewScreen(navController = it) }),
+    NavItem(screen = Screen.MembershipScreen, component = { MembershipScreen(navController = it) }),
+    NavItem(screen = Screen.MembershipPlansScreen, component = { MembershipPlansScreen(navController = it) }),
+    NavItem(screen = Screen.EventPortalScreen, component = { EventPortalScreen(navController = it) }),
+    NavItem(screen = Screen.AbstractSubmissionScreen, component = { AbstractSubmissionScreen(navController = it) }),
+    NavItem(screen = Screen.MySubmissionsScreen, component = { MySubmissionsScreen(navController = it) }),
+    NavItem(screen = Screen.PresentationsScreen, component = { PresentationsScreen(navController = it) }),
+    NavItem(screen = Screen.MyCertificatesScreen, component = { MyCertificatesScreen(navController = it) }),
+
+    // Phase 6: Fellowship (E1–E8)
+    NavItem(screen = Screen.TrainingCentresScreen, component = { TrainingCentersScreen(navController = it) }),
+    NavItem(screen = Screen.FellowshipGuidelinesScreen, component = { FellowshipGuidelinesScreen(navController = it) }),
+    NavItem(screen = Screen.ApplyAsFellowScreen, component = { FellowApplicationScreen(navController = it) }),
+    NavItem(screen = Screen.ApplyAsTrainingCentreScreen, component = { CenterApplicationScreen(navController = it) }),
+    NavItem(screen = Screen.FellowDashboardScreen, component = { FellowDashboardScreen(navController = it) }),
+    NavItem(screen = Screen.TrainerDashboardScreen, component = { TrainerDashboardScreen(navController = it) }),
+    NavItem(screen = Screen.FellowshipFeedbackScreen, component = { FellowshipFeedbackScreen(navController = it) }),
 )
 
 fun kycScreens(): List<NavItem> = listOf(

@@ -5,8 +5,8 @@
 > Feature ids refer to `FEATURE_MAP.md`.
 
 ## Current status
-- **Phase:** 4 — Events & Conferences
-- **Last build:** `:androidApp:assembleDebug` SUCCESS (BUILD SUCCESSFUL in 3m 58s)
+- **Phase:** 7 — System & polish (Phases 0–6 complete & verified)
+- **Last build:** `:androidApp:assembleDebug` SUCCESS (BUILD SUCCESSFUL in 1m 5s)
 - **Blockers / open questions:** see bottom
 
 ---
@@ -64,25 +64,25 @@
 - [x] C9 Payment status
 
 ## Phase 5 — My Portal
-- [ ] D1 Overview
-- [ ] D2 Membership
-- [ ] D3 Membership plans + application
-- [ ] D4 My registrations (+ badge/QR)
-- [ ] D5 Event portal (sessions, join, attendance GPS/selfie, feedback, certificates)
-- [ ] D6 Submit abstract
-- [ ] D7 My submissions
-- [ ] D8 Presentations
-- [ ] D9 My certificates
+- [x] D1 Overview
+- [x] D2 Membership
+- [x] D3 Membership plans + application
+- [x] D4 My registrations (+ badge/QR)
+- [x] D5 Event portal (sessions, join, attendance GPS/selfie, feedback, certificates)
+- [x] D6 Submit abstract
+- [x] D7 My submissions
+- [x] D8 Presentations
+- [x] D9 My certificates
 
 ## Phase 6 — Fellowship
-- [ ] E1 Hub
-- [ ] E2 Training centres
-- [ ] E3 Guidelines
-- [ ] E4 Apply as fellow
-- [ ] E5 Apply as training centre
-- [ ] E6 Fellow dashboard
-- [ ] E7 Trainer dashboard
-- [ ] E8 Fellowship feedback
+- [x] E1 Hub
+- [x] E2 Training centres
+- [x] E3 Guidelines
+- [x] E4 Apply as fellow
+- [x] E5 Apply as training centre
+- [x] E6 Fellow dashboard
+- [x] E7 Trainer dashboard
+- [x] E8 Fellowship feedback
 
 ## Phase 7 — System & polish
 - [ ] F1 Push notifications + device token
@@ -108,6 +108,8 @@
 | 2026-11-20 | Phase 3 (B1-B13) | HomeScreen, HomeScreenViewModel, AboutScreen, HistoryScreen, ExecutiveCouncilScreen, ElectionsScreen, NotificationsScreen, NotificationsViewModel, FaqsScreen, MemberGuideScreen, ContactUsScreen, TermsScreen, DownloadsScreen, VerifyCertificateScreen, MembersDirectoryScreen, PublicRepository, PublicModels, MainScreen, Screen.kt, SsplTheme.kt, BadgesAndChips.kt, CardsAndRows.kt, FeedbackAndStates.kt | SUCCESS | Implemented full Home & Public Info suite with live CMS API endpoints, responsive cards, and MainScaffold integration |
 | 2026-11-20 | Phase 4 (C1-C9) | EventModels.kt, EventRepository.kt, EventsListViewModel.kt, EventDetailViewModel.kt, EventArchiveViewModel.kt, PaymentStatusViewModel.kt, EventsListScreen.kt, EventDetailScreen.kt, EventRegistrationScreen.kt, ConferencesScreen.kt, WorkshopsScreenV2.kt, EventArchiveScreen.kt, PaymentStatusScreen.kt, ConferenceRegistrationScreen.kt, ScientificProgramsScreen.kt, Screen.kt, MainScreen.kt, Tokens.kt, Buttons.kt, CardsAndRows.kt, User.kt | SUCCESS | Complete Events & Conferences module revamp (C1-C9): unified events list with category & status tabs, event detail, registration flow with roles & fees, Swich payment integration, conferences, workshops, event archive, and payment status handling |
 | 2026-11-20 | Crash Fix | SsplTheme.kt, App.kt, UserSession.kt, MainActivity.kt | SUCCESS | Resolved app startup crash: added fallback typography in SsplTheme, wrapped App in SsplTheme, guarded UserSession JSON decoding against schema differences, and protected Pusher/FCM init in MainActivity |
+| 2026-11-20 | Phase 5 (D1-D9) & Phase 6 (E1-E8) | PortalModels.kt, FellowshipModels.kt, PortalRepository.kt, FellowshipRepository.kt, PortalOverviewScreen.kt, MembershipScreen.kt, MembershipPlansScreen.kt, MyRegistrationsScreen.kt, EventPortalScreen.kt, AbstractSubmissionScreen.kt, MySubmissionsScreen.kt, PresentationsScreen.kt, MyCertificatesScreen.kt, FellowshipHubScreen.kt, TrainingCentersScreen.kt, FellowshipGuidelinesScreen.kt, FellowApplicationScreen.kt, CenterApplicationScreen.kt, FellowDashboardScreen.kt, TrainerDashboardScreen.kt, FellowshipFeedbackScreen.kt, MainScreen.kt, Screen.kt, Buttons.kt, BadgesAndChips.kt, InputFields.kt, RoleUtils.kt, User.kt, EventRepository.kt, RepositoryModules.kt | SUCCESS | Completed My Portal (D1–D9) member workspace & Fellowship (E1–E8) clinical logbook, training centres, applications, trainer supervisor desk, and feedback questionnaires. Built green. |
+
 
 ## Open questions for the user
 1. ✅ RESOLVED (2026-11-19): base URL for all endpoints = `https://backendssplportal.switch2itech.cloud`.

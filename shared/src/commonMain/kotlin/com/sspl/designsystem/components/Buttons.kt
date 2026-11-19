@@ -267,6 +267,112 @@ fun SsplPrimaryButton(
     }
 }
 
+enum class SsplButtonVariant {
+    Primary,
+    Secondary,
+    Outline,
+    Ghost,
+    Destructive
+}
+
+@Composable
+fun SsplButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    loading: Boolean = false,
+    variant: SsplButtonVariant = SsplButtonVariant.Primary,
+    icon: ImageVector? = null
+) {
+    when (variant) {
+        SsplButtonVariant.Primary -> PrimaryButton(
+            text = text,
+            onClick = onClick,
+            modifier = modifier,
+            enabled = enabled,
+            loading = loading,
+            icon = icon
+        )
+        SsplButtonVariant.Secondary, SsplButtonVariant.Outline -> SecondaryButton(
+            text = text,
+            onClick = onClick,
+            modifier = modifier,
+            enabled = enabled,
+            loading = loading,
+            icon = icon
+        )
+        SsplButtonVariant.Ghost -> TextButtonLink(
+            text = text,
+            onClick = onClick,
+            modifier = modifier,
+            enabled = enabled
+        )
+        SsplButtonVariant.Destructive -> PrimaryButton(
+            text = text,
+            onClick = onClick,
+            modifier = modifier,
+            enabled = enabled,
+            loading = loading,
+            icon = icon
+        )
+    }
+}
+
+@Composable
+fun DestructiveButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    loading: Boolean = false,
+    icon: ImageVector? = null
+) {
+    val bg = if (enabled) AppTheme.colors.error else AppTheme.colors.border
+    val contentColor = if (enabled) Color.White else AppTheme.colors.muted
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = 48.dp)
+            .clip(AppTheme.shapes.button)
+            .background(bg)
+            .clickable(enabled = enabled && !loading, onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        if (loading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(20.dp),
+                color = Color.White,
+                strokeWidth = 2.dp
+            )
+        } else {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                if (icon != null) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = contentColor,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+                Text(
+                    text = text,
+                    style = AppTheme.typography.bodyLarge.copy(
+                        color = contentColor,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                )
+            }
+        }
+    }
+}
+
+
 @Composable
 fun SsplSecondaryButton(
     text: String,
@@ -315,5 +421,6 @@ fun SsplSecondaryButton(
         }
     }
 }
+
 
 

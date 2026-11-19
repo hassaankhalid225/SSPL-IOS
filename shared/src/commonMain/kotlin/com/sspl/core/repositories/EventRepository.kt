@@ -205,5 +205,28 @@ class EventRepository(private val httpClient: HttpClient) {
             emit(emptyList())
         }
     }
+
+    /**
+     * D4: Fetch all registrations of current user from GET /external/events/my-registrations
+     */
+    fun getMyRegistrations(): Flow<com.sspl.core.models.MyRegistrationsData?> = flow {
+        try {
+            val responseText = httpClient.get("$BASE_URL/external/events/my-registrations").body<String>()
+            val parsed = json.parseToJsonElement(responseText)
+            val data: com.sspl.core.models.MyRegistrationsData? = when {
+                parsed is JsonObject && parsed["data"] is JsonObject -> {
+                    json.decodeFromJsonElement(parsed["data"]!!)
+                }
+                parsed is JsonObject -> {
+                    json.decodeFromJsonElement(parsed)
+                }
+                else -> null
+            }
+            emit(data)
+        } catch (e: Exception) {
+            println("EventRepository.getMyRegistrations error: ${e.message}")
+            emit(null)
+        }
+    }
 }
 

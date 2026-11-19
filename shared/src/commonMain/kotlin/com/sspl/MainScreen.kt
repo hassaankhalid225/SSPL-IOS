@@ -33,8 +33,13 @@ fun MainScreen(onParentGraph: () -> Unit) {
 
     val currentTab = when (currentScreen) {
         Screen.HomeScreen -> BottomBarTab.HOME
-        Screen.ScientificProgramsScreen, Screen.WorkshopsScreen -> BottomBarTab.EVENTS
-        Screen.FellowshipHubScreen -> BottomBarTab.FELLOWSHIP
+        Screen.ScientificProgramsScreen, Screen.WorkshopsScreen, Screen.EventsListScreen, Screen.ConferencesScreen -> BottomBarTab.EVENTS
+        Screen.FellowshipHubScreen, Screen.TrainingCentresScreen, Screen.FellowshipGuidelinesScreen,
+        Screen.ApplyAsFellowScreen, Screen.ApplyAsTrainingCentreScreen, Screen.FellowDashboardScreen,
+        Screen.TrainerDashboardScreen, Screen.FellowshipFeedbackScreen -> BottomBarTab.FELLOWSHIP
+        Screen.PortalOverviewScreen, Screen.MembershipScreen, Screen.MembershipPlansScreen,
+        Screen.MyRegistrationsScreen, Screen.EventPortalScreen, Screen.AbstractSubmissionScreen,
+        Screen.MySubmissionsScreen, Screen.PresentationsScreen, Screen.MyCertificatesScreen,
         Screen.ProfileScreen, Screen.UserDetailsScreen, Screen.EditProfile -> BottomBarTab.MY_PORTAL
         else -> BottomBarTab.HOME
     }
@@ -64,11 +69,27 @@ fun MainScreen(onParentGraph: () -> Unit) {
         Screen.SettingsScreen -> Route.Settings
         Screen.DeleteAccountScreen -> Route.DeleteAccount
         Screen.MyRegistrationsScreen -> Route.MyRegistrations
+        Screen.PortalOverviewScreen -> Route.PortalOverview
+        Screen.MembershipScreen -> Route.Membership
+        Screen.MembershipPlansScreen -> Route.MembershipPlans
+        Screen.EventPortalScreen -> Route.EventPortal()
+        Screen.AbstractSubmissionScreen -> Route.SubmitAbstract()
+        Screen.MySubmissionsScreen -> Route.MySubmissions
+        Screen.PresentationsScreen -> Route.Presentations
+        Screen.MyCertificatesScreen -> Route.MyCertificates
+        Screen.FellowshipHubScreen -> Route.FellowshipHub
+        Screen.TrainingCentresScreen -> Route.TrainingCentres
+        Screen.FellowshipGuidelinesScreen -> Route.FellowshipGuidelines
+        Screen.ApplyAsFellowScreen -> Route.ApplyAsFellow
+        Screen.ApplyAsTrainingCentreScreen -> Route.ApplyAsTrainingCentre
+        Screen.FellowDashboardScreen -> Route.FellowDashboard
+        Screen.TrainerDashboardScreen -> Route.TrainerDashboard
+        Screen.FellowshipFeedbackScreen -> Route.FellowshipFeedback
         else -> Route.Home
     }
 
     val screenTitle = when (currentScreen) {
-        Screen.HomeScreen -> "SSP Lahore"
+        Screen.HomeScreen -> "SSPL Society"
         Screen.AboutScreen -> "About Us"
         Screen.HistoryScreen -> "Society History"
         Screen.ExecutiveCouncilScreen -> "Executive Council"
@@ -94,7 +115,23 @@ fun MainScreen(onParentGraph: () -> Unit) {
         Screen.ConferenceRegistrationScreen -> "Registration"
         Screen.PaymentStatusScreen -> "Payment Status"
         Screen.MyRegistrationsScreen -> "My Registrations"
-        else -> "SSP Lahore"
+        Screen.PortalOverviewScreen -> "Member Desk"
+        Screen.MembershipScreen -> "Membership"
+        Screen.MembershipPlansScreen -> "Membership Plans"
+        Screen.EventPortalScreen -> "Event Portal"
+        Screen.AbstractSubmissionScreen -> "Submit Abstract"
+        Screen.MySubmissionsScreen -> "My Submissions"
+        Screen.PresentationsScreen -> "Presentations"
+        Screen.MyCertificatesScreen -> "My Certificates"
+        Screen.FellowshipHubScreen -> "Fellowship Hub"
+        Screen.TrainingCentresScreen -> "Training Centres"
+        Screen.FellowshipGuidelinesScreen -> "Fellowship Guidelines"
+        Screen.ApplyAsFellowScreen -> "Apply as Fellow"
+        Screen.ApplyAsTrainingCentreScreen -> "Apply as Training Centre"
+        Screen.FellowDashboardScreen -> "Fellow Logbook"
+        Screen.TrainerDashboardScreen -> "Trainer Desk"
+        Screen.FellowshipFeedbackScreen -> "Fellowship Feedback"
+        else -> "SSPL Society"
     }
 
     MainScaffold(
@@ -117,7 +154,7 @@ fun MainScreen(onParentGraph: () -> Unit) {
                     if (user == null || user?.isGuest() == true) {
                         onParentGraph()
                     } else {
-                        navController.navigate(Screen.ProfileScreen.route)
+                        navController.navigate(Screen.PortalOverviewScreen.route)
                     }
                 }
                 BottomBarTab.MORE -> {}
@@ -150,6 +187,22 @@ fun MainScreen(onParentGraph: () -> Unit) {
                 is Route.Settings -> Screen.SettingsScreen
                 is Route.DeleteAccount -> Screen.DeleteAccountScreen
                 is Route.FellowshipHub -> Screen.FellowshipHubScreen
+                is Route.PortalOverview -> Screen.PortalOverviewScreen
+                is Route.Membership -> Screen.MembershipScreen
+                is Route.MembershipPlans -> Screen.MembershipPlansScreen
+                is Route.MembershipApplication -> Screen.MembershipPlansScreen
+                is Route.EventPortal -> Screen.EventPortalScreen
+                is Route.SubmitAbstract -> Screen.AbstractSubmissionScreen
+                is Route.MySubmissions -> Screen.MySubmissionsScreen
+                is Route.Presentations -> Screen.PresentationsScreen
+                is Route.MyCertificates -> Screen.MyCertificatesScreen
+                is Route.TrainingCentres -> Screen.TrainingCentresScreen
+                is Route.FellowshipGuidelines -> Screen.FellowshipGuidelinesScreen
+                is Route.ApplyAsFellow -> Screen.ApplyAsFellowScreen
+                is Route.ApplyAsTrainingCentre -> Screen.ApplyAsTrainingCentreScreen
+                is Route.FellowDashboard -> Screen.FellowDashboardScreen
+                is Route.TrainerDashboard -> Screen.TrainerDashboardScreen
+                is Route.FellowshipFeedback -> Screen.FellowshipFeedbackScreen
                 else -> Screen.HomeScreen
             }
             navController.navigate(targetScreen.route)

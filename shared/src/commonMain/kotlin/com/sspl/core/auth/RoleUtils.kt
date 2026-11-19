@@ -102,3 +102,7 @@ object RoleUtils {
     }
 }
 
+fun User.isLifeMember(): Boolean = RoleUtils.isLifeMember(this)
+fun User.isRegularMember(): Boolean = RoleUtils.isRegularMember(this)
+fun User.isFellowshipTrainer(): Boolean = RoleUtils.hasUserRole(this, "FELLOWSHIP_TRAINER")
+

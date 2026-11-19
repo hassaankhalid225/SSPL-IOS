@@ -48,7 +48,7 @@ import com.sspl.designsystem.theme.AppTheme
 fun SsplTextField(
     value: String,
     onValueChange: (String) -> Unit,
-    label: String,
+    label: String = "",
     modifier: Modifier = Modifier,
     placeholder: String? = null,
     error: String? = null,
@@ -81,13 +81,15 @@ fun SsplTextField(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Text(
-            text = label,
-            style = AppTheme.typography.labelMedium.copy(
-                color = if (effectiveIsError) AppTheme.colors.error else AppTheme.colors.heading,
-                fontWeight = FontWeight.Medium
+        if (label.isNotBlank()) {
+            Text(
+                text = label,
+                style = AppTheme.typography.labelMedium.copy(
+                    color = if (effectiveIsError) AppTheme.colors.error else AppTheme.colors.heading,
+                    fontWeight = FontWeight.Medium
+                )
             )
-        )
+        }
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,

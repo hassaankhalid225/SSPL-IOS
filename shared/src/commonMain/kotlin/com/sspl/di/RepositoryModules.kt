@@ -12,6 +12,8 @@ import com.sspl.core.push.PushNotificationService
 import com.sspl.core.repositories.PaymentRepository
 import com.sspl.core.repositories.PublicRepository
 import com.sspl.core.repositories.EventRepository
+import com.sspl.core.repositories.PortalRepository
+import com.sspl.core.repositories.FellowshipRepository
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
@@ -42,4 +44,6 @@ internal val repositoryModules = module {
     // Public / CMS
     factoryOf(::PublicRepository)
     factoryOf(::EventRepository)
+    factoryOf(::PortalRepository)
+    factoryOf(::FellowshipRepository)
 }

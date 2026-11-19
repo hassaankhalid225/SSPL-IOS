@@ -36,6 +36,33 @@ enum class BadgeVariant {
     NEUTRAL
 }
 
+enum class SsplBadgeVariant {
+    Primary,
+    Success,
+    Warning,
+    Error,
+    Info,
+    Neutral;
+
+    fun toBadgeVariant(): BadgeVariant = when (this) {
+        Primary -> BadgeVariant.PRIMARY
+        Success -> BadgeVariant.SUCCESS
+        Warning -> BadgeVariant.WARNING
+        Error -> BadgeVariant.ERROR
+        Info -> BadgeVariant.INFO
+        Neutral -> BadgeVariant.NEUTRAL
+    }
+
+    companion object {
+        val PRIMARY get() = Primary
+        val SUCCESS get() = Success
+        val WARNING get() = Warning
+        val ERROR get() = Error
+        val INFO get() = Info
+        val NEUTRAL get() = Neutral
+    }
+}
+
 fun resolveBadgeVariant(status: String?): BadgeVariant {
     val s = status?.uppercase() ?: return BadgeVariant.NEUTRAL
     return when {
@@ -97,6 +124,13 @@ fun SsplBadge(
     modifier: Modifier = Modifier,
     variant: BadgeVariant = BadgeVariant.PRIMARY
 ) = StatusBadge(status = text, modifier = modifier, variant = variant)
+
+@Composable
+fun SsplBadge(
+    text: String,
+    variant: SsplBadgeVariant,
+    modifier: Modifier = Modifier
+) = StatusBadge(status = text, modifier = modifier, variant = variant.toBadgeVariant())
 
 
 @Composable

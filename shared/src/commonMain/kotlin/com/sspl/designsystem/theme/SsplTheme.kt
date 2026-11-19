@@ -23,19 +23,19 @@ import com.sspl.theme.AppFontFamily
 @Immutable
 data class SsplColorTokens(
     val primary: Color = Color(0xFF0A528F),
-    val primaryDark: Color = Color(0xFF053762),
+    val primaryDark: Color = Color(0xFF0C2033),
     val tertiary: Color = Color(0xFF032746),
     val accent: Color = Color(0xFF0095B8),
     val secondary: Color = Color(0xFFF5B041),
     val primaryLight: Color = Color(0xFF0876A8),
     val surface: Color = Color(0xFFFFFFFF),
-    val background: Color = Color(0xFFF6F9FC),
-    val surfaceTint: Color = Color(0xFFEAF5FA),
-    val boxColor: Color = Color(0xFFEBF1F6),
-    val border: Color = Color(0xFFD8E5ED),
-    val heading: Color = Color(0xFF19364D),
-    val body: Color = Color(0xFF374B5E),
-    val muted: Color = Color(0xFF617487),
+    val background: Color = Color(0xFFF8F9FA),
+    val surfaceTint: Color = Color(0xFFF0F3F6),
+    val boxColor: Color = Color(0xFFF2F4F7),
+    val border: Color = Color(0xFFEEF0F3),
+    val heading: Color = Color(0xFF141D26),
+    val body: Color = Color(0xFF334155),
+    val muted: Color = Color(0xFF64748B),
     val success: Color = Color(0xFF1E7B34),
     val successContainer: Color = Color(0xFFE8F5E9),
     val warning: Color = Color(0xFFC27705),
@@ -43,8 +43,8 @@ data class SsplColorTokens(
     val error: Color = Color(0xFFB3261E),
     val errorContainer: Color = Color(0xFFFFEBEE),
     val onPrimary: Color = Color.White,
-    val onSurface: Color = Color(0xFF19364D),
-    val onBackground: Color = Color(0xFF374B5E),
+    val onSurface: Color = Color(0xFF141D26),
+    val onBackground: Color = Color(0xFF334155),
     val white: Color = Color.White
 ) {
     val textMuted: Color get() = muted
@@ -66,13 +66,13 @@ data class SsplSpacingTokens(
 
 @Immutable
 data class SsplShapeTokens(
-    val card: RoundedCornerShape = RoundedCornerShape(16.dp),
-    val button: RoundedCornerShape = RoundedCornerShape(12.dp),
-    val chip: RoundedCornerShape = RoundedCornerShape(50),
-    val banner: RoundedCornerShape = RoundedCornerShape(16.dp),
-    val sheet: RoundedCornerShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-    val small: RoundedCornerShape = RoundedCornerShape(8.dp),
-    val tiny: RoundedCornerShape = RoundedCornerShape(4.dp)
+    val card: RoundedCornerShape = RoundedCornerShape(22.dp),
+    val button: RoundedCornerShape = RoundedCornerShape(50.dp),
+    val chip: RoundedCornerShape = RoundedCornerShape(50.dp),
+    val banner: RoundedCornerShape = RoundedCornerShape(22.dp),
+    val sheet: RoundedCornerShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+    val small: RoundedCornerShape = RoundedCornerShape(14.dp),
+    val tiny: RoundedCornerShape = RoundedCornerShape(6.dp)
 )
 
 @Immutable
