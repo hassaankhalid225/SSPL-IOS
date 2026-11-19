@@ -45,6 +45,17 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="sspl" android:host="payment-success" />
+                <data android:scheme="sspl" android:host="events" />
+                <data android:scheme="sspl" android:host="verify-certificate" />
+            </intent-filter>
+
+            <!-- App Links Intent Filter -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="backendssplportal.switch2itech.cloud" android:pathPrefix="/events" />
+                <data android:scheme="https" android:host="backendssplportal.switch2itech.cloud" android:pathPrefix="/verify-certificate" />
             </intent-filter>
         </activity>
         
