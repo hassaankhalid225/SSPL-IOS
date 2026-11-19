@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
     private val notificationRepository: NotificationRepository by inject()
     private val userSession: UserSession by inject()
     private val updateDeviceTokenUseCase: UpdateDeviceTokenUseCase by inject()
-    private lateinit var pusherManager: PusherManager
+    private var pusherManager: PusherManager? = null
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -83,18 +83,22 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun getFCMToken() {
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (!task.isSuccessful) {
-                Log.w("MainActivity", "Fetching FCM token failed", task.exception)
-                return@addOnCompleteListener
+        try {
+            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                if (!task.isSuccessful) {
+                    Log.w("MainActivity", "Fetching FCM token failed", task.exception)
+                    return@addOnCompleteListener
+                }
+
+                // Get new FCM registration token
+                val token = task.result
+                Log.d("MainActivity", "FCM Token: $token")
+
+                // Store token for later use when joining session
+                saveTokenToUserSession(token)
             }
-
-            // Get new FCM registration token
-            val token = task.result
-            Log.d("MainActivity", "FCM Token: $token")
-
-            // Store token for later use when joining session
-            saveTokenToUserSession(token)
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error initializing FCM: ${e.message}", e)
         }
     }
 
@@ -195,30 +199,36 @@ class MainActivity : ComponentActivity() {
     }
     
     private fun setupPusher() {
-        // Pusher credentials for real-time notifications
-        pusherManager = PusherManager(
-            appKey = "36e8c7303e28cf81d297",
-            cluster = "ap2"
-        )
-        
-        // Connect to Pusher
-        pusherManager.connect()
-        
-        // Listen for session notifications
-        lifecycleScope.launch {
-            pusherManager.sessionNotifications.collect { sessionNotification ->
-                // Add notification to repository
-                notificationRepository.addSessionNotification(sessionNotification)
-                
-                // TODO: Show local Android notification (optional)
-                // showLocalNotification(sessionNotification)
+        try {
+            // Pusher credentials for real-time notifications
+            val manager = PusherManager(
+                appKey = "36e8c7303e28cf81d297",
+                cluster = "ap2"
+            )
+            pusherManager = manager
+
+            // Connect to Pusher
+            manager.connect()
+
+            // Listen for session notifications
+            lifecycleScope.launch {
+                manager.sessionNotifications.collect { sessionNotification ->
+                    // Add notification to repository
+                    notificationRepository.addSessionNotification(sessionNotification)
+                }
             }
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error setting up Pusher: ${e.message}", e)
         }
     }
-    
+
     override fun onDestroy() {
         super.onDestroy()
-        pusherManager.disconnect()
+        try {
+            pusherManager?.disconnect()
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error disconnecting Pusher: ${e.message}", e)
+        }
     }
 }
 

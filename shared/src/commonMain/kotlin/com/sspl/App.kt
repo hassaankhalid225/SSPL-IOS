@@ -21,6 +21,7 @@ import coil3.PlatformContext
 import coil3.compose.setSingletonImageLoaderFactory
 import com.sspl.session.UserSession
 import com.sspl.theme.MyApplicationTheme
+import com.sspl.designsystem.theme.SsplTheme
 import com.sspl.ui.SplashScreen
 import org.koin.compose.KoinContext
 import org.koin.compose.koinInject
@@ -39,12 +40,14 @@ fun App() {
         setSingletonImageLoaderFactory { context ->
             getAsyncImageLoader(context)
         }
-        MyApplicationTheme {
-            Scaffold(
-                modifier = Modifier.fillMaxSize(),
-                containerColor = MaterialTheme.colorScheme.primary
-            ) {
-                MainScreenContent(it)
+        SsplTheme {
+            MyApplicationTheme {
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    containerColor = MaterialTheme.colorScheme.background
+                ) {
+                    MainScreenContent(it)
+                }
             }
         }
     }

@@ -90,11 +90,25 @@ data class SsplTypographyTokens(
     val labelSmall: TextStyle
 )
 
+private val safeDefaultTypographyTokens = SsplTypographyTokens(
+    displaySmall = TextStyle(fontSize = 22.sp),
+    headlineMedium = TextStyle(fontSize = 20.sp),
+    headlineSmall = TextStyle(fontSize = 17.sp),
+    titleLarge = TextStyle(fontSize = 18.sp),
+    titleMedium = TextStyle(fontSize = 15.sp),
+    titleSmall = TextStyle(fontSize = 14.sp),
+    bodyLarge = TextStyle(fontSize = 14.sp),
+    bodyMedium = TextStyle(fontSize = 13.sp),
+    bodySmall = TextStyle(fontSize = 12.sp),
+    labelMedium = TextStyle(fontSize = 12.sp),
+    labelSmall = TextStyle(fontSize = 10.5.sp)
+)
+
 val LocalSsplColors = staticCompositionLocalOf { SsplColorTokens() }
 val LocalSsplSpacing = staticCompositionLocalOf { SsplSpacingTokens() }
 val LocalSsplShapes = staticCompositionLocalOf { SsplShapeTokens() }
 val LocalSsplTypography = staticCompositionLocalOf<SsplTypographyTokens> {
-    error("No SsplTypography provided")
+    safeDefaultTypographyTokens
 }
 
 object AppTheme {

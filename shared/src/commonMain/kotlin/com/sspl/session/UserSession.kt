@@ -23,6 +23,12 @@ class UserSession(private val storage: Storage) {
         private const val PROFILE_IMAGE_KEY = "profile_image_key"
     }
 
+    private val json = Json {
+        ignoreUnknownKeys = true
+        isLenient = true
+        coerceInputValues = true
+    }
+
     private val _userFlow = MutableStateFlow<User?>(null)
     val userFlow = _userFlow.asStateFlow()
 
@@ -32,11 +38,19 @@ class UserSession(private val storage: Storage) {
     init {
         // Initialize flow with stored value
         runBlocking {
-            val userString = storage.getString(USER_KEY)
-            if (userString != null) {
-                _userFlow.value = Json.decodeFromString<User>(userString)
+            try {
+                val userString = storage.getString(USER_KEY)
+                if (userString != null) {
+                    _userFlow.value = json.decodeFromString<User>(userString)
+                }
+            } catch (e: Exception) {
+                println("UserSession init: Failed to decode cached user: ${e.message}")
             }
-            _profileImageFlow.value = storage.getString(PROFILE_IMAGE_KEY)
+            try {
+                _profileImageFlow.value = storage.getString(PROFILE_IMAGE_KEY)
+            } catch (e: Exception) {
+                println("UserSession init: Failed to get profile image: ${e.message}")
+            }
         }
     }
 
@@ -100,15 +114,24 @@ class UserSession(private val storage: Storage) {
     }
 
     suspend fun setUser(user: User) {
-        val userString = Json.encodeToString(user)
-        storage.putString(USER_KEY, userString)
-        _userFlow.value = user
+        try {
+            val userString = json.encodeToString(user)
+            storage.putString(USER_KEY, userString)
+            _userFlow.value = user
+        } catch (e: Exception) {
+            println("UserSession setUser error: ${e.message}")
+        }
     }
 
     suspend fun getUser(): User? {
         val userString = storage.getString(USER_KEY)
         val user = if (userString != null) {
-            Json.decodeFromString<User>(userString)
+            try {
+                json.decodeFromString<User>(userString)
+            } catch (e: Exception) {
+                println("UserSession getUser error: ${e.message}")
+                null
+            }
         } else {
             null
         }
