@@ -59,6 +59,7 @@ data class User(
     val account: Account? = null
 ) {
     fun fullName() = "$firstName $lastName".trim()
+    val fullName: String get() = fullName()
     fun isGuest() = account?.isGuestUser() == true
 
     val pmdcNo: String? get() = profile?.pmdcNumber

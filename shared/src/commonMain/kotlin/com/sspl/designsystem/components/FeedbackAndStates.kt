@@ -347,3 +347,45 @@ fun GuestLockSheet(
     }
 }
 
+@Composable
+fun FeedbackBanner(
+    message: String,
+    isError: Boolean = false,
+    modifier: Modifier = Modifier
+) {
+    val bgColor = if (isError) AppTheme.colors.errorContainer else AppTheme.colors.surfaceTint
+    val textColor = if (isError) AppTheme.colors.error else AppTheme.colors.primary
+    val borderColor = if (isError) AppTheme.colors.error.copy(alpha = 0.3f) else AppTheme.colors.primary.copy(alpha = 0.3f)
+    val icon = if (isError) Icons.Default.Warning else Icons.Default.Info
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(AppTheme.shapes.card)
+            .background(bgColor)
+            .border(1.dp, borderColor, AppTheme.shapes.card)
+            .padding(12.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = textColor,
+                modifier = Modifier.size(20.dp)
+            )
+            Text(
+                text = message,
+                style = AppTheme.typography.bodyMedium.copy(
+                    color = textColor,
+                    fontWeight = FontWeight.Medium
+                ),
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+

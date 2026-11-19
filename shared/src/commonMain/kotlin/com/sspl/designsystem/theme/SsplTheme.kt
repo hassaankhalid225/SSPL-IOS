@@ -46,7 +46,9 @@ data class SsplColorTokens(
     val onSurface: Color = Color(0xFF19364D),
     val onBackground: Color = Color(0xFF374B5E),
     val white: Color = Color.White
-)
+) {
+    val textMuted: Color get() = muted
+}
 
 @Immutable
 data class SsplSpacingTokens(
@@ -80,6 +82,7 @@ data class SsplTypographyTokens(
     val headlineSmall: TextStyle,
     val titleLarge: TextStyle,
     val titleMedium: TextStyle,
+    val titleSmall: TextStyle = titleMedium,
     val bodyLarge: TextStyle,
     val bodyMedium: TextStyle,
     val bodySmall: TextStyle,
@@ -175,6 +178,12 @@ fun SsplTheme(
             fontFamily = fontFamily,
             fontWeight = FontWeight.SemiBold,
             fontSize = 15.sp,
+            color = colors.heading
+        ),
+        titleSmall = TextStyle(
+            fontFamily = fontFamily,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 14.sp,
             color = colors.heading
         ),
         bodyLarge = TextStyle(

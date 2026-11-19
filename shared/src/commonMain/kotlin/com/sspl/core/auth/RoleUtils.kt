@@ -43,6 +43,9 @@ object RoleUtils {
         return getUserRoles(user).contains(roleName.uppercase())
     }
 
+    fun isLifeMember(user: User?): Boolean = hasUserRole(user, "LIFE_MEMBER")
+    fun isRegularMember(user: User?): Boolean = hasUserRole(user, "REGULAR_MEMBER")
+
     fun hasActiveMembershipPlan(user: User?): Boolean {
         if (user == null) return false
         val roles = getUserRoles(user)

@@ -69,6 +69,46 @@ fun SsplCard(
 }
 
 @Composable
+fun StatCard(
+    value: String,
+    label: String,
+    description: String? = null,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+        shape = AppTheme.shapes.card,
+        colors = CardDefaults.cardColors(containerColor = AppTheme.colors.surface),
+        border = androidx.compose.foundation.BorderStroke(1.dp, AppTheme.colors.border)
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Text(
+                text = value,
+                style = AppTheme.typography.titleLarge.copy(
+                    color = AppTheme.colors.primary,
+                    fontWeight = FontWeight.Bold
+                )
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = label,
+                style = AppTheme.typography.bodyMedium.copy(
+                    color = AppTheme.colors.heading,
+                    fontWeight = FontWeight.SemiBold
+                )
+            )
+            if (description != null) {
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = description,
+                    style = AppTheme.typography.bodySmall.copy(color = AppTheme.colors.muted)
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun SectionHeader(
     title: String,
     modifier: Modifier = Modifier,

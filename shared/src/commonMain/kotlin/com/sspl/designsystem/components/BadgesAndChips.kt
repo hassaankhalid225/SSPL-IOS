@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import com.sspl.designsystem.theme.AppTheme
 
 enum class BadgeVariant {
+    PRIMARY,
     SUCCESS,
     WARNING,
     ERROR,
@@ -63,6 +64,7 @@ fun StatusBadge(
 ) {
     val colors = AppTheme.colors
     val (bg, textColor) = when (variant) {
+        BadgeVariant.PRIMARY -> colors.surfaceTint to colors.primary
         BadgeVariant.SUCCESS -> colors.successContainer to colors.success
         BadgeVariant.WARNING -> colors.warningContainer to colors.warning
         BadgeVariant.ERROR -> colors.errorContainer to colors.error
@@ -88,6 +90,14 @@ fun StatusBadge(
         )
     }
 }
+
+@Composable
+fun SsplBadge(
+    text: String,
+    modifier: Modifier = Modifier,
+    variant: BadgeVariant = BadgeVariant.PRIMARY
+) = StatusBadge(status = text, modifier = modifier, variant = variant)
+
 
 @Composable
 fun RoleChip(

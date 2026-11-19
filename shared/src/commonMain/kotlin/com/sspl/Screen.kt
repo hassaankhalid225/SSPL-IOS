@@ -33,6 +33,16 @@ import com.sspl.resources.workshop
 import com.sspl.resources.workshops
 import com.sspl.ui.SplashScreen
 import com.sspl.ui.about.AboutScreen
+import com.sspl.ui.certificate.VerifyCertificateScreen
+import com.sspl.ui.contact.ContactUsScreen
+import com.sspl.ui.council.ExecutiveCouncilScreen
+import com.sspl.ui.downloads.DownloadsScreen
+import com.sspl.ui.elections.ElectionsScreen
+import com.sspl.ui.faqs.FaqsScreen
+import com.sspl.ui.guide.MemberGuideScreen
+import com.sspl.ui.history.HistoryScreen
+import com.sspl.ui.members.MembersDirectoryScreen
+import com.sspl.ui.terms.TermsScreen
 import com.sspl.ui.conference.programs.ProgramDetailScreen
 import com.sspl.ui.conference.programs.ScientificProgramsScreen
 import com.sspl.ui.conference.programs.SessionDetailScreen
@@ -194,6 +204,18 @@ sealed class Screen(
     data object MyRegistrationsScreen : Screen(
         route = "MyRegistrationsScreen",
     )
+
+    data object HistoryScreen : Screen(route = "HistoryScreen")
+    data object ExecutiveCouncilScreen : Screen(route = "ExecutiveCouncilScreen")
+    data object ElectionsScreen : Screen(route = "ElectionsScreen")
+    data object FaqsScreen : Screen(route = "FaqsScreen")
+    data object MemberGuideScreen : Screen(route = "MemberGuideScreen")
+    data object ContactUsScreen : Screen(route = "ContactUsScreen")
+    data object TermsScreen : Screen(route = "TermsScreen")
+    data object DownloadsScreen : Screen(route = "DownloadsScreen")
+    data object VerifyCertificateScreen : Screen(route = "VerifyCertificateScreen")
+    data object MembersDirectoryScreen : Screen(route = "MembersDirectoryScreen")
+    data object FellowshipHubScreen : Screen(route = "FellowshipHubScreen")
 }
 
 fun screenByRoute(route: String?): Screen? =
@@ -258,6 +280,17 @@ fun otherScreens(): List<NavItem> = listOf(
              val confId = it.previousBackStackEntry?.savedStateHandle?.get<Long>("conferenceId") ?: 0L
              MyRegistrationsScreen(conferenceId = confId, navController = it) 
         }),
+    NavItem(screen = Screen.HistoryScreen, component = { HistoryScreen(navController = it) }),
+    NavItem(screen = Screen.ExecutiveCouncilScreen, component = { ExecutiveCouncilScreen(navController = it) }),
+    NavItem(screen = Screen.ElectionsScreen, component = { ElectionsScreen(navController = it) }),
+    NavItem(screen = Screen.FaqsScreen, component = { FaqsScreen(navController = it) }),
+    NavItem(screen = Screen.MemberGuideScreen, component = { MemberGuideScreen(navController = it) }),
+    NavItem(screen = Screen.ContactUsScreen, component = { ContactUsScreen(navController = it) }),
+    NavItem(screen = Screen.TermsScreen, component = { TermsScreen(navController = it) }),
+    NavItem(screen = Screen.DownloadsScreen, component = { DownloadsScreen(navController = it) }),
+    NavItem(screen = Screen.VerifyCertificateScreen, component = { VerifyCertificateScreen(navController = it) }),
+    NavItem(screen = Screen.MembersDirectoryScreen, component = { MembersDirectoryScreen(navController = it) }),
+    NavItem(screen = Screen.FellowshipHubScreen, component = { MemberGuideScreen(navController = it) }),
 )
 
 fun kycScreens(): List<NavItem> = listOf(
