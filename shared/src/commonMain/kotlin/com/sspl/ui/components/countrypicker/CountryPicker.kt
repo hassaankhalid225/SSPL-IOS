@@ -58,7 +58,7 @@ fun CountryCodePicker(
     BetterModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color.White,
+        containerColor = com.sspl.designsystem.theme.AppTheme.colors.surfaceElevated,
         modifier = modifier
     ) {
         Column {

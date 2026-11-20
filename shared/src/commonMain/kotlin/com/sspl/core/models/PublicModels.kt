@@ -1,3 +1,5 @@
+@file:OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+
 package com.sspl.core.models
 
 import kotlinx.serialization.SerialName
@@ -13,8 +15,9 @@ data class SocietyNewsItem(
     val image: String? = null,
     @SerialName("image_url") val imageUrl: String? = null,
     @SerialName("createdAt") val createdAt: String? = null,
-    @SerialName("is_active") val isActive: Boolean = true,
-    @SerialName("is_visible") val isVisible: Boolean = true
+    // Web filters on camelCase keys (cmsPublicApi.ts); accept both spellings.
+    @SerialName("isActive") @kotlinx.serialization.json.JsonNames("is_active") val isActive: Boolean = true,
+    @SerialName("isVisible") @kotlinx.serialization.json.JsonNames("is_visible") val isVisible: Boolean = true
 ) {
     val effectiveId: String get() = id ?: mongoId ?: ""
     val effectiveImage: String? get() = imageUrl ?: image

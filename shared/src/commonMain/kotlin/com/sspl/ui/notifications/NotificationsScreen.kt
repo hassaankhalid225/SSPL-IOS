@@ -1,7 +1,8 @@
 package com.sspl.ui.notifications
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,182 +19,212 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.DeleteOutline
-import androidx.compose.material.icons.filled.Newspaper
+import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsNone
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Videocam
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import coil3.compose.AsyncImage
 import com.sspl.core.models.NotificationItem
 import com.sspl.core.models.NotificationType
 import com.sspl.core.models.SocietyNewsItem
+import com.sspl.designsystem.components.EmptyState
+import com.sspl.designsystem.components.ErrorState
+import com.sspl.designsystem.components.IconTile
+import com.sspl.designsystem.components.LoadState
+import com.sspl.designsystem.components.SegmentedTabs
+import com.sspl.designsystem.components.SkeletonList
+import com.sspl.designsystem.components.SkeletonVariant
+import com.sspl.designsystem.components.SsplImage
+import com.sspl.designsystem.components.SsplRefreshBox
+import com.sspl.designsystem.components.StatusBadge
 import com.sspl.designsystem.components.BadgeVariant
-import com.sspl.designsystem.components.SsplBadge
 import com.sspl.designsystem.theme.AppTheme
-import com.sspl.utils.BASE_URL
+import com.sspl.ui.components.PageIntroHero
+import com.sspl.utils.DisplayDates
 import org.koin.compose.viewmodel.koinViewModel
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 @Composable
 fun NotificationsScreen(
     navController: NavController,
     viewModel: NotificationsViewModel = koinViewModel()
 ) {
-    var selectedTab by remember { mutableStateOf(0) } // 0: Society News, 1: App Alerts
-    val societyNews by viewModel.societyNews.collectAsState()
-    val isLoadingNews by viewModel.isLoadingNews.collectAsState()
-    val notifications by viewModel.notifications.collectAsState()
-    val unreadCount by viewModel.unreadCount.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val alerts by viewModel.notifications.collectAsStateWithLifecycle()
+    val unread by viewModel.unreadCount.collectAsStateWithLifecycle()
+    // Open on alerts when there is something unread (bell entry point), else announcements.
+    var tab by rememberSaveable { mutableStateOf(if (viewModel.unreadCount.value > 0) 1 else 0) }
+    val newsCount = (state.news as? LoadState.Ready)?.data?.size
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(AppTheme.colors.background),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+    SsplRefreshBox(
+        isRefreshing = state.isRefreshing,
+        onRefresh = viewModel::refresh,
+        modifier = Modifier.fillMaxSize().background(AppTheme.colors.background)
     ) {
-        // Hero Header
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = AppTheme.colors.primary)
-            ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Text(
-                        text = "NEWS & ALERTS",
-                        style = AppTheme.typography.labelSmall,
-                        color = AppTheme.colors.secondary,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.3.sp
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item(key = "hero") {
+                PageIntroHero(
+                    eyebrow = "News & updates",
+                    eyebrowIcon = Icons.Default.Campaign,
+                    title = "Society announcements",
+                    summary = "Official updates, notices, and announcements from SSP Lahore.",
+                    stats = listOfNotNull(
+                        newsCount?.let { "$it" to "Announcements" },
+                        "$unread" to "Unread alerts"
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Announcements",
-                        style = AppTheme.typography.headlineMedium,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = "Official notifications, society circulars, and live session alerts.",
-                        style = AppTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.88f)
-                    )
-                }
-            }
-        }
-
-        // Segmented Tabs
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(AppTheme.colors.surface, RoundedCornerShape(12.dp))
-                    .padding(4.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                NotificationTabButton(
-                    title = "Society News",
-                    badgeCount = societyNews.size,
-                    isSelected = selectedTab == 0,
-                    modifier = Modifier.weight(1f),
-                    onClick = { selectedTab = 0 }
-                )
-                NotificationTabButton(
-                    title = "App Alerts",
-                    badgeCount = unreadCount,
-                    isSelected = selectedTab == 1,
-                    modifier = Modifier.weight(1f),
-                    onClick = { selectedTab = 1 }
                 )
             }
-        }
+            item(key = "tabs") {
+                SegmentedTabs(
+                    options = listOf("Announcements", "App alerts"),
+                    selectedIndex = tab,
+                    onSelect = { tab = it },
+                    counts = listOf(newsCount, unread.takeIf { it > 0 })
+                )
+            }
 
-        // Society News Tab Content
-        if (selectedTab == 0) {
-            if (isLoadingNews) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 40.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = AppTheme.colors.primary)
+            if (tab == 0) {
+                when (val news = state.news) {
+                    is LoadState.Loading -> item(key = "skeleton") {
+                        SkeletonList(count = 4, variant = SkeletonVariant.LIST, contentPadding = 0.dp)
+                    }
+                    is LoadState.Error -> item(key = "error") {
+                        ErrorState(
+                            title = "Announcements didn't load",
+                            message = news.message,
+                            onRetry = viewModel::retry
+                        )
+                    }
+                    is LoadState.Ready -> if (news.data.isEmpty()) {
+                        item(key = "empty") {
+                            EmptyState(
+                                title = "No announcements yet",
+                                message = "Check back soon for society updates.",
+                                icon = Icons.Default.Campaign
+                            )
+                        }
+                    } else {
+                        items(news.data, key = { "n_" + it.effectiveId.ifBlank { it.hashCode().toString() } }) { item ->
+                            NewsCard(item)
+                        }
                     }
                 }
-            } else if (societyNews.isEmpty()) {
-                item {
-                    EmptyNotificationTab(
-                        title = "No Society News",
-                        description = "Official notices will appear here as soon as they are announced."
-                    )
-                }
             } else {
-                items(societyNews) { item ->
-                    NewsItemCard(item = item)
+                if (alerts.isNotEmpty() && unread > 0) {
+                    item(key = "markAll") {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                            Row(
+                                Modifier
+                                    .clip(AppTheme.shapes.chip)
+                                    .clickable(onClick = viewModel::markAllAsRead)
+                                    .padding(horizontal = 12.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Default.DoneAll, contentDescription = null, tint = AppTheme.colors.primary, modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text("Mark all as read", style = AppTheme.typography.labelMedium.copy(color = AppTheme.colors.primary, fontWeight = FontWeight.SemiBold))
+                            }
+                        }
+                    }
+                }
+                if (alerts.isEmpty()) {
+                    item(key = "alertsEmpty") {
+                        EmptyState(
+                            title = "You're all caught up",
+                            message = "Push updates and live session notices will show here.",
+                            icon = Icons.Default.NotificationsNone
+                        )
+                    }
+                } else {
+                    items(alerts, key = { "a_" + it.id }) { item ->
+                        AlertCard(
+                            item = item,
+                            onOpen = { if (!item.isRead) viewModel.markAsRead(item.id) },
+                            onDelete = { viewModel.deleteNotification(item.id) }
+                        )
+                    }
                 }
             }
-        } else {
-            // App Alerts Tab Content
-            if (notifications.isNotEmpty() && unreadCount > 0) {
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        TextButton(onClick = { viewModel.markAllAsRead() }) {
-                            Text(
-                                text = "Mark all as read",
-                                style = AppTheme.typography.labelMedium,
-                                color = AppTheme.colors.primary,
-                                fontWeight = FontWeight.Bold
-                            )
+        }
+    }
+}
+
+@Composable
+private fun NewsCard(item: SocietyNewsItem) {
+    var expanded by remember { mutableStateOf(false) }
+    val colors = AppTheme.colors
+    val body = item.effectiveBody
+    val dateText = DisplayDates.medium(item.createdAt).ifBlank { DisplayDates.relative(item.createdAt) }
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clip(AppTheme.shapes.card)
+            .background(colors.surface)
+            .border(1.dp, colors.border.copy(alpha = 0.7f), AppTheme.shapes.card)
+            .clickable { expanded = !expanded }
+            .animateContentSize()
+    ) {
+        if (!item.effectiveImage.isNullOrBlank()) {
+            SsplImage(
+                source = item.effectiveImage,
+                contentDescription = item.title,
+                modifier = Modifier.fillMaxWidth().aspectRatio(2f),
+                fallbackIcon = Icons.Default.Campaign
+            )
+        }
+        Column(Modifier.padding(14.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconTile(Icons.Default.Campaign, size = 34.dp, iconSize = 17.dp, corner = 11.dp)
+                Spacer(Modifier.width(10.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(item.title ?: "Society announcement", style = AppTheme.typography.titleSmall)
+                    if (dateText.isNotBlank()) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Schedule, contentDescription = null, tint = colors.muted, modifier = Modifier.size(12.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text(dateText, style = AppTheme.typography.labelSmall)
                         }
                     }
                 }
             }
-
-            if (notifications.isEmpty()) {
-                item {
-                    EmptyNotificationTab(
-                        title = "No Alerts Yet",
-                        description = "You're all caught up! Push updates and live session notices will show here."
-                    )
-                }
-            } else {
-                items(notifications) { item ->
-                    AppAlertCard(
-                        item = item,
-                        onMarkAsRead = { viewModel.markAsRead(item.id) },
-                        onDelete = { viewModel.deleteNotification(item.id) }
+            if (body.isNotBlank()) {
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    body,
+                    style = AppTheme.typography.bodyMedium.copy(color = colors.body),
+                    maxLines = if (expanded) Int.MAX_VALUE else 3,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (body.length > 140) {
+                    Text(
+                        if (expanded) "Show less" else "Read more",
+                        style = AppTheme.typography.labelMedium.copy(color = colors.primary, fontWeight = FontWeight.SemiBold),
+                        modifier = Modifier.padding(top = 6.dp)
                     )
                 }
             }
@@ -200,234 +232,63 @@ fun NotificationsScreen(
     }
 }
 
+@OptIn(ExperimentalTime::class)
+private fun alertTime(ts: Long): String {
+    if (ts <= 0) return ""
+    val iso = runCatching { Instant.fromEpochMilliseconds(ts).toString() }.getOrNull() ?: return ""
+    return DisplayDates.relative(iso).ifBlank { DisplayDates.medium(iso) }
+}
+
 @Composable
-private fun NotificationTabButton(
-    title: String,
-    badgeCount: Int,
-    isSelected: Boolean,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = modifier
-            .background(
-                color = if (isSelected) AppTheme.colors.primary else Color.Transparent,
-                shape = RoundedCornerShape(10.dp)
+private fun AlertCard(item: NotificationItem, onOpen: () -> Unit, onDelete: () -> Unit) {
+    val colors = AppTheme.colors
+    val live = item.type == NotificationType.SESSION_LIVE
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clip(AppTheme.shapes.card)
+            .background(if (item.isRead) colors.surface else colors.surfaceTint)
+            .border(
+                1.dp,
+                if (item.isRead) colors.border.copy(alpha = 0.7f) else colors.primary.copy(alpha = 0.3f),
+                AppTheme.shapes.card
             )
-            .clickable { onClick() }
-            .padding(vertical = 10.dp),
-        contentAlignment = Alignment.Center
+            .clickable(onClick = onOpen)
+            .padding(start = 14.dp, top = 14.dp, bottom = 14.dp, end = 4.dp),
+        verticalAlignment = Alignment.Top
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = title,
-                style = AppTheme.typography.labelMedium,
-                color = if (isSelected) Color.White else AppTheme.colors.textMuted,
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+        Box {
+            IconTile(
+                if (live) Icons.Default.Videocam else Icons.Default.Notifications,
+                tint = if (live) colors.accent else colors.primary,
+                background = if (live) colors.infoContainer else colors.primaryContainer
             )
-            if (badgeCount > 0) {
-                Spacer(modifier = Modifier.width(6.dp))
+            if (!item.isRead) {
                 Box(
-                    modifier = Modifier
-                        .background(
-                            color = if (isSelected) Color.White.copy(alpha = 0.25f) else AppTheme.colors.primary.copy(alpha = 0.12f),
-                            shape = CircleShape
-                        )
-                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                ) {
-                    Text(
-                        text = "$badgeCount",
-                        style = AppTheme.typography.labelSmall,
-                        color = if (isSelected) Color.White else AppTheme.colors.primary,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Modifier.align(Alignment.TopEnd).size(10.dp).clip(AppTheme.shapes.chip)
+                        .background(colors.error).border(2.dp, colors.surface, AppTheme.shapes.chip)
+                )
+            }
+        }
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(item.title, style = AppTheme.typography.titleSmall, modifier = Modifier.weight(1f, fill = false))
+                if (live) {
+                    Spacer(Modifier.width(6.dp))
+                    StatusBadge("Live", variant = BadgeVariant.INFO)
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun NewsItemCard(item: SocietyNewsItem) {
-    var isExpanded by remember { mutableStateOf(false) }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .clickable { isExpanded = !isExpanded },
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = AppTheme.colors.surface),
-        border = BorderStroke(1.dp, AppTheme.colors.border)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            val img = item.effectiveImage
-            if (!img.isNullOrBlank()) {
-                val fullUrl = if (img.startsWith("http")) img else "$BASE_URL/${img.removePrefix("/")}"
-                AsyncImage(
-                    model = fullUrl,
-                    contentDescription = item.title,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(160.dp)
-                        .clip(RoundedCornerShape(10.dp)),
-                    contentScale = ContentScale.Crop
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                SsplBadge(
-                    text = "Official Update",
-                    variant = BadgeVariant.PRIMARY
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                if (!item.createdAt.isNullOrBlank()) {
-                    Text(
-                        text = item.createdAt.take(10),
-                        style = AppTheme.typography.bodySmall,
-                        color = AppTheme.colors.textMuted
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = item.title ?: "Society Announcement",
-                style = AppTheme.typography.titleMedium,
-                color = AppTheme.colors.onSurface,
-                fontWeight = FontWeight.Bold
-            )
-            if (item.effectiveBody.isNotBlank()) {
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = item.effectiveBody,
-                    style = AppTheme.typography.bodyMedium,
-                    color = AppTheme.colors.onSurface.copy(alpha = 0.85f),
-                    maxLines = if (isExpanded) Int.MAX_VALUE else 3,
-                    overflow = TextOverflow.Ellipsis,
-                    lineHeight = 20.sp
-                )
+            Spacer(Modifier.height(2.dp))
+            Text(item.message, style = AppTheme.typography.bodySmall.copy(color = colors.body))
+            val time = alertTime(item.timestamp)
+            if (time.isNotBlank()) {
+                Spacer(Modifier.height(4.dp))
+                Text(time, style = AppTheme.typography.labelSmall)
             }
         }
-    }
-}
-
-@Composable
-private fun AppAlertCard(
-    item: NotificationItem,
-    onMarkAsRead: () -> Unit,
-    onDelete: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (item.isRead) AppTheme.colors.surface else AppTheme.colors.primary.copy(alpha = 0.04f)
-        ),
-        border = BorderStroke(
-            1.dp,
-            if (item.isRead) AppTheme.colors.border else AppTheme.colors.primary.copy(alpha = 0.3f)
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
-            verticalAlignment = Alignment.Top
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(
-                        color = when (item.type) {
-                            NotificationType.SESSION_LIVE -> AppTheme.colors.accent.copy(alpha = 0.15f)
-                            else -> AppTheme.colors.primary.copy(alpha = 0.1f)
-                        },
-                        shape = CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = when (item.type) {
-                        NotificationType.SESSION_LIVE -> Icons.Default.Videocam
-                        else -> Icons.Default.Notifications
-                    },
-                    contentDescription = null,
-                    tint = when (item.type) {
-                        NotificationType.SESSION_LIVE -> AppTheme.colors.accent
-                        else -> AppTheme.colors.primary
-                    },
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = item.title,
-                    style = AppTheme.typography.titleSmall,
-                    color = AppTheme.colors.onSurface,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = item.message,
-                    style = AppTheme.typography.bodyMedium,
-                    color = AppTheme.colors.onSurface.copy(alpha = 0.85f),
-                    lineHeight = 18.sp
-                )
-            }
-            IconButton(onClick = onDelete) {
-                Icon(
-                    imageVector = Icons.Default.DeleteOutline,
-                    contentDescription = "Delete",
-                    tint = AppTheme.colors.textMuted,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun EmptyNotificationTab(
-    title: String,
-    description: String
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 40.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(
-                modifier = Modifier
-                    .size(60.dp)
-                    .background(AppTheme.colors.border.copy(alpha = 0.5f), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.NotificationsNone,
-                    contentDescription = null,
-                    tint = AppTheme.colors.primary,
-                    modifier = Modifier.size(32.dp)
-                )
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = title,
-                style = AppTheme.typography.titleMedium,
-                color = AppTheme.colors.onSurface,
-                fontWeight = FontWeight.SemiBold
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = description,
-                style = AppTheme.typography.bodySmall,
-                color = AppTheme.colors.textMuted
-            )
+        IconButton(onClick = onDelete) {
+            Icon(Icons.Default.DeleteOutline, contentDescription = "Delete alert", tint = colors.muted, modifier = Modifier.size(20.dp))
         }
     }
 }

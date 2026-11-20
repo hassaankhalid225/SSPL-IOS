@@ -7,31 +7,32 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.sspl.designsystem.theme.AppTheme
 
+/** Theme-aware aliases (light + dark). Prefer AppTheme.colors directly in new code. */
 object SsplColorTokens {
-    val primary: Color = Color(0xFF0A528F)
-    val primaryDark: Color = Color(0xFF0C2033)
-    val tertiary: Color = Color(0xFF032746)
-    val accent: Color = Color(0xFF0095B8)
-    val secondary: Color = Color(0xFFF5B041)
-    val primaryLight: Color = Color(0xFF0876A8)
-    val surface: Color = Color(0xFFFFFFFF)
-    val background: Color = Color(0xFFF8F9FA)
-    val surfaceTint: Color = Color(0xFFF0F3F6)
-    val boxColor: Color = Color(0xFFF2F4F7)
-    val border: Color = Color(0xFFEEF0F3)
-    val divider: Color = Color(0xFFEEF0F3)
-    val heading: Color = Color(0xFF141D26)
-    val body: Color = Color(0xFF334155)
-    val textPrimary: Color = Color(0xFF141D26)
-    val textSecondary: Color = Color(0xFF334155)
-    val textMuted: Color = Color(0xFF64748B)
-    val muted: Color = Color(0xFF64748B)
-    val success: Color = Color(0xFF1E7B34)
-    val successContainer: Color = Color(0xFFE8F5E9)
-    val warning: Color = Color(0xFFC27705)
-    val warningContainer: Color = Color(0xFFFFF3E0)
-    val error: Color = Color(0xFFB3261E)
-    val errorContainer: Color = Color(0xFFFFEBEE)
+    val primary: Color @Composable get() = AppTheme.colors.primary
+    val primaryDark: Color @Composable get() = AppTheme.colors.primaryDark
+    val tertiary: Color @Composable get() = AppTheme.colors.tertiary
+    val accent: Color @Composable get() = AppTheme.colors.accent
+    val secondary: Color @Composable get() = AppTheme.colors.secondary
+    val primaryLight: Color @Composable get() = AppTheme.colors.primaryLight
+    val surface: Color @Composable get() = AppTheme.colors.surface
+    val background: Color @Composable get() = AppTheme.colors.background
+    val surfaceTint: Color @Composable get() = AppTheme.colors.surfaceTint
+    val boxColor: Color @Composable get() = AppTheme.colors.boxColor
+    val border: Color @Composable get() = AppTheme.colors.border
+    val divider: Color @Composable get() = AppTheme.colors.divider
+    val heading: Color @Composable get() = AppTheme.colors.heading
+    val body: Color @Composable get() = AppTheme.colors.body
+    val textPrimary: Color @Composable get() = AppTheme.colors.heading
+    val textSecondary: Color @Composable get() = AppTheme.colors.body
+    val textMuted: Color @Composable get() = AppTheme.colors.muted
+    val muted: Color @Composable get() = AppTheme.colors.muted
+    val success: Color @Composable get() = AppTheme.colors.success
+    val successContainer: Color @Composable get() = AppTheme.colors.successContainer
+    val warning: Color @Composable get() = AppTheme.colors.warning
+    val warningContainer: Color @Composable get() = AppTheme.colors.warningContainer
+    val error: Color @Composable get() = AppTheme.colors.error
+    val errorContainer: Color @Composable get() = AppTheme.colors.errorContainer
 }
 
 object SsplSpacingTokens {

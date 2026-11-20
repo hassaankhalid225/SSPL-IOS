@@ -72,6 +72,12 @@ private val platformConfiguration = platformConfiguration()
 private val LocalAppConfig = compositionLocalOf {
     platformConfiguration
 }
+/** Provides platform config without overriding the SSPL colour scheme. */
+@Composable
+fun ProvidePlatformConfig(content: @Composable () -> Unit) {
+    CompositionLocalProvider(LocalAppConfig provides platformConfiguration, content = content)
+}
+
 val MaterialTheme.platformConfig
     @Composable
     get() = LocalAppConfig.current

@@ -10,10 +10,12 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 data class PaymentVerificationUiState(
-    val status: String = "processing", // "processing" | "success" | "failed" | "pending"
+    val status: String = "processing", // "processing" | "awaiting" | "success" | "failed" | "pending"
     val message: String = "Verifying payment details...",
     val isLoading: Boolean = false,
-    val retryPaymentUrl: String? = null
+    val retryPaymentUrl: String? = null,
+    val transactionId: String? = null,
+    val reopenUrl: String? = null
 )
 
 class PaymentStatusViewModel(
@@ -27,6 +29,7 @@ class PaymentStatusViewModel(
         if (customerTransactionId.isBlank()) return
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(
+                transactionId = customerTransactionId,
                 status = "processing",
                 message = "Verifying payment with payment gateway...",
                 isLoading = true
@@ -51,6 +54,22 @@ class PaymentStatusViewModel(
         }
     }
 
+    /** Payment page was opened in the browser; wait for the user to come back and check. */
+    fun setAwaiting(transactionId: String?) {
+        if (_uiState.value.status != "processing") return
+        _uiState.value = _uiState.value.copy(
+            status = "awaiting",
+            transactionId = transactionId,
+            isLoading = false,
+            message = "Complete the payment on the Swich page that just opened, then come back and check the status here."
+        )
+    }
+
+    fun checkAwaiting() {
+        val id = _uiState.value.transactionId ?: return
+        verifyTransaction(id)
+    }
+
     fun setExplicitStatus(status: String, message: String) {
         _uiState.value = _uiState.value.copy(
             status = status,
@@ -67,6 +86,12 @@ class PaymentStatusViewModel(
                 _uiState.value = _uiState.value.copy(isLoading = false)
                 val pUrl = response.payment?.bestPaymentUrl
                 if (response.success && !pUrl.isNullOrBlank()) {
+                    val txn = response.payment?.bestTransactionId
+                    _uiState.value = _uiState.value.copy(
+                        status = "awaiting",
+                        transactionId = txn ?: _uiState.value.transactionId,
+                        message = "Complete the payment on the Swich page that just opened, then come back and check the status here."
+                    )
                     onPaymentUrlReceived(pUrl)
                 } else {
                     _uiState.value = _uiState.value.copy(

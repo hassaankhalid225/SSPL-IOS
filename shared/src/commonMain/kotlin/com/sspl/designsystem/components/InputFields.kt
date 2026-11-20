@@ -62,7 +62,8 @@ fun SsplTextField(
     singleLine: Boolean = true,
     maxLines: Int = 1,
     keyboardType: KeyboardType = KeyboardType.Text,
-    keyboardActions: KeyboardActions = KeyboardActions.Default
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    imeAction: androidx.compose.ui.text.input.ImeAction = androidx.compose.ui.text.input.ImeAction.Default
 ) {
     val effectiveError = error ?: errorMessage
     val effectiveIsError = isError || effectiveError != null
@@ -104,7 +105,7 @@ fun SsplTextField(
             singleLine = singleLine,
             maxLines = maxLines,
             isError = effectiveIsError,
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction),
             keyboardActions = keyboardActions,
             shape = AppTheme.shapes.button,
             colors = OutlinedTextFieldDefaults.colors(
@@ -144,7 +145,8 @@ fun PasswordField(
     isVisible: Boolean? = null,
     onToggleVisibility: (() -> Unit)? = null,
     enabled: Boolean = true,
-    keyboardActions: KeyboardActions = KeyboardActions.Default
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    imeAction: androidx.compose.ui.text.input.ImeAction = androidx.compose.ui.text.input.ImeAction.Default
 ) {
     var internalVisible by remember { mutableStateOf(false) }
     val passwordVisible = isVisible ?: internalVisible
@@ -171,7 +173,7 @@ fun PasswordField(
             singleLine = true,
             isError = effectiveError != null || isError,
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = imeAction),
             keyboardActions = keyboardActions,
             shape = AppTheme.shapes.button,
             colors = OutlinedTextFieldDefaults.colors(
@@ -267,12 +269,13 @@ fun StepIndicator(
     currentStep: Int,
     totalSteps: Int,
     modifier: Modifier = Modifier,
-    stepLabels: List<String>? = null
+    stepLabels: List<String>? = null,
+    horizontalPadding: androidx.compose.ui.unit.Dp = AppTheme.spacing.screenHorizontal
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = AppTheme.spacing.screenHorizontal, vertical = 8.dp),
+            .padding(horizontal = horizontalPadding, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Row(

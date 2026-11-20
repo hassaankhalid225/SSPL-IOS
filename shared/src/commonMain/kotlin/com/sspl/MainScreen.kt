@@ -112,6 +112,7 @@ fun MainScreen(onParentGraph: () -> Unit) {
         Screen.ProfileScreen -> "My Profile"
         Screen.SettingsScreen -> "Settings"
         Screen.DeleteAccountScreen -> "Delete Account"
+        Screen.EditProfile -> "Edit profile"
         Screen.ConferenceRegistrationScreen -> "Registration"
         Screen.PaymentStatusScreen -> "Payment Status"
         Screen.MyRegistrationsScreen -> "My Registrations"
@@ -145,16 +146,25 @@ fun MainScreen(onParentGraph: () -> Unit) {
                     }
                 }
                 BottomBarTab.EVENTS -> {
-                    navController.navigate(Screen.ScientificProgramsScreen.route)
+                    navController.navigate(Screen.ScientificProgramsScreen.route) {
+                        popUpTo(Screen.HomeScreen.route)
+                        launchSingleTop = true
+                    }
                 }
                 BottomBarTab.FELLOWSHIP -> {
-                    navController.navigate(Screen.FellowshipHubScreen.route)
+                    navController.navigate(Screen.FellowshipHubScreen.route) {
+                        popUpTo(Screen.HomeScreen.route)
+                        launchSingleTop = true
+                    }
                 }
                 BottomBarTab.MY_PORTAL -> {
                     if (user == null || user?.isGuest() == true) {
                         onParentGraph()
                     } else {
-                        navController.navigate(Screen.PortalOverviewScreen.route)
+                        navController.navigate(Screen.PortalOverviewScreen.route) {
+                            popUpTo(Screen.HomeScreen.route)
+                            launchSingleTop = true
+                        }
                     }
                 }
                 BottomBarTab.MORE -> {}
@@ -205,7 +215,7 @@ fun MainScreen(onParentGraph: () -> Unit) {
                 is Route.FellowshipFeedback -> Screen.FellowshipFeedbackScreen
                 else -> Screen.HomeScreen
             }
-            navController.navigate(targetScreen.route)
+            navController.navigate(targetScreen.route) { launchSingleTop = true }
         },
         onNavigateBack = { navController.navigateUp() },
         canNavigateBack = canNavigateBack,
@@ -230,6 +240,11 @@ fun MainScreen(onParentGraph: () -> Unit) {
                     is Screen.ProfileScreen -> {
                         composable(route = navItem.screen.route) {
                             ProfileScreen(navController, onParentGraph = onParentGraph)
+                        }
+                    }
+                    is Screen.SettingsScreen -> {
+                        composable(route = navItem.screen.route) {
+                            com.sspl.ui.settings.SettingsScreen(navController, onParentGraph = onParentGraph)
                         }
                     }
                     is Screen.DeleteAccountScreen -> {

@@ -42,7 +42,8 @@ fun BannerCarousel(
     onBannerClick: ((Banner) -> Unit)? = null,
     autoScrollDelayMs: Long = 4000L
 ) {
-    val sliderBanners = banners.filter { it.type == "SLIDER" || it.type == null }
+    // Behaviour frozen: SLIDER or untyped banners, max 3 on Home.
+    val sliderBanners = banners.filter { it.type == "SLIDER" || it.type == null }.take(3)
     if (sliderBanners.isEmpty()) return
 
     val pagerState = rememberPagerState(pageCount = { sliderBanners.size })
@@ -107,8 +108,9 @@ fun BannerCarousel(
                     )
             ) {
                 if (fullImageUrl.isNotBlank()) {
-                    AsyncImage(
-                        model = fullImageUrl,
+                    // Shimmer while the (often large, slow) image downloads; branded fallback on error.
+                    SsplImage(
+                        source = fullImageUrl,
                         contentDescription = banner.title ?: "Banner",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.matchParentSize()

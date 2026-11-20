@@ -1,285 +1,292 @@
 package com.sspl.ui.settings
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.Login
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LockReset
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.Screen
+import com.sspl.core.auth.RoleUtils
+import com.sspl.designsystem.components.AvatarImage
 import com.sspl.designsystem.components.ConfirmDialog
-import com.sspl.designsystem.components.SecondaryButton
-import com.sspl.designsystem.components.SectionHeader
-import com.sspl.designsystem.components.SsplCard
+import com.sspl.designsystem.components.IconTile
+import com.sspl.designsystem.components.ThemeModeSwitch
 import com.sspl.designsystem.theme.AppTheme
+import com.sspl.designsystem.theme.ThemePreferences
 import com.sspl.session.UserSession
+import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 /**
- * A8: Modernized Settings Screen with Notifications toggle, account management, legal & sign out.
+ * Settings (inside the main shell).
+ *
+ * @param onParentGraph leaves the main graph for the auth graph (sign-in). The shell should pass
+ *   it (like Profile / DeleteAccount). If it is not provided, sign-out still clears the session and
+ *   lands on the Profile tab, whose guest view offers "Sign in".
+ * @param onResetPassword opens the forgot/reset-password flow, which lives in the auth graph.
+ *   The row is hidden when the host doesn't provide it (navigating to that route from the inner
+ *   NavController would crash — it isn't registered there).
  */
 @Composable
 fun SettingsScreen(
     navController: NavController,
-    userSession: UserSession = koinInject()
+    userSession: UserSession = koinInject(),
+    themePreferences: ThemePreferences = koinInject(),
+    onParentGraph: (() -> Unit)? = null,
+    onResetPassword: (() -> Unit)? = null
 ) {
-    val user by userSession.userFlow.collectAsStateWithLifecycle(initialValue = null)
-    val scope = androidx.compose.runtime.rememberCoroutineScope()
-    var pushNotificationsEnabled by remember { mutableStateOf(true) }
+    val user by userSession.userFlow.collectAsStateWithLifecycle()
+    val themeMode by themePreferences.mode.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
     var showSignOutDialog by remember { mutableStateOf(false) }
+    val isGuest = user == null || user?.isGuest() == true
+
+    val leaveToSignIn: () -> Unit = {
+        if (onParentGraph != null) onParentGraph()
+        else navController.navigate(Screen.ProfileScreen.route) {
+            popUpTo(Screen.HomeScreen.route)
+            launchSingleTop = true
+        }
+    }
 
     if (showSignOutDialog) {
         ConfirmDialog(
-            title = "Sign Out",
-            message = "Are you sure you want to sign out?",
-            confirmText = "Sign Out",
+            title = "Sign out?",
+            message = "You'll need to sign in again to access your member portal.",
+            confirmText = "Sign out",
             dismissText = "Cancel",
             onConfirm = {
                 showSignOutDialog = false
                 scope.launch {
                     userSession.resetToken()
                     userSession.resetUser()
-                    navController.navigate(Screen.SignInScreen.route) {
-                        popUpTo(Screen.MainScreen.route) { inclusive = true }
-                    }
+                    leaveToSignIn()
                 }
             },
             onDismiss = { showSignOutDialog = false }
         )
     }
 
-    Scaffold(
-        containerColor = AppTheme.colors.background
-    ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .background(AppTheme.colors.background)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp, vertical = 16.dp)
-            ) {
-                // Top bar
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = AppTheme.colors.onPrimary
-                        )
-                    }
-                    Text(
-                        text = "Settings",
-                        style = AppTheme.typography.titleMedium.copy(
-                            color = AppTheme.colors.heading,
-                            fontWeight = FontWeight.Bold
-                        ),
-                        modifier = Modifier.padding(start = 8.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(AppTheme.colors.background)
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
+    ) {
+        // Account summary
+        val u = user
+        AccountSummary(
+            title = if (isGuest) "Guest" else RoleUtils.getUserDisplayName(u),
+            subtitle = if (isGuest) "Sign in to manage your account" else (u?.account?.email ?: RoleUtils.getMembershipLabel(u)),
+            avatarUrl = if (isGuest) null else RoleUtils.getProfileImageUrl(u?.profilePicture).takeIf { it.isNotBlank() },
+            initials = if (isGuest) "G" else RoleUtils.getUserInitials(u),
+            onClick = { if (isGuest) leaveToSignIn() else navController.navigate(Screen.ProfileScreen.route) }
+        )
+
+        SettingsGroup("Appearance") {
+            Row(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                IconTile(Icons.Default.Palette, size = 38.dp, iconSize = 18.dp, corner = 12.dp)
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text("Theme", style = AppTheme.typography.titleSmall)
+                    Text("Follow the system or pick light / dark", style = AppTheme.typography.bodySmall)
+                }
+            }
+            ThemeModeSwitch(
+                selected = themeMode,
+                onSelect = themePreferences::setMode,
+                modifier = Modifier.padding(start = 14.dp, end = 14.dp, bottom = 14.dp)
+            )
+        }
+
+        SettingsGroup("Updates") {
+            SettingsRow(
+                icon = Icons.Default.Campaign,
+                title = "Announcements",
+                subtitle = "News, notices and event updates",
+                onClick = { navController.navigate(Screen.NotificationsScreen.route) }
+            )
+        }
+
+        if (!isGuest) {
+            SettingsGroup("Account") {
+                if (onResetPassword != null) {
+                    SettingsRow(
+                        icon = Icons.Default.LockReset,
+                        title = "Reset password",
+                        subtitle = "Get a code by email and set a new password",
+                        onClick = onResetPassword
                     )
+                    RowDivider()
                 }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // Account Section
-                SsplCard(modifier = Modifier.fillMaxWidth()) {
-                    Column {
-                        SectionHeader(title = "Account")
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        SettingsRow(
-                            icon = Icons.Default.Person,
-                            title = "Profile & Credentials",
-                            subtitle = user?.fullName() ?: "Manage your profile",
-                            onClick = { navController.navigate(Screen.ProfileScreen.route) }
-                        )
-
-                        HorizontalDivider(color = AppTheme.colors.border)
-
-                        SettingsRow(
-                            icon = Icons.Default.LockReset,
-                            title = "Reset Password",
-                            subtitle = "Update your security credentials",
-                            onClick = { navController.navigate(Screen.ForgotPasswordScreen.route) }
-                        )
-
-                        HorizontalDivider(color = AppTheme.colors.border)
-
-                        SettingsRow(
-                            icon = Icons.Default.DeleteForever,
-                            title = "Delete Account",
-                            subtitle = "Permanently close and erase your account",
-                            titleColor = AppTheme.colors.error,
-                            onClick = { navController.navigate(Screen.DeleteAccountScreen.route) }
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(18.dp))
-
-                // Preferences Section
-                SsplCard(modifier = Modifier.fillMaxWidth()) {
-                    Column {
-                        SectionHeader(title = "Preferences")
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Notifications,
-                                    contentDescription = null,
-                                    tint = AppTheme.colors.secondary,
-                                    modifier = Modifier.size(22.dp)
-                                )
-                                Column(modifier = Modifier.padding(start = 14.dp)) {
-                                    Text(
-                                        text = "Push Notifications",
-                                        style = AppTheme.typography.bodyLarge.copy(
-                                            color = AppTheme.colors.heading,
-                                            fontWeight = FontWeight.Medium
-                                        )
-                                    )
-                                    Text(
-                                        text = "Conference updates, CMEs & news",
-                                        style = AppTheme.typography.bodySmall.copy(color = AppTheme.colors.muted)
-                                    )
-                                }
-                            }
-
-                            Switch(
-                                checked = pushNotificationsEnabled,
-                                onCheckedChange = { pushNotificationsEnabled = it },
-                                colors = SwitchDefaults.colors(
-                                    checkedThumbColor = AppTheme.colors.background,
-                                    checkedTrackColor = AppTheme.colors.secondary,
-                                    uncheckedThumbColor = AppTheme.colors.muted,
-                                    uncheckedTrackColor = AppTheme.colors.surface
-                                )
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(18.dp))
-
-                // Legal & About Section
-                SsplCard(modifier = Modifier.fillMaxWidth()) {
-                    Column {
-                        SectionHeader(title = "About & Legal")
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        SettingsRow(
-                            icon = Icons.Default.Info,
-                            title = "About SSPL",
-                            subtitle = "Mission, vision, leadership & history",
-                            onClick = { navController.navigate(Screen.AboutScreen.route) }
-                        )
-
-                        HorizontalDivider(color = AppTheme.colors.border)
-
-                        SettingsRow(
-                            icon = Icons.Default.Description,
-                            title = "Terms & Conditions",
-                            subtitle = "Society policies and membership terms",
-                            onClick = { /* Nav to Terms */ }
-                        )
-
-                        HorizontalDivider(color = AppTheme.colors.border)
-
-                        SettingsRow(
-                            icon = Icons.Default.Shield,
-                            title = "Privacy Policy",
-                            subtitle = "Data security and member confidentiality",
-                            onClick = { /* Nav to Privacy */ }
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Sign Out Button
-                SecondaryButton(
-                    text = "Sign Out",
-                    onClick = { showSignOutDialog = true },
-                    icon = Icons.AutoMirrored.Filled.ExitToApp,
-                    modifier = Modifier.fillMaxWidth()
+                SettingsRow(
+                    icon = Icons.Default.DeleteForever,
+                    title = "Delete account",
+                    subtitle = "Permanently remove your account and data",
+                    destructive = true,
+                    onClick = { navController.navigate(Screen.DeleteAccountScreen.route) }
                 )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // App Version info
-                Text(
-                    text = "Society of Surgeons Pakistan (Lahore)\nVersion 1.0.0 (Build 2026.11)",
-                    style = AppTheme.typography.labelSmall.copy(
-                        color = AppTheme.colors.muted.copy(alpha = 0.6f),
-                        textAlign = TextAlign.Center
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
             }
         }
+
+        SettingsGroup("About & help") {
+            SettingsRow(Icons.Default.Info, "About SSPL", "Mission, leadership and history") {
+                navController.navigate(Screen.AboutScreen.route)
+            }
+            RowDivider()
+            SettingsRow(Icons.AutoMirrored.Filled.HelpOutline, "FAQs", "Answers to common questions") {
+                navController.navigate(Screen.FaqsScreen.route)
+            }
+            RowDivider()
+            SettingsRow(Icons.Default.SupportAgent, "Contact us", "Reach the SSPL secretariat") {
+                navController.navigate(Screen.ContactUsScreen.route)
+            }
+            RowDivider()
+            SettingsRow(Icons.Default.Description, "Terms & conditions", "Society policies and membership terms") {
+                navController.navigate(Screen.TermsScreen.route)
+            }
+        }
+
+        SettingsGroup(null) {
+            if (isGuest) {
+                SettingsRow(
+                    icon = Icons.AutoMirrored.Filled.Login,
+                    title = "Sign in",
+                    subtitle = "Access your member portal",
+                    onClick = leaveToSignIn
+                )
+            } else {
+                SettingsRow(
+                    icon = Icons.AutoMirrored.Filled.Logout,
+                    title = "Sign out",
+                    subtitle = "Sign out of this device",
+                    destructive = true,
+                    showChevron = false,
+                    onClick = { showSignOutDialog = true }
+                )
+            }
+        }
+
+        Text(
+            text = "Society of Surgeons Pakistan, Lahore",
+            style = AppTheme.typography.labelSmall,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+        )
     }
+}
+
+@Composable
+private fun AccountSummary(
+    title: String,
+    subtitle: String,
+    avatarUrl: String?,
+    initials: String,
+    onClick: () -> Unit
+) {
+    val colors = AppTheme.colors
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(AppTheme.shapes.card)
+            .background(colors.headerGradient)
+            .clickable(onClick = onClick)
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        AvatarImage(
+            url = avatarUrl,
+            initials = initials,
+            size = 52.dp,
+            modifier = Modifier.border(2.dp, Color.White.copy(alpha = 0.55f), androidx.compose.foundation.shape.CircleShape)
+        )
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            Text(title, style = AppTheme.typography.titleMedium.copy(color = Color.White), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(
+                subtitle,
+                style = AppTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.75f)),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        Icon(
+            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = Color.White.copy(alpha = 0.8f)
+        )
+    }
+}
+
+@Composable
+private fun SettingsGroup(title: String?, content: @Composable ColumnScope.() -> Unit) {
+    val colors = AppTheme.colors
+    Column {
+        if (title != null) {
+            Text(
+                text = title.uppercase(),
+                style = AppTheme.typography.overline,
+                modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
+            )
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(AppTheme.shapes.card)
+                .background(colors.surface)
+                .border(1.dp, colors.border.copy(alpha = 0.7f), AppTheme.shapes.card),
+            content = content
+        )
+    }
+}
+
+@Composable
+private fun RowDivider() {
+    HorizontalDivider(Modifier.padding(start = 64.dp), color = AppTheme.colors.divider)
 }
 
 @Composable
@@ -287,47 +294,40 @@ private fun SettingsRow(
     icon: ImageVector,
     title: String,
     subtitle: String,
-    onClick: () -> Unit,
-    titleColor: androidx.compose.ui.graphics.Color = AppTheme.colors.heading
+    destructive: Boolean = false,
+    showChevron: Boolean = true,
+    onClick: () -> Unit
 ) {
+    val colors = AppTheme.colors
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(min = 56.dp)
             .clickable(onClick = onClick)
-            .padding(vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.weight(1f)
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = if (titleColor != AppTheme.colors.heading) titleColor else AppTheme.colors.secondary,
-                modifier = Modifier.size(22.dp)
-            )
-            Column(modifier = Modifier.padding(start = 14.dp)) {
-                Text(
-                    text = title,
-                    style = AppTheme.typography.bodyLarge.copy(
-                        color = titleColor,
-                        fontWeight = FontWeight.Medium
-                    )
-                )
-                Text(
-                    text = subtitle,
-                    style = AppTheme.typography.bodySmall.copy(color = AppTheme.colors.muted)
-                )
-            }
-        }
-
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            contentDescription = null,
-            tint = AppTheme.colors.muted,
-            modifier = Modifier.size(20.dp)
+        IconTile(
+            icon,
+            tint = if (destructive) colors.error else colors.primary,
+            background = if (destructive) colors.errorContainer else colors.primaryContainer,
+            size = 38.dp, iconSize = 18.dp, corner = 12.dp
         )
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            Text(
+                title,
+                style = AppTheme.typography.titleSmall.copy(color = if (destructive) colors.error else colors.heading)
+            )
+            Text(subtitle, style = AppTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        }
+        if (showChevron) {
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = colors.muted,
+                modifier = Modifier.size(20.dp)
+            )
+        }
     }
 }

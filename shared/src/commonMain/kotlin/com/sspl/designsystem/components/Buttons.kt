@@ -1,31 +1,111 @@
 package com.sspl.designsystem.components
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.sspl.designsystem.theme.AppTheme
+
+/* ------------------------------------------------------------------------------------------
+ * Buttons. Loading state shows LoadingDots — never a circular spinner.
+ * Every button gets a subtle press-scale so taps feel physical.
+ * ---------------------------------------------------------------------------------------- */
+
+/** Base pressable used by all buttons. */
+@Composable
+private fun ButtonFrame(
+    modifier: Modifier,
+    background: Brush?,
+    borderColor: Color?,
+    enabled: Boolean,
+    busy: Boolean,
+    minHeight: androidx.compose.ui.unit.Dp,
+    onClick: () -> Unit,
+    content: @Composable RowScope.() -> Unit
+) {
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val scale by animateFloatAsState(if (pressed) 0.97f else 1f, spring(stiffness = 600f), label = "btnScale")
+    val shape = AppTheme.shapes.button
+    var m = modifier
+        .graphicsLayer { scaleX = scale; scaleY = scale }
+        .defaultMinSize(minHeight = minHeight)
+        .clip(shape)
+    if (background != null) m = m.background(background)
+    if (borderColor != null) m = m.border(1.5.dp, borderColor, shape)
+    Box(
+        modifier = m
+            .clickable(
+                interactionSource = interaction,
+                indication = androidx.compose.material3.ripple(),
+                enabled = enabled && !busy,
+                onClick = onClick
+            )
+            .padding(horizontal = 18.dp, vertical = 12.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+            content = content
+        )
+    }
+}
+
+@Composable
+private fun RowScope.ButtonContent(
+    text: String,
+    busy: Boolean,
+    contentColor: Color,
+    icon: ImageVector?,
+    trailingIcon: ImageVector?
+) {
+    if (busy) {
+        LoadingDots(color = contentColor, dotSize = 6.dp, spacing = 5.dp)
+    } else {
+        if (icon != null) Icon(icon, null, tint = contentColor, modifier = Modifier.size(18.dp))
+        Text(
+            text = text,
+            style = AppTheme.typography.bodyLarge.copy(color = contentColor, fontWeight = FontWeight.SemiBold),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        if (trailingIcon != null) Icon(trailingIcon, null, tint = contentColor, modifier = Modifier.size(18.dp))
+    }
+}
 
 @Composable
 fun PrimaryButton(
@@ -39,56 +119,16 @@ fun PrimaryButton(
     trailingIcon: ImageVector? = null,
     backgroundColor: Color? = null
 ) {
-    val isSpinning = loading || isLoading
-    val bg = backgroundColor ?: if (enabled) AppTheme.colors.primaryDark else AppTheme.colors.border
-    val contentColor = if (enabled) Color.White else AppTheme.colors.muted
-
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .defaultMinSize(minHeight = 50.dp)
-            .clip(AppTheme.shapes.button)
-            .background(bg)
-            .clickable(enabled = enabled && !isSpinning, onClick = onClick)
-            .padding(horizontal = 18.dp, vertical = 12.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        if (isSpinning) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(20.dp),
-                color = Color.White,
-                strokeWidth = 2.dp
-            )
-        } else {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                if (icon != null) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = contentColor,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-                Text(
-                    text = text,
-                    style = AppTheme.typography.bodyLarge.copy(
-                        color = contentColor,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                )
-                if (trailingIcon != null) {
-                    Icon(
-                        imageVector = trailingIcon,
-                        contentDescription = null,
-                        tint = contentColor,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-            }
-        }
+    val busy = loading || isLoading
+    val colors = AppTheme.colors
+    val bg: Brush = when {
+        !enabled -> SolidColor(colors.border)
+        backgroundColor != null -> SolidColor(backgroundColor)
+        else -> colors.primaryGradient
+    }
+    val contentColor = if (enabled) Color.White else colors.muted
+    ButtonFrame(modifier.fillMaxWidth(), bg, null, enabled, busy, 52.dp, onClick) {
+        ButtonContent(text, busy, contentColor, icon, trailingIcon)
     }
 }
 
@@ -102,48 +142,36 @@ fun SecondaryButton(
     isLoading: Boolean = false,
     icon: ImageVector? = null
 ) {
-    val isSpinning = loading || isLoading
-    val strokeColor = if (enabled) AppTheme.colors.primary else AppTheme.colors.border
-    val contentColor = if (enabled) AppTheme.colors.primary else AppTheme.colors.muted
-
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .defaultMinSize(minHeight = 48.dp)
-            .clip(AppTheme.shapes.button)
-            .border(1.5.dp, strokeColor, AppTheme.shapes.button)
-            .clickable(enabled = enabled && !isSpinning, onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        contentAlignment = Alignment.Center
+    val busy = loading || isLoading
+    val colors = AppTheme.colors
+    val contentColor = if (enabled) colors.primary else colors.muted
+    ButtonFrame(
+        modifier.fillMaxWidth(),
+        SolidColor(if (enabled) colors.primaryContainer else colors.boxColor),
+        null, enabled, busy, 50.dp, onClick
     ) {
-        if (isSpinning) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(20.dp),
-                color = contentColor,
-                strokeWidth = 2.dp
-            )
-        } else {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                if (icon != null) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = contentColor,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-                Text(
-                    text = text,
-                    style = AppTheme.typography.bodyLarge.copy(
-                        color = contentColor,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                )
-            }
-        }
+        ButtonContent(text, busy, contentColor, icon, null)
+    }
+}
+
+/** Outlined, transparent. */
+@Composable
+fun OutlineButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    loading: Boolean = false,
+    icon: ImageVector? = null,
+    contentColor: Color = AppTheme.colors.primary
+) {
+    val c = if (enabled) contentColor else AppTheme.colors.muted
+    ButtonFrame(
+        modifier.fillMaxWidth(), null,
+        if (enabled) contentColor.copy(alpha = 0.55f) else AppTheme.colors.border,
+        enabled, loading, 50.dp, onClick
+    ) {
+        ButtonContent(text, loading, c, icon, null)
     }
 }
 
@@ -162,11 +190,14 @@ fun TextButtonLink(
             fontWeight = FontWeight.SemiBold
         ),
         modifier = modifier
+            .heightIn(min = 48.dp)
+            .clip(AppTheme.shapes.tiny)
             .clickable(enabled = enabled, onClick = onClick)
-            .padding(4.dp)
+            .padding(horizontal = 6.dp, vertical = 14.dp)
     )
 }
 
+/** Pinned bottom CTA bar. Owns the navigation-bar inset. */
 @Composable
 fun StickyCtaBar(
     primaryText: String,
@@ -182,44 +213,33 @@ fun StickyCtaBar(
     Surface(
         modifier = modifier.fillMaxWidth(),
         color = AppTheme.colors.surface,
-        shadowElevation = 8.dp,
-        border = androidx.compose.foundation.BorderStroke(1.dp, AppTheme.colors.border)
+        shadowElevation = 16.dp
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .navigationBarsPadding()
                 .padding(horizontal = AppTheme.spacing.screenHorizontal, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if (priceText != null) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = priceText,
-                        style = AppTheme.typography.titleLarge.copy(
-                            color = AppTheme.colors.primary,
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
                     if (priceSubtext != null) {
                         Text(
                             text = priceSubtext,
-                            style = AppTheme.typography.labelSmall.copy(
-                                color = AppTheme.colors.muted
-                            )
+                            style = AppTheme.typography.labelSmall.copy(color = AppTheme.colors.muted)
                         )
                     }
+                    Text(
+                        text = priceText,
+                        style = AppTheme.typography.number.copy(color = AppTheme.colors.heading, fontSize = AppTheme.typography.titleLarge.fontSize)
+                    )
                 }
             }
-
             if (secondaryText != null && onSecondaryClick != null) {
-                SecondaryButton(
-                    text = secondaryText,
-                    onClick = onSecondaryClick,
-                    modifier = if (priceText != null) Modifier.weight(1f) else Modifier.weight(1f)
-                )
+                SecondaryButton(text = secondaryText, onClick = onSecondaryClick, modifier = Modifier.weight(1f))
             }
-
             PrimaryButton(
                 text = primaryText,
                 onClick = onPrimaryClick,
@@ -242,51 +262,21 @@ fun SsplPrimaryButton(
     leadingIcon: (@Composable () -> Unit)? = null,
     trailingIcon: (@Composable () -> Unit)? = null
 ) {
-    val bg = if (enabled) AppTheme.colors.primaryDark else AppTheme.colors.border
-    val contentColor = if (enabled) Color.White else AppTheme.colors.muted
-
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .defaultMinSize(minHeight = 50.dp)
-            .clip(AppTheme.shapes.button)
-            .background(bg)
-            .clickable(enabled = enabled && !loading, onClick = onClick)
-            .padding(horizontal = 18.dp, vertical = 12.dp),
-        contentAlignment = Alignment.Center
-    ) {
+    val colors = AppTheme.colors
+    val bg = if (enabled) colors.primaryGradient else SolidColor(colors.border)
+    val contentColor = if (enabled) Color.White else colors.muted
+    ButtonFrame(modifier.fillMaxWidth(), bg, null, enabled, loading, 52.dp, onClick) {
         if (loading) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(20.dp),
-                color = Color.White,
-                strokeWidth = 2.dp
-            )
+            LoadingDots(color = contentColor, dotSize = 6.dp)
         } else {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                leadingIcon?.invoke()
-                Text(
-                    text = text,
-                    style = AppTheme.typography.bodyLarge.copy(
-                        color = contentColor,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                )
-                trailingIcon?.invoke()
-            }
+            leadingIcon?.invoke()
+            Text(text, style = AppTheme.typography.bodyLarge.copy(color = contentColor, fontWeight = FontWeight.SemiBold))
+            trailingIcon?.invoke()
         }
     }
 }
 
-enum class SsplButtonVariant {
-    Primary,
-    Secondary,
-    Outline,
-    Ghost,
-    Destructive
-}
+enum class SsplButtonVariant { Primary, Secondary, Outline, Ghost, Destructive }
 
 @Composable
 fun SsplButton(
@@ -299,36 +289,16 @@ fun SsplButton(
     icon: ImageVector? = null
 ) {
     when (variant) {
-        SsplButtonVariant.Primary -> PrimaryButton(
-            text = text,
-            onClick = onClick,
-            modifier = modifier,
-            enabled = enabled,
-            loading = loading,
-            icon = icon
-        )
-        SsplButtonVariant.Secondary, SsplButtonVariant.Outline -> SecondaryButton(
-            text = text,
-            onClick = onClick,
-            modifier = modifier,
-            enabled = enabled,
-            loading = loading,
-            icon = icon
-        )
-        SsplButtonVariant.Ghost -> TextButtonLink(
-            text = text,
-            onClick = onClick,
-            modifier = modifier,
-            enabled = enabled
-        )
-        SsplButtonVariant.Destructive -> PrimaryButton(
-            text = text,
-            onClick = onClick,
-            modifier = modifier,
-            enabled = enabled,
-            loading = loading,
-            icon = icon
-        )
+        SsplButtonVariant.Primary ->
+            PrimaryButton(text, onClick, modifier, enabled, loading, icon = icon)
+        SsplButtonVariant.Secondary ->
+            SecondaryButton(text, onClick, modifier, enabled, loading, icon = icon)
+        SsplButtonVariant.Outline ->
+            OutlineButton(text, onClick, modifier, enabled, loading, icon)
+        SsplButtonVariant.Ghost ->
+            TextButtonLink(text, onClick, modifier, enabled)
+        SsplButtonVariant.Destructive ->
+            DestructiveButton(text, onClick, modifier, enabled, loading, icon)
     }
 }
 
@@ -341,50 +311,16 @@ fun DestructiveButton(
     loading: Boolean = false,
     icon: ImageVector? = null
 ) {
-    val bg = if (enabled) AppTheme.colors.error else AppTheme.colors.border
-    val contentColor = if (enabled) Color.White else AppTheme.colors.muted
-
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .defaultMinSize(minHeight = 48.dp)
-            .clip(AppTheme.shapes.button)
-            .background(bg)
-            .clickable(enabled = enabled && !loading, onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        contentAlignment = Alignment.Center
+    val colors = AppTheme.colors
+    val contentColor = if (enabled) Color.White else colors.muted
+    ButtonFrame(
+        modifier.fillMaxWidth(),
+        SolidColor(if (enabled) colors.error else colors.border),
+        null, enabled, loading, 50.dp, onClick
     ) {
-        if (loading) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(20.dp),
-                color = Color.White,
-                strokeWidth = 2.dp
-            )
-        } else {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                if (icon != null) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = contentColor,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-                Text(
-                    text = text,
-                    style = AppTheme.typography.bodyLarge.copy(
-                        color = contentColor,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                )
-            }
-        }
+        ButtonContent(text, loading, contentColor, icon, null)
     }
 }
-
 
 @Composable
 fun SsplSecondaryButton(
@@ -396,44 +332,19 @@ fun SsplSecondaryButton(
     leadingIcon: (@Composable () -> Unit)? = null,
     trailingIcon: (@Composable () -> Unit)? = null
 ) {
-    val strokeColor = if (enabled) AppTheme.colors.primary else AppTheme.colors.border
-    val contentColor = if (enabled) AppTheme.colors.primary else AppTheme.colors.muted
-
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .defaultMinSize(minHeight = 50.dp)
-            .clip(AppTheme.shapes.button)
-            .border(1.dp, strokeColor, AppTheme.shapes.button)
-            .background(AppTheme.colors.surface)
-            .clickable(enabled = enabled && !loading, onClick = onClick)
-            .padding(horizontal = 18.dp, vertical = 12.dp),
-        contentAlignment = Alignment.Center
+    val colors = AppTheme.colors
+    val contentColor = if (enabled) colors.primary else colors.muted
+    ButtonFrame(
+        modifier.fillMaxWidth(),
+        SolidColor(if (enabled) colors.primaryContainer else colors.boxColor),
+        null, enabled, loading, 50.dp, onClick
     ) {
         if (loading) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(20.dp),
-                color = AppTheme.colors.primary,
-                strokeWidth = 2.dp
-            )
+            LoadingDots(color = contentColor, dotSize = 6.dp)
         } else {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                leadingIcon?.invoke()
-                Text(
-                    text = text,
-                    style = AppTheme.typography.bodyLarge.copy(
-                        color = contentColor,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                )
-                trailingIcon?.invoke()
-            }
+            leadingIcon?.invoke()
+            Text(text, style = AppTheme.typography.bodyLarge.copy(color = contentColor, fontWeight = FontWeight.SemiBold))
+            trailingIcon?.invoke()
         }
     }
 }
-
-
-

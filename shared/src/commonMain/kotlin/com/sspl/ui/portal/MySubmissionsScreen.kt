@@ -1,304 +1,172 @@
 package com.sspl.ui.portal
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.Screen
-import com.sspl.core.models.AbstractSubmission
-import com.sspl.core.repositories.PortalRepository
-import com.sspl.designsystem.components.ModernSupportCard
-import com.sspl.designsystem.components.SsplBadge
-import com.sspl.designsystem.components.SsplBadgeVariant
-import com.sspl.designsystem.components.SsplButton
-import com.sspl.designsystem.components.SsplButtonVariant
-import com.sspl.designsystem.components.SsplCard
+import com.sspl.core.repositories.PortalSubmission
+import com.sspl.designsystem.components.EmptyState
+import com.sspl.designsystem.components.ErrorState
+import com.sspl.designsystem.components.IconTile
+import com.sspl.designsystem.components.ListRowCard
+import com.sspl.designsystem.components.LoadState
+import com.sspl.designsystem.components.LocalShellActions
+import com.sspl.designsystem.components.OutlineButton
+import com.sspl.designsystem.components.PrimaryButton
+import com.sspl.designsystem.components.SecondaryButton
+import com.sspl.designsystem.components.SegmentedTabs
+import com.sspl.designsystem.components.SkeletonList
+import com.sspl.designsystem.components.SsplRefreshBox
+import com.sspl.designsystem.components.StatusBadge
 import com.sspl.designsystem.theme.AppTheme
-import kotlinx.coroutines.launch
+import com.sspl.platform.shared.UrlOpener
+import com.sspl.utils.DisplayDates
 import org.koin.compose.koinInject
 
 /**
- * D7: User's Abstract Submissions List
+ * D7: My submissions (web `/dashboard/submissions`): server-side status filter, pagination,
+ * reviewer feedback, upload-presentation for accepted, download attachment.
  */
 @Composable
 fun MySubmissionsScreen(
     navController: NavController,
-    portalRepository: PortalRepository = koinInject()
+    viewModel: MySubmissionsViewModel = portalViewModel { MySubmissionsViewModel(it.get()) },
+    urlOpener: UrlOpener = koinInject()
 ) {
-    val scope = rememberCoroutineScope()
-    var submissions by remember { mutableStateOf<List<AbstractSubmission>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
-    var selectedFilter by remember { mutableStateOf("ALL") }
-
-    val loadSubmissions = {
-        scope.launch {
-            isLoading = true
-            portalRepository.getMySubmissions().collect { list ->
-                submissions = list
-                isLoading = false
-            }
-        }
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val shell = LocalShellActions.current
+    if (shell.isGuest) {
+        PortalGuestGate(onSignIn = shell.onAvatar, modifier = Modifier.fillMaxSize())
+        return
     }
+    val ready = (state.list as? LoadState.Ready)?.data
 
-    LaunchedEffect(Unit) {
-        loadSubmissions()
-    }
-
-    val filteredList = when (selectedFilter) {
-        "PENDING" -> submissions.filter { it.status.equals("PENDING", ignoreCase = true) }
-        "ACCEPTED" -> submissions.filter { it.status.equals("ACCEPTED", ignoreCase = true) }
-        "REJECTED" -> submissions.filter { it.status.equals("REJECTED", ignoreCase = true) }
-        else -> submissions
-    }
-
-    val filterOptions = listOf("ALL" to "All", "PENDING" to "Pending", "ACCEPTED" to "Accepted", "REJECTED" to "Rejected")
-
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(AppTheme.colors.background)
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+    SsplRefreshBox(
+        isRefreshing = state.isRefreshing,
+        onRefresh = viewModel::refresh,
+        modifier = Modifier.fillMaxSize()
     ) {
-        item {
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = "SCHOLARSHIP",
-                        style = AppTheme.typography.labelSmall.copy(
-                            color = AppTheme.colors.secondary,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.sp
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "My Submissions",
-                        style = AppTheme.typography.headlineMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = AppTheme.colors.heading
-                        )
-                    )
-                }
-
-                IconButton(onClick = { loadSubmissions() }) {
-                    Icon(
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = "Refresh",
-                        tint = AppTheme.colors.secondary
-                    )
-                }
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item(key = "hero") {
+                PortalHero(
+                    eyebrow = "Scholarship",
+                    title = "My submissions",
+                    summary = "Review the status of abstracts you have sent for scientific programmes.",
+                    icon = Icons.Default.Description,
+                    stats = ready?.let { listOf("${it.totalRecords}" to "Total submissions") }.orEmpty()
+                )
             }
-            Text(
-                text = "Review the review status of abstracts sent for scientific programmes.",
-                style = AppTheme.typography.bodySmall.copy(color = AppTheme.colors.muted)
-            )
-        }
-
-        // Status Filter Chips
-        item {
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(filterOptions) { (key, label) ->
-                    val isSelected = selectedFilter == key
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(50.dp))
-                            .background(
-                                if (isSelected) AppTheme.colors.primaryDark else AppTheme.colors.boxColor
-                            )
-                            .border(
-                                width = 1.dp,
-                                color = if (isSelected) Color.Transparent else AppTheme.colors.border,
-                                shape = RoundedCornerShape(50.dp)
-                            )
-                            .clickable { selectedFilter = key }
-                            .padding(horizontal = 16.dp, vertical = 9.dp)
-                    ) {
-                        Text(
-                            text = label,
-                            style = AppTheme.typography.labelMedium.copy(
-                                color = if (isSelected) Color.White else AppTheme.colors.heading,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                            )
+            item(key = "tabs") {
+                SegmentedTabs(
+                    options = SUBMISSION_FILTERS.map { it.second },
+                    selectedIndex = SUBMISSION_FILTERS.indexOfFirst { it.first == state.filter }.coerceAtLeast(0),
+                    onSelect = { viewModel.setFilter(SUBMISSION_FILTERS[it].first) }
+                )
+            }
+            when (val l = state.list) {
+                is LoadState.Loading -> item(key = "sk") { SkeletonList(count = 4, contentPadding = 0.dp) }
+                is LoadState.Error -> item(key = "err") {
+                    ErrorState(title = "Submissions didn't load", message = l.message, onRetry = viewModel::retry)
+                }
+                is LoadState.Ready -> if (l.data.items.isEmpty()) {
+                    item(key = "empty") {
+                        EmptyState(
+                            title = if (state.filter.isBlank()) "No submissions yet" else "Nothing ${SUBMISSION_FILTERS.first { it.first == state.filter }.second.lowercase()}",
+                            message = if (state.filter.isBlank()) "You haven't submitted any abstracts yet. Submit one to get started."
+                            else "No abstracts match this status.",
+                            icon = Icons.Default.Description,
+                            actionText = "Submit an abstract",
+                            onActionClick = { navController.openPortal(Screen.AbstractSubmissionScreen.route) }
                         )
                     }
-                }
-            }
-        }
-
-        if (isLoading) {
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = AppTheme.colors.secondary)
-                }
-            }
-        } else if (filteredList.isEmpty()) {
-            item {
-                SsplCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(32.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "No abstract submissions found.",
-                            style = AppTheme.typography.bodyMedium.copy(color = AppTheme.colors.muted)
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        SsplButton(
-                            text = "Submit an Abstract",
-                            onClick = { navController.navigate(Screen.AbstractSubmissionScreen.route) }
+                } else {
+                    items(l.data.items, key = { it.item.id }) { sub ->
+                        SubmissionCard(
+                            sub = sub,
+                            onUpload = {
+                                navController.currentBackStackEntry?.savedStateHandle?.set("abstractId", sub.item.id)
+                                navController.openPortal(Screen.PresentationsScreen.route)
+                            },
+                            onDownload = { resolvePortalFileUrl(sub.item.bestFileUrl)?.let(urlOpener::openUrl) }
                         )
                     }
-                }
-            }
-        } else {
-            items(filteredList) { item ->
-                val isAccepted = item.status.equals("ACCEPTED", ignoreCase = true)
-                val isRejected = item.status.equals("REJECTED", ignoreCase = true)
-
-                SsplCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "ID: #${item.id}",
-                                style = AppTheme.typography.labelSmall.copy(
-                                    color = AppTheme.colors.secondary,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            )
-
-                            val badgeVariant = when {
-                                isAccepted -> SsplBadgeVariant.Success
-                                isRejected -> SsplBadgeVariant.Error
-                                else -> SsplBadgeVariant.Warning
-                            }
-
-                            SsplBadge(
-                                text = item.status.uppercase(),
-                                variant = badgeVariant
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = item.title,
-                            style = AppTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = AppTheme.colors.heading
-                            )
-                        )
-
-                        item.authors?.let { authors ->
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "Authors: $authors",
-                                style = AppTheme.typography.bodySmall.copy(color = AppTheme.colors.body)
-                            )
-                        }
-
-                        item.affiliations?.let { aff ->
-                            Text(
-                                text = "Affiliation: $aff",
-                                style = AppTheme.typography.bodySmall.copy(color = AppTheme.colors.muted)
-                            )
-                        }
-
-                        item.reviewerComments?.let { comments ->
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(AppTheme.colors.background)
-                                    .padding(8.dp)
-                            ) {
-                                Text(
-                                    text = "Reviewer: $comments",
-                                    style = AppTheme.typography.bodySmall.copy(
-                                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                                        color = AppTheme.colors.muted
-                                    )
+                    if (l.data.canLoadMore) {
+                        item(key = "more") {
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                state.loadMoreError?.let { PortalNotice(it, NoticeTone.Error) }
+                                OutlineButton(
+                                    text = "Load more (page ${l.data.page + 1} of ${l.data.totalPages})",
+                                    onClick = viewModel::loadMore,
+                                    loading = state.isLoadingMore
                                 )
                             }
                         }
-
-                        if (isAccepted) {
-                            Spacer(modifier = Modifier.height(14.dp))
-                            SsplButton(
-                                text = "Upload Presentation Slides",
-                                onClick = { navController.navigate(Screen.PresentationsScreen.route) },
-                                variant = SsplButtonVariant.Primary,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
                     }
                 }
             }
-        }
-
-        item {
-            ModernSupportCard(
-                title = "Abstract Inquiry?",
-                subtitle = "For questions regarding scientific programme eligibility, reviewer feedback, or oral presentation schedules, reach out to the scientific committee.",
-                buttonText = "Contact Committee",
-                onContactClick = { navController.navigate(Screen.ContactUsScreen.route) }
-            )
-        }
-
-        item {
-            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
 
+@Composable
+private fun SubmissionCard(sub: PortalSubmission, onUpload: () -> Unit, onDownload: () -> Unit) {
+    val item = sub.item
+    val c = AppTheme.colors
+    val accepted = item.status.uppercase() in setOf("ACCEPTED", "APPROVED")
+    val hasFile = !item.bestFileUrl.isNullOrBlank()
+    ListRowCard(
+        title = item.title,
+        subtitle = item.eventTitle ?: item.authors,
+        meta = listOfNotNull(
+            "ID #${sub.displayId}",
+            DisplayDates.medium(item.createdAt).takeIf { it.isNotBlank() }?.let { "Submitted $it" }
+        ).joinToString(" · "),
+        leading = { IconTile(Icons.Default.Description) },
+        trailing = { StatusBadge(item.status.ifBlank { "PENDING" }) },
+        footer = if (accepted || hasFile || !item.reviewerComments.isNullOrBlank() || (item.eventTitle != null && item.authors != null)) {
+            {
+                if (item.eventTitle != null && !item.authors.isNullOrBlank()) {
+                    Text("Authors: ${item.authors}", style = AppTheme.typography.bodySmall.copy(color = c.body))
+                }
+                item.reviewerComments?.takeIf { it.isNotBlank() }?.let { fb ->
+                    Column(
+                        Modifier.fillMaxWidth().padding(top = 8.dp).clip(AppTheme.shapes.small).background(c.boxColor).padding(10.dp)
+                    ) {
+                        Text("Reviewer feedback", style = AppTheme.typography.labelSmall)
+                        Text(fb, style = AppTheme.typography.bodySmall.copy(color = c.body, fontStyle = FontStyle.Italic))
+                    }
+                }
+                if (accepted || hasFile) {
+                    Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        if (accepted) PrimaryButton("Upload presentation", onClick = onUpload, icon = Icons.Default.Upload, modifier = Modifier.weight(1.3f))
+                        if (hasFile) SecondaryButton("Download", onClick = onDownload, icon = Icons.Default.Download, modifier = Modifier.weight(1f))
+                    }
+                }
+            }
+        } else null
+    )
+}

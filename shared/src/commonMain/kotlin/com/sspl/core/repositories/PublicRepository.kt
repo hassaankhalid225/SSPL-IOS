@@ -1,10 +1,7 @@
 package com.sspl.core.repositories
 
-import com.sspl.core.models.CertificateVerifyResponse
 import com.sspl.core.models.ContactInquiryRequest
-import com.sspl.core.models.ContactInquiryResponse
 import com.sspl.core.models.DownloadsResponse
-import com.sspl.core.models.ElectionAttachment
 import com.sspl.core.models.ElectionItem
 import com.sspl.core.models.MembersDirectoryResponse
 import com.sspl.core.models.PublicEventItem
@@ -12,25 +9,43 @@ import com.sspl.core.models.SiteSettingsResponse
 import com.sspl.core.models.SocietyNewsItem
 import com.sspl.utils.BASE_URL
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
 import io.ktor.client.request.get
-import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import io.ktor.http.encodeURLPathPart
+import io.ktor.http.isSuccess
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 
+/** Failure with a message that is safe to show to the user. */
+class PublicApiException(message: String) : Exception(message)
+
+/**
+ * Public / society information endpoints (same calls the web makes):
+ * GET /society-news · GET /elections/ · GET /downloads · GET /certificates/verify/{serial}
+ * GET /fellowship/certificate/verify/{serial} · GET /membership/statistics-and-list
+ * GET /settings · POST /config/contact · GET /external/events?active=true
+ *
+ * The `fetch*` functions return [Result] so screens can tell "empty" apart from "failed".
+ */
 class PublicRepository(private val httpClient: HttpClient) {
 
     private val json = Json {
@@ -39,246 +54,257 @@ class PublicRepository(private val httpClient: HttpClient) {
         coerceInputValues = true
     }
 
-    /**
-     * Fetch society news announcements from GET /society-news
-     */
-    fun getSocietyNews(): Flow<List<SocietyNewsItem>> = flow {
+    // ------------------------------------------------------------------ helpers
+
+    private suspend inline fun <T> runCatchingApi(crossinline block: suspend () -> T): Result<T> =
         try {
-            val responseText = httpClient.get("$BASE_URL/society-news").body<String>()
-            val parsedElement = json.parseToJsonElement(responseText)
-            val items: List<SocietyNewsItem> = when {
-                parsedElement is JsonArray -> {
-                    json.decodeFromJsonElement(parsedElement)
-                }
-                parsedElement is JsonObject && parsedElement["data"] is JsonObject -> {
-                    val dataObj = parsedElement["data"]!!.jsonObject
-                    val listElement = dataObj["notifications"] ?: dataObj["news"]
-                    if (listElement is JsonArray) json.decodeFromJsonElement(listElement) else emptyList()
-                }
-                parsedElement is JsonObject && parsedElement["notifications"] is JsonArray -> {
-                    json.decodeFromJsonElement(parsedElement["notifications"]!!.jsonArray)
-                }
-                else -> emptyList()
-            }
-            emit(items.filter { it.isActive && it.isVisible })
+            Result.success(block())
+        } catch (c: CancellationException) {
+            throw c
+        } catch (e: PublicApiException) {
+            Result.failure(e)
         } catch (e: Exception) {
-            println("PublicRepository.getSocietyNews error: ${e.message}")
-            emit(emptyList())
+            println("PublicRepository error: ${e.message}")
+            Result.failure(PublicApiException("We couldn't reach the server. Check your connection and try again."))
+        }
+
+    /** Reads the body; throws [PublicApiException] with the server's message for non-2xx responses. */
+    private suspend fun HttpResponse.textOrThrow(fallback: String): String {
+        val text = bodyAsText()
+        if (!status.isSuccess()) throw PublicApiException(serverMessage(text) ?: fallback)
+        return text
+    }
+
+    private fun serverMessage(text: String): String? = runCatching {
+        val obj = json.parseToJsonElement(text) as? JsonObject ?: return null
+        (obj["message"] as? JsonPrimitive)?.contentOrNull?.takeIf { it.isNotBlank() }
+            ?: (obj["error"] as? JsonPrimitive)?.contentOrNull?.takeIf { it.isNotBlank() }
+    }.getOrNull()
+
+    private fun JsonObject.str(key: String): String? =
+        (this[key] as? JsonPrimitive)?.takeIf { it !is JsonNull }?.contentOrNull
+
+    // ------------------------------------------------------------------ news
+
+    /** GET /society-news — active + visible items, newest first (same as web). */
+    suspend fun fetchSocietyNews(): Result<List<SocietyNewsItem>> = runCatchingApi {
+        val text = httpClient.get("$BASE_URL/society-news").textOrThrow("Failed to load announcements.")
+        withContext(Dispatchers.Default) {
+            val parsed = json.parseToJsonElement(text)
+            val list: JsonArray? = when {
+                parsed is JsonArray -> parsed
+                parsed is JsonObject && parsed["data"] is JsonObject -> {
+                    val data = parsed["data"]!!.jsonObject
+                    (data["notifications"] ?: data["news"]) as? JsonArray
+                }
+                parsed is JsonObject && parsed["notifications"] is JsonArray -> parsed["notifications"]!!.jsonArray
+                else -> null
+            }
+            val items: List<SocietyNewsItem> = list?.let { json.decodeFromJsonElement(it) } ?: emptyList()
+            items.filter { it.isActive && it.isVisible }.sortedByDescending { it.createdAt ?: "" }
         }
     }
 
-    /**
-     * Fetch active upcoming events from GET /external/events?active=true
-     */
+    /** Flow wrapper kept for Home (emits an empty list on failure; Home hides the section). */
+    fun getSocietyNews(): Flow<List<SocietyNewsItem>> = flow {
+        emit(fetchSocietyNews().getOrDefault(emptyList()))
+    }
+
+    // ------------------------------------------------------------------ events
+
+    /** GET /external/events?active=true */
     fun getUpcomingEvents(): Flow<List<PublicEventItem>> = flow {
-        try {
-            val responseText = httpClient.get("$BASE_URL/external/events") {
-                parameter("active", "true")
-            }.body<String>()
-            val parsed = json.parseToJsonElement(responseText)
-            val events: List<PublicEventItem> = when {
-                parsed is JsonArray -> json.decodeFromJsonElement(parsed)
+        val result = runCatchingApi {
+            val text = httpClient.get("$BASE_URL/external/events") { parameter("active", "true") }
+                .textOrThrow("Failed to load events.")
+            val parsed = json.parseToJsonElement(text)
+            when {
+                parsed is JsonArray -> json.decodeFromJsonElement<List<PublicEventItem>>(parsed)
                 parsed is JsonObject && parsed["data"] is JsonArray -> json.decodeFromJsonElement(parsed["data"]!!.jsonArray)
                 parsed is JsonObject && parsed["events"] is JsonArray -> json.decodeFromJsonElement(parsed["events"]!!.jsonArray)
                 else -> emptyList()
             }
-            emit(events)
-        } catch (e: Exception) {
-            println("PublicRepository.getUpcomingEvents error: ${e.message}")
-            emit(emptyList())
         }
+        emit(result.getOrDefault(emptyList()))
     }
 
+    // ------------------------------------------------------------------ elections
+
+    /** Mirrors the web's normalizeElection: files[] + attachments[] + file_url + file → files[]. */
     private fun normalizeElectionJson(element: JsonElement): JsonElement {
         if (element !is JsonObject) return element
         val map = element.toMutableMap()
-        val filesList = mutableListOf<JsonObject>()
-
-        element["files"]?.let { f ->
-            if (f is JsonArray) {
-                f.forEach { item ->
-                    when (item) {
-                        is JsonObject -> filesList.add(item)
-                        is JsonPrimitive -> filesList.add(JsonObject(mapOf("url" to item)))
-                        else -> {}
-                    }
+        val files = mutableListOf<JsonObject>()
+        fun collect(arr: JsonElement?) {
+            (arr as? JsonArray)?.forEach { item ->
+                when (item) {
+                    is JsonObject -> files.add(item)
+                    is JsonPrimitive -> if (item !is JsonNull) files.add(JsonObject(mapOf("url" to item)))
+                    else -> {}
                 }
             }
         }
-        element["attachments"]?.let { a ->
-            if (a is JsonArray) {
-                a.forEach { item ->
-                    when (item) {
-                        is JsonObject -> filesList.add(item)
-                        is JsonPrimitive -> filesList.add(JsonObject(mapOf("url" to item)))
-                        else -> {}
-                    }
-                }
-            }
+        collect(element["files"])
+        collect(element["attachments"])
+        element.str("file_url")?.takeIf { it.isNotBlank() }?.let { url ->
+            files.add(
+                JsonObject(
+                    mapOf(
+                        "url" to JsonPrimitive(url),
+                        "name" to JsonPrimitive(element.str("file_name") ?: element.str("filename") ?: element.str("title") ?: "Attachment"),
+                        "type" to JsonPrimitive(element.str("file_type") ?: element.str("mime_type") ?: "")
+                    )
+                )
+            )
         }
-        element["file_url"]?.let { u ->
-            if (u is JsonPrimitive && u.content.isNotBlank()) {
-                filesList.add(JsonObject(mapOf(
-                    "url" to u,
-                    "name" to (element["file_name"] ?: element["title"] ?: JsonPrimitive("Attachment")),
-                    "type" to (element["file_type"] ?: JsonPrimitive("application/pdf"))
-                )))
-            }
+        when (val f = element["file"]) {
+            is JsonObject -> files.add(f)
+            is JsonPrimitive -> if (f !is JsonNull) files.add(JsonObject(mapOf("url" to f)))
+            else -> {}
         }
-        if (filesList.isNotEmpty()) {
-            map["files"] = JsonArray(filesList)
-        }
+        map["files"] = JsonArray(files.distinctBy { it.str("url") }.filter { !it.str("url").isNullOrBlank() })
+        map.remove("attachments")
+        map.remove("file_url")
         return JsonObject(map)
     }
 
-    /**
-     * Fetch active elections from GET /elections/
-     */
-    fun getElections(): Flow<List<ElectionItem>> = flow {
-        try {
-            val responseText = httpClient.get("$BASE_URL/elections/").body<String>()
-            val parsed = json.parseToJsonElement(responseText)
-            val rawList: List<JsonElement> = when {
+    /** GET /elections/ */
+    suspend fun fetchElections(): Result<List<ElectionItem>> = runCatchingApi {
+        val text = httpClient.get("$BASE_URL/elections/").textOrThrow("Failed to load elections. Please try again later.")
+        withContext(Dispatchers.Default) {
+            val parsed = json.parseToJsonElement(text)
+            val raw: List<JsonElement> = when {
                 parsed is JsonArray -> parsed
                 parsed is JsonObject && parsed["records"] is JsonArray -> parsed["records"]!!.jsonArray
                 parsed is JsonObject && parsed["elections"] is JsonArray -> parsed["elections"]!!.jsonArray
                 parsed is JsonObject && parsed["data"] is JsonArray -> parsed["data"]!!.jsonArray
                 else -> emptyList()
             }
-            val list: List<ElectionItem> = rawList.map { el ->
-                json.decodeFromJsonElement<ElectionItem>(normalizeElectionJson(el))
-            }
-            emit(list)
-        } catch (e: Exception) {
-            println("PublicRepository.getElections error: ${e.message}")
-            emit(emptyList())
+            raw.map { json.decodeFromJsonElement<ElectionItem>(normalizeElectionJson(it)) }
         }
     }
 
-    /**
-     * Fetch single election by ID from GET /elections/{id}
-     */
-    fun getElectionById(id: Long): Flow<ElectionItem?> = flow {
-        try {
-            val responseText = httpClient.get("$BASE_URL/elections/$id").body<String>()
-            val parsed = json.parseToJsonElement(responseText)
-            val rawElement: JsonElement? = when {
-                parsed is JsonObject && parsed["data"] is JsonObject -> parsed["data"]
-                parsed is JsonObject && parsed["election"] is JsonObject -> parsed["election"]
-                parsed is JsonObject -> parsed
-                else -> null
-            }
-            val item: ElectionItem? = rawElement?.let { el ->
-                json.decodeFromJsonElement<ElectionItem>(normalizeElectionJson(el))
-            }
-            emit(item)
-        } catch (e: Exception) {
-            println("PublicRepository.getElectionById error: ${e.message}")
-            emit(null)
-        }
-    }
+    // ------------------------------------------------------------------ downloads
 
     /**
-     * Fetch public downloads from GET /downloads
+     * GET /downloads?category=&search=&page=&limit=
+     * The API returns `format`, `original_filename` and `meta.totalPages`; they are mapped onto
+     * the app model (`file_type`, `file_name`, `meta.total_pages`), which used different keys.
      */
-    fun getDownloads(
+    suspend fun fetchDownloads(
         category: String = "",
         search: String = "",
         page: Int = 1,
         limit: Int = 12
-    ): Flow<DownloadsResponse> = flow {
-        try {
-            val responseText = httpClient.get("$BASE_URL/downloads") {
-                if (category.isNotBlank()) parameter("category", category)
-                if (search.isNotBlank()) parameter("search", search)
-                parameter("page", page)
-                parameter("limit", limit)
-            }.body<String>()
-            val result = json.decodeFromString<DownloadsResponse>(responseText)
-            emit(result)
-        } catch (e: Exception) {
-            println("PublicRepository.getDownloads error: ${e.message}")
-            emit(DownloadsResponse())
+    ): Result<DownloadsResponse> = runCatchingApi {
+        val text = httpClient.get("$BASE_URL/downloads") {
+            if (category.isNotBlank()) parameter("category", category)
+            if (search.isNotBlank()) parameter("search", search)
+            parameter("page", page)
+            parameter("limit", limit)
+        }.textOrThrow("Failed to load downloads.")
+        withContext(Dispatchers.Default) {
+            val root = json.parseToJsonElement(text) as? JsonObject ?: JsonObject(emptyMap())
+            val items = (root["items"] as? JsonArray)?.map { el ->
+                val o = el as? JsonObject ?: return@map el
+                val m = o.toMutableMap()
+                if (o["file_type"] == null && o["format"] != null) m["file_type"] = o["format"]!!
+                if (o["file_name"] == null && o["original_filename"] != null) m["file_name"] = o["original_filename"]!!
+                JsonObject(m)
+            } ?: emptyList()
+            val meta = (root["meta"] as? JsonObject)?.let { o ->
+                val m = o.toMutableMap()
+                if (o["total_pages"] == null && o["totalPages"] != null) m["total_pages"] = o["totalPages"]!!
+                JsonObject(m)
+            } ?: JsonObject(emptyMap())
+            json.decodeFromJsonElement<DownloadsResponse>(
+                JsonObject(mapOf("items" to JsonArray(items), "meta" to meta))
+            )
         }
     }
 
+    /** File endpoint used by the web for preview / download. */
+    fun downloadFileUrl(id: Long, download: Boolean = true): String =
+        "$BASE_URL/downloads/$id/file" + if (download) "?download=1" else ""
+
+    // ------------------------------------------------------------------ certificates
+
     /**
-     * Verify certificate from GET /certificates/verify/{serial}
-     * or GET /fellowship/certificate/verify/{serial}
+     * GET /certificates/verify/{serial} or GET /fellowship/certificate/verify/{serial} (FELLOW- prefix).
+     * Returns the raw JSON object (the two endpoints use different field names). A 404 with a JSON
+     * body (`{"verified":false,"message":…}`) is a valid "not found" answer, not a failure.
      */
-    fun verifyCertificate(serial: String): Flow<CertificateVerifyResponse> = flow {
-        try {
-            val cleanSerial = serial.trim()
-            val url = if (cleanSerial.uppercase().startsWith("FELLOW-")) {
-                "$BASE_URL/fellowship/certificate/verify/$cleanSerial"
-            } else {
-                "$BASE_URL/certificates/verify/$cleanSerial"
-            }
-            val responseText = httpClient.get(url).body<String>()
-            val result = json.decodeFromString<CertificateVerifyResponse>(responseText)
-            emit(result)
-        } catch (e: Exception) {
-            println("PublicRepository.verifyCertificate error: ${e.message}")
-            emit(CertificateVerifyResponse(verified = false, message = e.message ?: "Verification failed"))
+    suspend fun verifyCertificate(serial: String): Result<JsonObject> = runCatchingApi {
+        val clean = serial.trim()
+        val encoded = clean.encodeURLPathPart()
+        val url = if (clean.uppercase().startsWith("FELLOW-")) {
+            "$BASE_URL/fellowship/certificate/verify/$encoded"
+        } else {
+            "$BASE_URL/certificates/verify/$encoded"
+        }
+        val response = httpClient.get(url)
+        val text = response.bodyAsText()
+        val parsed = runCatching { json.parseToJsonElement(text) as? JsonObject }.getOrNull()
+        when {
+            parsed != null -> parsed
+            response.status.isSuccess() -> JsonObject(emptyMap())
+            else -> throw PublicApiException("Failed to verify certificate. Please try again.")
         }
     }
 
+    // ------------------------------------------------------------------ members
+
     /**
-     * Fetch members directory from GET /membership/statistics-and-list
+     * GET /membership/statistics-and-list?page=&limit=&role=&search=
+     * The PMDC number lives in `account.user.profiles[0].pmdc_number`; it is lifted onto `user`.
      */
-    fun getMembersDirectory(
+    suspend fun fetchMembersDirectory(
         page: Int = 1,
         role: String? = null,
         search: String? = null,
-        limit: Int = 15
-    ): Flow<MembersDirectoryResponse> = flow {
-        try {
-            val responseText = httpClient.get("$BASE_URL/membership/statistics-and-list") {
-                parameter("page", page)
-                parameter("limit", limit)
-                if (!role.isNullOrBlank() && role != "ALL") {
-                    parameter("role", role)
-                }
-                if (!search.isNullOrBlank()) {
-                    parameter("search", search.trim())
-                }
-            }.body<String>()
-            val result = json.decodeFromString<MembersDirectoryResponse>(responseText)
-            emit(result)
-        } catch (e: Exception) {
-            println("PublicRepository.getMembersDirectory error: ${e.message}")
-            emit(MembersDirectoryResponse())
+        limit: Int = 10
+    ): Result<MembersDirectoryResponse> = runCatchingApi {
+        val text = httpClient.get("$BASE_URL/membership/statistics-and-list") {
+            parameter("page", page)
+            parameter("limit", limit)
+            if (!role.isNullOrBlank() && role != "ALL") parameter("role", role)
+            if (!search.isNullOrBlank()) parameter("search", search.trim())
+        }.textOrThrow("Failed to load members from server.")
+        withContext(Dispatchers.Default) {
+            val root = json.parseToJsonElement(text) as? JsonObject ?: JsonObject(emptyMap())
+            val records = (root["records"] as? JsonArray)?.map { rec ->
+                val r = rec as? JsonObject ?: return@map rec
+                val account = r["account"] as? JsonObject ?: return@map r
+                val user = account["user"] as? JsonObject ?: return@map r
+                if (user["pmdc_number"] != null) return@map r
+                val pmdc = ((user["profiles"] as? JsonArray)?.firstOrNull() as? JsonObject)?.get("pmdc_number")
+                    ?: return@map r
+                val newUser = JsonObject(user.toMutableMap().apply { put("pmdc_number", pmdc) })
+                val newAccount = JsonObject(account.toMutableMap().apply { put("user", newUser) })
+                JsonObject(r.toMutableMap().apply { put("account", newAccount) })
+            } ?: emptyList()
+            val fixed = JsonObject(root.toMutableMap().apply { put("records", JsonArray(records)) })
+            json.decodeFromJsonElement<MembersDirectoryResponse>(fixed)
         }
     }
 
-    /**
-     * Fetch site settings from GET /settings
-     */
-    fun getSiteSettings(): Flow<SiteSettingsResponse?> = flow {
-        try {
-            val responseText = httpClient.get("$BASE_URL/settings").body<String>()
-            val result = json.decodeFromString<SiteSettingsResponse>(responseText)
-            emit(result)
-        } catch (e: Exception) {
-            println("PublicRepository.getSiteSettings error: ${e.message}")
-            emit(null)
-        }
+    // ------------------------------------------------------------------ settings / contact
+
+    /** GET /settings — `contacts` block (phone, email, address, map). */
+    suspend fun fetchSiteSettings(): Result<SiteSettingsResponse> = runCatchingApi {
+        val text = httpClient.get("$BASE_URL/settings").textOrThrow("Failed to load contact information.")
+        val result = json.decodeFromString<SiteSettingsResponse>(text)
+        if (result.contacts == null) throw PublicApiException("Contact information is missing from settings.")
+        result
     }
 
-    /**
-     * Send contact message to POST /config/contact
-     */
-    fun submitContactInquiry(request: ContactInquiryRequest): Flow<ContactInquiryResponse> = flow {
-        try {
-            val response = httpClient.post("$BASE_URL/config/contact") {
-                contentType(ContentType.Application.Json)
-                setBody(request)
-            }.body<ContactInquiryResponse>()
-            emit(response)
-        } catch (e: Exception) {
-            println("PublicRepository.submitContactInquiry error: ${e.message}")
-            emit(ContactInquiryResponse(success = false, message = e.message ?: "Failed to submit inquiry"))
+    /** POST /config/contact { name, email, message } — returns the server's confirmation text. */
+    suspend fun submitContactInquiry(request: ContactInquiryRequest): Result<String?> = runCatchingApi {
+        val response = httpClient.post("$BASE_URL/config/contact") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
         }
+        val text = response.textOrThrow("Failed to send message.")
+        serverMessage(text)
     }
 }
-

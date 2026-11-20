@@ -30,7 +30,9 @@ import org.koin.dsl.module
  */
 
 internal val networkModules = module {
-    factoryOf(::provideHttpClient)
+    // One shared client: connection pool + TLS sessions are reused across all repositories.
+    // Bearer token is read per request in defaultRequest, so login/logout is picked up live.
+    single { provideHttpClient(get()) }
 }
 
 var cacheSize: Long = 5 * 1024 * 1024 // 5MB

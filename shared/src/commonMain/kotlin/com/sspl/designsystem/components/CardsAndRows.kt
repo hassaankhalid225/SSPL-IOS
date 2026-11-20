@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Bookmark
@@ -52,6 +53,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import androidx.compose.ui.draw.shadow
 import com.sspl.designsystem.theme.AppTheme
 
 @Composable
@@ -61,23 +63,26 @@ fun SsplCard(
     onClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .then(
-                if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
-            ),
-        shape = AppTheme.shapes.card,
-        colors = CardDefaults.cardColors(
-            containerColor = backgroundColor ?: AppTheme.colors.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, AppTheme.colors.border)
-    ) {
-        Column(
-            modifier = Modifier.padding(14.dp),
-            content = content
+    val colors = AppTheme.colors
+    val shape = AppTheme.shapes.card
+    val base = modifier
+        .fillMaxWidth()
+        .then(
+            if (!colors.isDark) Modifier.shadow(6.dp, shape, ambientColor = colors.shadow.copy(alpha = 0.10f), spotColor = colors.shadow.copy(alpha = 0.10f))
+            else Modifier
         )
+    val cardColors = CardDefaults.cardColors(containerColor = backgroundColor ?: colors.surface)
+    val border = androidx.compose.foundation.BorderStroke(1.dp, colors.border.copy(alpha = if (colors.isDark) 1f else 0.7f))
+    if (onClick != null) {
+        Card(onClick = onClick, modifier = base, shape = shape, colors = cardColors,
+            elevation = CardDefaults.cardElevation(0.dp), border = border) {
+            Column(modifier = Modifier.padding(14.dp), content = content)
+        }
+    } else {
+        Card(modifier = base, shape = shape, colors = cardColors,
+            elevation = CardDefaults.cardElevation(0.dp), border = border) {
+            Column(modifier = Modifier.padding(14.dp), content = content)
+        }
     }
 }
 
@@ -144,12 +149,16 @@ fun SectionHeader(
             text = title,
             style = AppTheme.typography.titleMedium.copy(
                 color = AppTheme.colors.heading,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp
             )
         )
         if (effectiveActionText != null && effectiveOnActionClick != null) {
             Row(
-                modifier = Modifier.clickable(onClick = effectiveOnActionClick),
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .clickable(onClick = effectiveOnActionClick)
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(2.dp)
             ) {
@@ -284,8 +293,7 @@ fun AvatarImage(
         modifier = modifier
             .size(size)
             .clip(CircleShape)
-            .background(AppTheme.colors.surfaceTint)
-            .border(1.dp, AppTheme.colors.border, CircleShape),
+            .background(AppTheme.colors.primaryContainer),
         contentAlignment = Alignment.Center
     ) {
         if (imageBytes != null) {
@@ -296,18 +304,19 @@ fun AvatarImage(
                 modifier = Modifier.size(size)
             )
         } else if (!effectiveUrl.isNullOrBlank()) {
-            AsyncImage(
-                model = effectiveUrl,
+            SsplImage(
+                source = effectiveUrl,
                 contentDescription = name,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.size(size)
+                modifier = Modifier.size(size),
+                fallbackIcon = androidx.compose.material.icons.Icons.Default.Person,
+                fallbackIconSize = size * 0.5f
             )
         } else {
             val displayInitials = if (initials.isNotBlank()) initials.take(2).uppercase() else "SS"
             Text(
                 text = displayInitials,
                 style = AppTheme.typography.titleMedium.copy(
-                    color = AppTheme.colors.primaryDark,
+                    color = AppTheme.colors.primary,
                     fontWeight = FontWeight.Bold,
                     fontSize = (size.value * 0.38f).sp
                 )
@@ -767,13 +776,13 @@ fun ModernBookingCard(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(50.dp))
-                            .background(Color(0xFFFEF3C7))
+                            .background(AppTheme.colors.warningContainer)
                             .padding(horizontal = 8.dp, vertical = 2.dp)
                     ) {
                         Text(
                             text = statusText,
                             style = AppTheme.typography.labelSmall.copy(
-                                color = Color(0xFF92400E),
+                                color = AppTheme.colors.warning,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 9.sp
                             )

@@ -1,212 +1,148 @@
 package com.sspl.ui.history
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.sspl.Screen
+import com.sspl.designsystem.components.NavTile
 import com.sspl.designsystem.theme.AppTheme
+import com.sspl.ui.components.InfoSurface
+import com.sspl.ui.components.NumberDot
+import com.sspl.ui.components.PageIntroHero
 
-data class HistoryMilestone(
-    val era: String,
-    val title: String,
-    val description: String
-)
+/** Web: pages/HistoryPage.jsx (HISTORY_CHAPTERS). */
+private data class Chapter(val era: String, val title: String, val body: String)
 
-private val HISTORY_MILESTONES = listOf(
-    HistoryMilestone(
-        era = "1950s",
-        title = "Association of Surgeons of Lahore",
-        description = "The surgeons of Lahore organized an association in the early 1950s to discuss and share their clinical and operative experiences with colleagues. Anesthetists, pathologists, and radiologists were also included as associate members of this body, which became known as the Association of Surgeons of Lahore."
+private val CHAPTERS = listOf(
+    Chapter(
+        "1950s", "Association of Surgeons of Lahore",
+        "The surgeons of Lahore organized an association in the early 1950s to discuss and share their clinical and operative experiences with colleagues. Anesthetists, pathologists, and radiologists were also included as associate members of this body, which became known as the Association of Surgeons of Lahore."
     ),
-    HistoryMilestone(
-        era = "1980s",
-        title = "Revival Under Professor Bashir Ahmad",
-        description = "In the early 1980s, this association was revived under the convenorship of Professor Bashir Ahmad, one of the life members of the earlier Association. Following a membership drive, elections were conducted: Professor Ijaz Ahsan was elected as President, Professor Riaz Ahsan Siddique as General Secretary, and Dr. Saeed Choudhary as Finance Secretary."
+    Chapter(
+        "1980s", "Revival under Professor Bashir Ahmad",
+        "In the early 1980s, this association was revived under the convenorship of Professor Bashir Ahmad, one of the life members of the earlier Association of Surgeons of Lahore. Following a membership drive, elections were conducted and Professor Ijaz Ahsan was elected as President, Professor Riaz Ahsan Siddique as General Secretary, and Dr. Saeed Choudhary as Finance Secretary. The association organized several clinical meetings; however, due to the diverse background of its members, including surgeons from multiple specialties, the association could not continue its activities for a long period."
     ),
-    HistoryMilestone(
-        era = "24 Oct 1984",
-        title = "A Dedicated Forum for Lahore Surgeons",
-        description = "On 24th October 1984, Professor S.A.R. Gardezi convened a meeting of general surgeons from all teaching institutions of Lahore and highlighted the need for a dedicated chapter for surgeons in Lahore under the umbrella of the Society of Surgeons of Pakistan."
+    Chapter(
+        "24 Oct 1984", "A dedicated forum for Lahore surgeons",
+        "On 24th October 1984, Professor S.A.R. Gardezi convened a meeting of general surgeons from all teaching institutions of Lahore and highlighted the need for a dedicated forum for surgeons in Lahore under the umbrella of the Society of Surgeons. He informed participants about the successful functioning of the Society of Surgeons in Karachi, which regularly conducted clinical meetings, and proposed the establishment of independent chapters in centers where more than ten members were present."
     ),
-    HistoryMilestone(
-        era = "Founding Meeting",
-        title = "King Edward Medical College & Registration",
-        description = "A historic meeting was arranged in the committee room of King Edward Medical College. Approximately forty senior surgeons attended, including Prof. Rashid Ahmad Qureshi, Prof. Masood Ahmed, Prof. S. Zafar Haider, and Dr. Abdul Majeed Choudhary. The Society was formally registered after approval of its provisional constitution."
+    Chapter(
+        "Founding meeting", "King Edward Medical College & formal registration",
+        "A meeting was subsequently arranged in the committee room of King Edward Medical College. Approximately forty surgeons from various hospitals of Lahore attended the meeting. Among the notable participants were Professor Rashid Ahmad Qureshi, Professor Masood Ahmed, Professor S. Zafar Haider, Professor Ehsanullah, Professor Zafarullah Chaudhry, Dr. Jahangir Alam, Colonel M.A. Cheema, Professor Muhammad Rafi, and Dr. Abdul Majeed Choudhary. The Society later got itself formally registered after approval of the provisional constitution."
     ),
-    HistoryMilestone(
-        era = "1985",
-        title = "First Elected Office Bearers",
-        description = "The first official election of the Society was held in 1985. Professor Rashid Ahmad Qureshi was elected as the Founding President, Dr. Abdul Majeed Choudhary as General Secretary, and Dr. Mazhar Saeed Choudhary as Finance Secretary."
+    Chapter(
+        "1985", "First elected office bearers",
+        "The first election of the Society was held in 1985. Professor Rashid Ahmad Qureshi was elected as the Founding President, Dr. Abdul Majeed Choudhary as General Secretary, and Dr. Mazhar Saeed Choudhary as Finance Secretary."
     ),
-    HistoryMilestone(
-        era = "1985 — Present",
-        title = "Growth, Conferences & Democratic Leadership",
-        description = "Since then, the Society of Surgeons of Pakistan – Lahore Chapter has organized regular clinical meetings, biennial national and international surgical conferences, hands-on workshops, and biannual democratic elections. Over four decades, SSPL has emerged as one of the leading academic surgical bodies in the nation."
+    Chapter(
+        "1985 — Present", "Growth, conferences & democratic leadership",
+        "Since then, the Society of Surgeons of Pakistan – Lahore Chapter has continued to organize regular monthly, fortnightly, and even multiple clinical meetings within a month. National and international conferences have also been organized on alternate years. Office bearers continue to change every two years through free, fair, transparent, and democratically conducted elections. Over the decades, the Society of Surgeons of Pakistan – Lahore Chapter has emerged as one of the leading academic surgical organizations in the country, promoting surgical education, professional development, research, and collaboration among surgeons."
     )
 )
 
 @Composable
 fun HistoryScreen(navController: NavController) {
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(AppTheme.colors.background),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = Modifier.fillMaxSize().background(AppTheme.colors.background),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 32.dp)
     ) {
-        // Hero Header
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = AppTheme.colors.primary)
-            ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .background(Color.White.copy(alpha = 0.2f), CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.History,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            text = "OUR STORY",
-                            style = AppTheme.typography.labelSmall,
-                            color = AppTheme.colors.secondary,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.3.sp
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(
-                        text = "History of SSP Lahore",
-                        style = AppTheme.typography.headlineMedium,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = "Over four decades of clinical heritage, democratic leadership, and commitment to surgical excellence in Pakistan.",
-                        style = AppTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.9f)
-                    )
-                }
-            }
+        item(key = "hero") {
+            PageIntroHero(
+                eyebrow = "Our story",
+                eyebrowIcon = Icons.Default.History,
+                title = "History of SSP Lahore",
+                summary = "From the 1950s Association of Surgeons of Lahore to a registered chapter with democratic leadership.",
+                stats = listOf("1950s" to "First association", "1985" to "First election", "2 yrs" to "Office term")
+            )
+            Spacer(Modifier.height(22.dp))
+            Text("TIMELINE", style = AppTheme.typography.overline)
+            Text("Milestones", style = AppTheme.typography.titleMedium.copy(color = AppTheme.colors.heading))
+            Spacer(Modifier.height(14.dp))
         }
-
-        // Timeline milestones
-        itemsIndexed(HISTORY_MILESTONES) { index, milestone ->
-            MilestoneCard(
-                stepNumber = index + 1,
-                milestone = milestone,
-                isLast = index == HISTORY_MILESTONES.size - 1
+        itemsIndexed(CHAPTERS, key = { _, c -> c.era }) { index, chapter ->
+            TimelineEntry(index = index, chapter = chapter, isLast = index == CHAPTERS.lastIndex)
+        }
+        item(key = "council") {
+            Spacer(Modifier.height(10.dp))
+            NavTile(
+                icon = Icons.Default.Groups,
+                title = "Today's leadership",
+                subtitle = "Meet the cabinet and executive council",
+                onClick = { navController.navigate(Screen.ExecutiveCouncilScreen.route) { launchSingleTop = true } }
             )
         }
     }
 }
 
 @Composable
-private fun MilestoneCard(
-    stepNumber: Int,
-    milestone: HistoryMilestone,
-    isLast: Boolean
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .background(AppTheme.colors.primary, CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "$stepNumber",
-                    style = AppTheme.typography.titleSmall,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+private fun TimelineEntry(index: Int, chapter: Chapter, isLast: Boolean) {
+    var expanded by remember { mutableStateOf(index == 0) }
+    val colors = AppTheme.colors
+    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+        // Rail: numbered dot + connecting line.
+        Column(Modifier.width(32.dp).fillMaxHeight(), horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
+            NumberDot("${index + 1}", filled = index == 0 || isLast)
             if (!isLast) {
                 Box(
-                    modifier = Modifier
+                    Modifier
                         .width(2.dp)
-                        .height(120.dp)
-                        .background(AppTheme.colors.border)
+                        .weight(1f)
+                        .background(
+                            Brush.verticalGradient(listOf(colors.primary.copy(alpha = 0.45f), colors.border))
+                        )
                 )
             }
         }
-
-        Card(
-            modifier = Modifier.weight(1f),
-            shape = RoundedCornerShape(14.dp),
-            colors = CardDefaults.cardColors(containerColor = AppTheme.colors.surface),
-            border = BorderStroke(1.dp, AppTheme.colors.border)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f).padding(bottom = if (isLast) 0.dp else 14.dp)) {
+            Text(chapter.era.uppercase(), style = AppTheme.typography.overline, modifier = Modifier.padding(top = 6.dp))
+            Spacer(Modifier.height(6.dp))
+            InfoSurface(onClick = { expanded = !expanded }, padding = 14.dp) {
+                Text(chapter.title, style = AppTheme.typography.titleSmall)
+                Spacer(Modifier.height(6.dp))
                 Text(
-                    text = milestone.era.uppercase(),
-                    style = AppTheme.typography.labelSmall,
-                    color = AppTheme.colors.accent,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.2.sp
+                    chapter.body,
+                    style = AppTheme.typography.bodyMedium.copy(color = colors.body),
+                    maxLines = if (expanded) Int.MAX_VALUE else 3,
+                    overflow = TextOverflow.Ellipsis
                 )
-                Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = milestone.title,
-                    style = AppTheme.typography.titleMedium,
-                    color = AppTheme.colors.onSurface,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = milestone.description,
-                    style = AppTheme.typography.bodyMedium,
-                    color = AppTheme.colors.onSurface.copy(alpha = 0.85f),
-                    lineHeight = 20.sp
+                    if (expanded) "Show less" else "Read more",
+                    style = AppTheme.typography.labelMedium.copy(color = colors.primary, fontWeight = FontWeight.SemiBold),
+                    modifier = Modifier.clip(AppTheme.shapes.small).heightIn(min = 32.dp).padding(top = 8.dp)
                 )
             }
         }
     }
 }
-

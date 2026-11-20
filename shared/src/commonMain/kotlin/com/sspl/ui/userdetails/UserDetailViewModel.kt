@@ -46,7 +46,7 @@ class UserDetailViewModel(
                         it.copy(
                             city = event.cityText,
                             cityError = if (result is ValidationResult.Error) "City can't be empty" else null
-                        ).apply { updateSaveEnabledState() }
+                        )
                     }
                 }
 
@@ -67,7 +67,7 @@ class UserDetailViewModel(
                         it.copy(
                             country = country, showCountryPicker = false,
                             countryError = if (result is ValidationResult.Error) "Country can't be empty" else null
-                        ).apply { updateSaveEnabledState() }
+                        )
                     }
                 }
 
@@ -77,7 +77,7 @@ class UserDetailViewModel(
                         it.copy(
                             designation = event.designationText,
                             designationError = if (result is ValidationResult.Error) "Designation can't be empty" else null
-                        ).apply { updateSaveEnabledState() }
+                        )
                     }
                 }
 
@@ -87,7 +87,7 @@ class UserDetailViewModel(
                         it.copy(
                             institution = event.institutionText,
                             institutionError = if (result is ValidationResult.Error) "Institution can't be empty" else null
-                        ).apply { updateSaveEnabledState() }
+                        )
                     }
                 }
 
@@ -97,7 +97,7 @@ class UserDetailViewModel(
                         it.copy(
                             pmDcNumber = event.pmDcNumberText,
                             pmDcNumberError = if (result is ValidationResult.Error) "PMDC Number can't be empty" else null
-                        ).apply { updateSaveEnabledState() }
+                        )
                     }
                 }
 
@@ -107,18 +107,19 @@ class UserDetailViewModel(
                         it.copy(
                             registrationNumber = event.registrationNumberText,
                             registrationNumberError = if (result is ValidationResult.Error) "Registration number can't be empty" else null
-                        ).apply { updateSaveEnabledState() }
+                        )
                     }
                 }
 
                 UserDetailsUiEvents.OnSave -> {
+                    updateSaveEnabledState()
                     if (_uiState.value.isSaveEnabled && !_uiState.value.isLoading) {
                         postUserDetailsUseCase(
                             pmdcNo = _uiState.value.pmDcNumber.orEmpty(),
                             instituteName = _uiState.value.institution,
                             country = _uiState.value.country,
                             designation = _uiState.value.designation,
-                            registrationNo = _uiState.value.registrationNumber
+                            registrationNo = _uiState.value.registrationNumber.takeIf { it.isNotBlank() }
                         ).collect { state ->
                             _uiState.update { it.copy(isLoading = state is ApiStates.Loading) }
                             _networkState.emit(state)
@@ -126,24 +127,21 @@ class UserDetailViewModel(
                     }
                 }
             }
+            updateSaveEnabledState()
         }
     }
 
-    // Helper function to update the save button enabled state based on field validation
+    /**
+     * Save is enabled when institution + country are filled. (Registration number used to be
+     * required here too, but this screen never showed that field, so "Complete profile" could
+     * never be enabled. PMDC / designation / registration number are optional.)
+     */
     private fun updateSaveEnabledState() {
-        _uiState.update { currentState ->
-            currentState.copy(
-                isSaveEnabled = listOf(
-                    currentState.institution,
-//                currentState.city,
-                    currentState.country,
-                    currentState.registrationNumber
-                ).all { field -> field.isNotEmpty() } && listOf(
-                    currentState.institutionError,
-//                currentState.cityError,
-                    currentState.countryError,
-                    currentState.registrationNumberError,
-                ).all { error -> error == null })
+        _uiState.update { s ->
+            s.copy(
+                isSaveEnabled = s.institution.isNotBlank() && s.country.isNotBlank() &&
+                        s.institutionError == null && s.countryError == null
+            )
         }
     }
 }

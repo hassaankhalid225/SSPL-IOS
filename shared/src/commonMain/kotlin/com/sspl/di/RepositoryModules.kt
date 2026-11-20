@@ -43,7 +43,7 @@ internal val repositoryModules = module {
     
     // Public / CMS
     factoryOf(::PublicRepository)
-    factoryOf(::EventRepository)
+    singleOf(::EventRepository) // singleton: holds the events cache
     factoryOf(::PortalRepository)
     factoryOf(::FellowshipRepository)
 }

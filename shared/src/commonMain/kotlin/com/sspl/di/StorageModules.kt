@@ -1,5 +1,6 @@
 package com.sspl.di
 
+import com.sspl.designsystem.theme.ThemePreferences
 import com.sspl.session.UserSession
 import org.koin.dsl.module
 
@@ -12,4 +13,5 @@ import org.koin.dsl.module
 
 internal val storageModules = module {
     single { UserSession(get()) }
+    single { ThemePreferences(get()) }
 }

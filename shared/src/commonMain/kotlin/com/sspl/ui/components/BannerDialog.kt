@@ -1,46 +1,57 @@
 package com.sspl.ui.components
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
-import coil3.compose.SubcomposeAsyncImage
+import coil3.compose.AsyncImage
 import com.sspl.core.models.Banner
+import com.sspl.designsystem.components.GlassIconButton
+import com.sspl.designsystem.components.PrimaryButton
+import com.sspl.designsystem.components.shimmer
+import com.sspl.designsystem.theme.AppTheme
 
 /**
- * Banner Dialog that displays banners in a horizontal pager
- * Shows when the app opens if there are active banners
+ * Welcome pop-up banner (shown by App.kt when a WELCOME banner is active).
+ * Behaviour unchanged: same banners, same URL rule (`baseUrl` + `/` if missing + `image_url`),
+ * dismiss via close / button / swipe. Visuals: elevated sheet card, skeleton while the image loads,
+ * branded fallback if it fails.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,7 +62,7 @@ fun BannerDialog(
     modifier: Modifier = Modifier
 ) {
     if (banners.isEmpty()) {
-        onDismiss()
+        LaunchedEffect(Unit) { onDismiss() }
         return
     }
 
@@ -63,198 +74,97 @@ fun BannerDialog(
         containerColor = Color.Transparent,
         dragHandle = null
     ) {
-        Card(
+        Column(
             modifier = modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                .navigationBarsPadding()
+                .padding(16.dp)
+                .clip(AppTheme.shapes.card)
+                .background(AppTheme.colors.surfaceElevated)
+                .animateContentSize()
         ) {
             Box {
-                // Close button
-                IconButton(
-                    onClick = onDismiss,
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(8.dp)
-                        .size(32.dp)
-                        .background(
-                            color = Color.Black.copy(alpha = 0.5f),
-                            shape = CircleShape
-                        )
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Close",
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-
-                // Banner content
                 if (banners.size == 1) {
-                    // Single banner - no pager needed
-                    BannerItem(
-                        banner = banners[0],
-                        baseUrl = baseUrl,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    BannerItem(banner = banners[0], baseUrl = baseUrl)
                 } else {
-                    // Multiple banners - use horizontal pager
-                    BannerPager(
-                        banners = banners,
-                        baseUrl = baseUrl,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    BannerPager(banners = banners, baseUrl = baseUrl)
+                }
+                // Close sits on the image (white on a glass chip is allowed on image surfaces).
+                Box(Modifier.align(Alignment.TopEnd).padding(10.dp)) {
+                    GlassIconButton(Icons.Default.Close, "Close", onDismiss)
                 }
             }
+            PrimaryButton(
+                text = "Continue to app",
+                onClick = onDismiss,
+                modifier = Modifier.fillMaxWidth().padding(16.dp)
+            )
         }
     }
 }
 
 @Composable
-private fun BannerPager(
-    banners: List<Banner>,
-    baseUrl: String,
-    modifier: Modifier = Modifier
-) {
+private fun BannerPager(banners: List<Banner>, baseUrl: String) {
     val pagerState = rememberPagerState(pageCount = { banners.size })
-
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(vertical = 16.dp)
-        ) { page ->
-            BannerItem(
-                banner = banners[page],
-                baseUrl = baseUrl,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            )
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        HorizontalPager(state = pagerState, contentPadding = PaddingValues(0.dp)) { page ->
+            BannerItem(banner = banners[page], baseUrl = baseUrl)
         }
-
-        // Page indicator
-        if (banners.size > 1) {
-            PageIndicator(
-                pageCount = banners.size,
-                currentPage = pagerState.currentPage,
-                modifier = Modifier.padding(vertical = 16.dp)
-            )
+        Spacer(Modifier.height(10.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            repeat(banners.size) { index ->
+                val selected = index == pagerState.currentPage
+                Box(
+                    Modifier
+                        .height(6.dp)
+                        .width(if (selected) 18.dp else 6.dp)
+                        .clip(AppTheme.shapes.chip)
+                        .background(if (selected) AppTheme.colors.primary else AppTheme.colors.border)
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun BannerItem(
-    banner: Banner,
-    baseUrl: String,
-    modifier: Modifier = Modifier
-) {
-    val fullImageUrl = if (banner.imageUrl.startsWith("/")) {
-        "$baseUrl${banner.imageUrl}"
-    } else {
-        "$baseUrl/${banner.imageUrl}"
-    }
+private fun BannerItem(banner: Banner, baseUrl: String) {
+    // Frozen URL rule for banners.
+    val fullImageUrl = if (banner.imageUrl.startsWith("/")) "$baseUrl${banner.imageUrl}" else "$baseUrl/${banner.imageUrl}"
+    var state by remember(fullImageUrl) { mutableStateOf(0) } // 0 loading, 1 ok, 2 failed
 
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Banner image
-        SubcomposeAsyncImage(
-            model = fullImageUrl,
-            contentDescription = banner.title ?: "Banner",
-            modifier = Modifier
+    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp)),
-            contentScale = ContentScale.FillWidth,
-            loading = {
+                .then(if (state != 1) Modifier.aspectRatio(4f / 5f) else Modifier),
+            contentAlignment = Alignment.Center
+        ) {
+            if (state != 2) {
+                AsyncImage(
+                    model = fullImageUrl,
+                    contentDescription = banner.title ?: "Welcome banner",
+                    contentScale = ContentScale.FillWidth,
+                    modifier = Modifier.fillMaxWidth(),
+                    onSuccess = { state = 1 },
+                    onError = { state = 2 }
+                )
+            }
+            if (state == 0) Box(Modifier.fillMaxSize().shimmer(RectangleShape))
+            if (state == 2) {
                 Box(
-                    modifier = Modifier.fillMaxSize(),
+                    Modifier.fillMaxSize().background(AppTheme.colors.headerGradient),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(40.dp),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            },
-            error = {
-                val errorState = painter.state as? coil3.compose.AsyncImagePainter.State.Error
-                val errorMessage = errorState?.result?.throwable?.message ?: "Unknown error"
-                
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.errorContainer)
-                        .padding(8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = "Failed to load banner",
-                            color = MaterialTheme.colorScheme.onErrorContainer,
-                            style = MaterialTheme.typography.titleSmall,
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            text = errorMessage,
-                            color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f),
-                            style = MaterialTheme.typography.bodySmall,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
-                    }
+                    Icon(Icons.Default.Image, contentDescription = null, tint = Color.White.copy(alpha = 0.55f), modifier = Modifier.size(44.dp))
                 }
             }
-        )
-
-        // Banner title (if available)
-        if (banner.title != null) {
+        }
+        if (!banner.title.isNullOrBlank()) {
             Text(
                 text = banner.title,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
+                style = AppTheme.typography.titleMedium.copy(color = AppTheme.colors.heading),
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 12.dp, bottom = 8.dp)
-            )
-        }
-    }
-}
-
-@Composable
-private fun PageIndicator(
-    pageCount: Int,
-    currentPage: Int,
-    modifier: Modifier = Modifier
-) {
-    androidx.compose.foundation.layout.Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        repeat(pageCount) { index ->
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .clip(CircleShape)
-                    .background(
-                        if (index == currentPage) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-                        }
-                    )
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp)
             )
         }
     }

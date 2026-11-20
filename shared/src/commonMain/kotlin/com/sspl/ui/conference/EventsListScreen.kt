@@ -1,10 +1,8 @@
 package com.sspl.ui.conference
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,490 +11,235 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.HowToReg
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Surface
+import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.SearchOff
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import coil3.compose.AsyncImage
 import com.sspl.Screen
-import com.sspl.core.models.EventItem
-import com.sspl.designsystem.components.BadgeVariant
-import com.sspl.designsystem.components.ModernCapsuleSearchBar
-import com.sspl.designsystem.components.SsplBadge
-import com.sspl.designsystem.components.SsplCard
-import com.sspl.designsystem.components.SsplPrimaryButton
-import com.sspl.designsystem.components.SsplSecondaryButton
-import com.sspl.designsystem.tokens.SsplColorTokens
-import com.sspl.designsystem.tokens.SsplSpacingTokens
-import com.sspl.designsystem.tokens.SsplTypographyTokens
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import com.sspl.designsystem.components.ChipRow
+import com.sspl.designsystem.components.EmptyState
+import com.sspl.designsystem.components.ErrorState
+import com.sspl.designsystem.components.GlassPill
+import com.sspl.designsystem.components.GradientHeroCard
+import com.sspl.designsystem.components.HeroStat
+import com.sspl.designsystem.components.IconTile
+import com.sspl.designsystem.components.ListRowCard
+import com.sspl.designsystem.components.SearchBar
+import com.sspl.designsystem.components.SegmentedTabs
+import com.sspl.designsystem.components.SkeletonList
+import com.sspl.designsystem.components.SkeletonVariant
+import com.sspl.designsystem.components.SsplRefreshBox
+import com.sspl.designsystem.theme.AppTheme
+import com.sspl.ui.conference.components.EventMediaRow
+import com.sspl.ui.conference.components.FeaturedEventCard
 import org.koin.compose.viewmodel.koinViewModel
 
+/** Events tab (C1): all /external/events, filtered locally by status, category and search. */
 @Composable
 fun EventsListScreen(
     navController: NavController,
     viewModel: EventsListViewModel = koinViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(SsplColorTokens.background)
-    ) {
-        // Search & Filter header
-        EventsHeader(
-            searchQuery = uiState.searchQuery,
-            onSearchChange = viewModel::setSearchQuery,
-            selectedCategory = uiState.selectedCategory,
-            onCategoryChange = viewModel::setCategory,
-            selectedStatusTab = uiState.selectedStatusTab,
-            onStatusTabChange = viewModel::setStatusTab,
-            ongoingCount = uiState.ongoingCount,
-            upcomingCount = uiState.upcomingCount,
-            pastCount = uiState.pastCount
-        )
-
-        // Content
-        if (uiState.isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = SsplColorTokens.primary)
-            }
-        } else if (uiState.filteredEvents.isEmpty()) {
-            EmptyEventsView(
-                searchQuery = uiState.searchQuery,
-                onViewAll = {
-                    viewModel.setStatusTab("upcoming")
-                    viewModel.setCategory("ALL")
-                    viewModel.setSearchQuery("")
-                }
-            )
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(SsplSpacingTokens.md),
-                verticalArrangement = Arrangement.spacedBy(SsplSpacingTokens.md)
-            ) {
-                items(uiState.filteredEvents, key = { it.effectiveId }) { event ->
-                    EventCardItem(
-                        event = event,
-                        onViewDetails = {
-                            navController.currentBackStackEntry?.savedStateHandle?.set("eventId", event.effectiveId)
-                            navController.currentBackStackEntry?.savedStateHandle?.set("eventJson", Json.encodeToString(event))
-                            navController.navigate(Screen.EventDetailScreen.route)
-                        },
-                        onRegister = {
-                            navController.currentBackStackEntry?.savedStateHandle?.set("eventId", event.effectiveId)
-                            navController.currentBackStackEntry?.savedStateHandle?.set("eventJson", Json.encodeToString(event))
-                            navController.navigate(Screen.EventRegistrationScreen.route)
-                        }
-                    )
-                }
-            }
-        }
-    }
+    EventsBrowser(navController = navController, viewModel = viewModel, scope = EventScope.ALL)
 }
 
+/** Navigate to event detail passing ONLY the id (never the event JSON: it embeds multi-MB base64). */
+internal fun NavController.openEventDetail(eventId: Long) {
+    currentBackStackEntry?.savedStateHandle?.set("eventId", eventId)
+    navigate(Screen.EventDetailScreen.route) { launchSingleTop = true }
+}
+
+internal data class EventsIntro(
+    val eyebrow: String,
+    val title: String,
+    val summary: String,
+    val icon: ImageVector
+)
+
+/**
+ * Shared list body for Events / Conferences / Workshops.
+ *
+ * Scroll stability:
+ *  - one LazyColumn, no nested vertical scroll containers;
+ *  - stable keys (event id) on every item; featured card keyed separately;
+ *  - fixed aspect ratios on all images (no height change when the bitmap arrives);
+ *  - when filters change and the user had scrolled into the list, we scroll back to the
+ *    tabs header explicitly instead of letting key-anchoring jump to wherever the
+ *    previous first-visible event moved to.
+ */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun EventsHeader(
-    searchQuery: String,
-    onSearchChange: (String) -> Unit,
-    selectedCategory: String,
-    onCategoryChange: (String) -> Unit,
-    selectedStatusTab: String,
-    onStatusTabChange: (String) -> Unit,
-    ongoingCount: Int,
-    upcomingCount: Int,
-    pastCount: Int
+internal fun EventsBrowser(
+    navController: NavController,
+    viewModel: EventsListViewModel,
+    scope: EventScope,
+    intro: EventsIntro? = null
 ) {
-    Surface(
-        color = SsplColorTokens.surface,
-        shadowElevation = 2.dp,
-        modifier = Modifier.fillMaxWidth()
+    LaunchedEffect(scope) { viewModel.setScope(scope) }
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val listState = rememberLazyListState()
+    val tabsIndex = if (intro != null) 2 else 1
+
+    LaunchedEffect(state.tab, state.category) {
+        if (listState.firstVisibleItemIndex > tabsIndex) listState.scrollToItem(tabsIndex)
+    }
+
+    SsplRefreshBox(
+        isRefreshing = state.isRefreshing,
+        onRefresh = viewModel::refresh,
+        modifier = Modifier.fillMaxSize()
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = SsplSpacingTokens.md, vertical = SsplSpacingTokens.sm)
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 28.dp)
         ) {
-            // Modern Capsule Search Bar
-            ModernCapsuleSearchBar(
-                query = searchQuery,
-                onQueryChange = onSearchChange,
-                placeholder = "Search events by title or venue...",
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(SsplSpacingTokens.sm))
-
-            // Category Filter Pills
-            val categories = listOf(
-                "ALL" to "All Events",
-                "CONFERENCE" to "Conferences",
-                "WORKSHOP" to "Workshops",
-                "MONTHLY_MEETING" to "Monthly Meetings",
-                "SEMINAR" to "CME & Seminars"
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(SsplSpacingTokens.xs)
-            ) {
-                categories.forEach { (key, label) ->
-                    val isSelected = selectedCategory == key
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(50.dp))
-                            .background(
-                                if (isSelected) SsplColorTokens.primaryDark else SsplColorTokens.boxColor
-                            )
-                            .clickable { onCategoryChange(key) }
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                    ) {
-                        Text(
-                            text = label,
-                            style = SsplTypographyTokens.bodySmall.copy(
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                color = if (isSelected) Color.White else SsplColorTokens.textPrimary
-                            )
-                        )
+            if (intro != null) {
+                item(key = "intro", contentType = "intro") {
+                    IntroHero(intro, state)
+                }
+            }
+            item(key = "search", contentType = "search") {
+              Column {
+                Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp)) {
+                    SearchBar(
+                        query = state.query,
+                        onQueryChange = viewModel::setSearchQuery,
+                        placeholder = "Search by title, venue or type",
+                        onClear = { viewModel.setSearchQuery("") }
+                    )
+                    if (scope == EventScope.ALL) {
+                        Spacer(Modifier.height(10.dp))
                     }
                 }
-            }
-
-            Spacer(modifier = Modifier.height(SsplSpacingTokens.sm))
-
-            // Status Tabs (Ongoing, Upcoming, Past)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(50.dp))
-                    .background(SsplColorTokens.boxColor)
-                    .padding(4.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                StatusTabButton(
-                    label = "Ongoing",
-                    count = ongoingCount,
-                    isSelected = selectedStatusTab == "ongoing",
-                    onClick = { onStatusTabChange("ongoing") },
-                    modifier = Modifier.weight(1f)
-                )
-                StatusTabButton(
-                    label = "Upcoming",
-                    count = upcomingCount,
-                    isSelected = selectedStatusTab == "upcoming",
-                    onClick = { onStatusTabChange("upcoming") },
-                    modifier = Modifier.weight(1f)
-                )
-                StatusTabButton(
-                    label = "Past",
-                    count = pastCount,
-                    isSelected = selectedStatusTab == "past",
-                    onClick = { onStatusTabChange("past") },
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun StatusTabButton(
-    label: String,
-    count: Int,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(50.dp))
-            .background(if (isSelected) SsplColorTokens.primaryDark else Color.Transparent)
-            .clickable(onClick = onClick)
-            .padding(vertical = 8.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = label,
-                style = SsplTypographyTokens.bodySmall.copy(
-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                    color = if (isSelected) Color.White else SsplColorTokens.textSecondary
-                )
-            )
-            Spacer(modifier = Modifier.width(6.dp))
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(50.dp))
-                    .background(
-                        if (isSelected) Color.White.copy(alpha = 0.25f)
-                        else SsplColorTokens.muted.copy(alpha = 0.15f)
+                if (scope == EventScope.ALL) {
+                    ChipRow(
+                        options = EventCategory.entries.map { it.label },
+                        selected = state.category.label,
+                        onSelect = { label -> EventCategory.entries.firstOrNull { it.label == label }?.let(viewModel::setCategory) }
                     )
-                    .padding(horizontal = 6.dp, vertical = 2.dp)
-            ) {
-                Text(
-                    text = count.toString(),
-                    style = TextStyle(
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (isSelected) Color.White else SsplColorTokens.muted
-                    )
-                )
+                }
+              }
             }
-        }
-    }
-}
-
-private typealias TextStyle = androidx.compose.ui.text.TextStyle
-
-@Composable
-fun EventCardItem(
-    event: EventItem,
-    onViewDetails: () -> Unit,
-    onRegister: () -> Unit
-) {
-    SsplCard(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = onViewDetails
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            // Optional preview banner image
-            if (!event.effectiveImage.isNullOrBlank()) {
-                AsyncImage(
-                    model = event.effectiveImage,
-                    contentDescription = event.title,
-                    modifier = Modifier
+            stickyHeader(key = "tabs", contentType = "tabs") {
+                Column(
+                    Modifier
                         .fillMaxWidth()
-                        .height(140.dp)
-                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
-                    contentScale = ContentScale.Crop
-                )
-            }
-
-            Column(modifier = Modifier.padding(SsplSpacingTokens.md)) {
-                // Top row: Date Badge + Badges & Title
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(SsplSpacingTokens.sm)
+                        .background(AppTheme.colors.background)
+                        .padding(horizontal = 16.dp, vertical = 10.dp)
                 ) {
-                    // Date Badge
-                    DateBadge(
-                        month = event.startMonthName,
-                        day = event.startDayNumber,
-                        year = event.startYear
-                    )
-
-                    // Details Column
-                    Column(modifier = Modifier.weight(1f)) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            // Status Badge
-                            val statusVariant = when (event.computedStatus) {
-                                "ongoing" -> BadgeVariant.ERROR
-                                "upcoming" -> BadgeVariant.SUCCESS
-                                else -> BadgeVariant.NEUTRAL
-                            }
-                            SsplBadge(
-                                text = event.computedStatus.uppercase(),
-                                variant = statusVariant
-                            )
-
-                            // Type Badge
-                            SsplBadge(
-                                text = event.readableType,
-                                variant = BadgeVariant.PRIMARY
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        // Title
-                        Text(
-                            text = event.title,
-                            style = SsplTypographyTokens.headlineSmall.copy(fontSize = 17.sp),
-                            color = SsplColorTokens.textPrimary,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(SsplSpacingTokens.sm))
-
-                // Description
-                Text(
-                    text = event.effectiveDescription,
-                    style = SsplTypographyTokens.bodySmall.copy(color = SsplColorTokens.textSecondary),
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                Spacer(modifier = Modifier.height(SsplSpacingTokens.sm))
-
-                // Venue
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.LocationOn,
-                        contentDescription = "Venue",
-                        modifier = Modifier.size(16.dp),
-                        tint = SsplColorTokens.accent
-                    )
-                    Text(
-                        text = event.effectiveVenue,
-                        style = SsplTypographyTokens.caption.copy(color = SsplColorTokens.textSecondary),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-
-                // Timing
-                if (event.formattedTimeRange.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Schedule,
-                            contentDescription = "Time",
-                            modifier = Modifier.size(16.dp),
-                            tint = SsplColorTokens.accent
-                        )
-                        Text(
-                            text = event.formattedTimeRange,
-                            style = SsplTypographyTokens.caption.copy(color = SsplColorTokens.textSecondary)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(SsplSpacingTokens.md))
-
-                // Action Buttons
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(SsplSpacingTokens.sm)
-                ) {
-                    if (event.isRegistrationAllowed) {
-                        SsplSecondaryButton(
-                            text = "Register",
-                            onClick = onRegister,
-                            modifier = Modifier.weight(1f),
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.HowToReg,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                        )
-                    }
-
-                    SsplPrimaryButton(
-                        text = "View Details",
-                        onClick = onViewDetails,
-                        modifier = Modifier.weight(1f),
-                        trailingIcon = {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
+                    SegmentedTabs(
+                        options = EventStatusTab.entries.map { it.label },
+                        selectedIndex = state.tab.ordinal,
+                        onSelect = { viewModel.setStatusTab(EventStatusTab.entries[it]) },
+                        counts = if (state.hasData) state.counts else null
                     )
                 }
             }
-        }
-    }
-}
 
-@Composable
-fun DateBadge(
-    month: String,
-    day: String,
-    year: String
-) {
-    Box(
-        modifier = Modifier
-            .size(68.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(SsplColorTokens.surface)
-            .padding(2.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = month,
-                style = SsplTypographyTokens.caption.copy(
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = SsplColorTokens.primary
-                )
-            )
-            Text(
-                text = day,
-                style = SsplTypographyTokens.headlineSmall.copy(
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = SsplColorTokens.textPrimary
-                )
-            )
-            if (year.isNotBlank()) {
-                Text(
-                    text = year,
-                    style = SsplTypographyTokens.caption.copy(
-                        fontSize = 9.sp,
-                        color = SsplColorTokens.muted
+            when {
+                state.isLoading && !state.hasData -> item(key = "skeleton", contentType = "skeleton") {
+                    SkeletonList(count = 3, variant = SkeletonVariant.MEDIA)
+                }
+
+                state.errorMessage != null && !state.hasData -> item(key = "error", contentType = "state") {
+                    ErrorState(
+                        title = "Events didn't load",
+                        message = state.errorMessage ?: "",
+                        onRetry = viewModel::retry,
+                        modifier = Modifier.padding(top = 24.dp)
                     )
+                }
+
+                state.visible.isEmpty() -> item(key = "empty", contentType = "state") {
+                    val filtered = state.query.isNotBlank() || state.category != EventCategory.ALL
+                    EmptyState(
+                        title = when {
+                            filtered -> "No matching events"
+                            state.tab == EventStatusTab.ONGOING -> "Nothing happening right now"
+                            state.tab == EventStatusTab.PAST -> "No past events yet"
+                            else -> "No upcoming events yet"
+                        },
+                        message = if (filtered) "Try a different search or category."
+                        else "New CME events, workshops and meetings are announced here first.",
+                        icon = if (filtered) Icons.Default.SearchOff else Icons.Default.CalendarMonth,
+                        actionText = if (filtered) "Clear filters" else if (state.tab != EventStatusTab.PAST) "See past events" else null,
+                        onActionClick = {
+                            if (filtered) viewModel.clearFilters() else viewModel.setStatusTab(EventStatusTab.PAST)
+                        },
+                        modifier = Modifier.padding(top = 24.dp)
+                    )
+                }
+
+                else -> {
+                    if (state.errorMessage != null) {
+                        item(key = "staleBanner", contentType = "banner") {
+                            ListRowCard(
+                                title = "Showing saved events",
+                                subtitle = "We couldn't refresh just now. Pull down to try again.",
+                                leading = {
+                                    IconTile(
+                                        Icons.Default.WifiOff,
+                                        tint = AppTheme.colors.warning,
+                                        background = AppTheme.colors.warningContainer
+                                    )
+                                },
+                                onClick = viewModel::retry,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+                    val first = state.visible.first()
+                    item(key = "featured_${first.id}", contentType = "featured") {
+                        FeaturedEventCard(
+                            event = first,
+                            onClick = { navController.openEventDetail(first.id) },
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                        )
+                    }
+                    val rest = state.visible.drop(1)
+                    if (rest.isNotEmpty()) {
+                        item(key = "moreHeader", contentType = "header") {
+                            Text(
+                                text = "More ${state.tab.label.lowercase()} · ${rest.size}",
+                                style = AppTheme.typography.overline,
+                                modifier = Modifier.padding(start = 20.dp, end = 16.dp, top = 14.dp, bottom = 4.dp)
+                            )
+                        }
+                    }
+                    items(rest, key = { "event_${it.id}" }, contentType = { "row" }) { e ->
+                        EventMediaRow(
+                            event = e,
+                            onClick = { navController.openEventDetail(e.id) },
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                        )
+                    }
+                }
+            }
+
+            item(key = "archive", contentType = "footer") {
+                ListRowCard(
+                    title = "Event archive",
+                    subtitle = "Slides, posters and abstract books from past meetings",
+                    leading = { IconTile(Icons.Default.History) },
+                    onClick = { navController.navigate(Screen.EventArchiveScreen.route) { launchSingleTop = true } },
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 18.dp)
                 )
             }
         }
@@ -504,44 +247,34 @@ fun DateBadge(
 }
 
 @Composable
-private fun EmptyEventsView(
-    searchQuery: String,
-    onViewAll: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(SsplSpacingTokens.xl),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            imageVector = Icons.Default.CalendarMonth,
-            contentDescription = null,
-            modifier = Modifier.size(64.dp),
-            tint = SsplColorTokens.muted
-        )
-        Spacer(modifier = Modifier.height(SsplSpacingTokens.md))
-        Text(
-            text = "No Events Found",
-            style = SsplTypographyTokens.headlineSmall,
-            color = SsplColorTokens.textPrimary
-        )
-        Spacer(modifier = Modifier.height(SsplSpacingTokens.xs))
-        Text(
-            text = if (searchQuery.isNotBlank()) {
-                "No events matched your search: \"$searchQuery\"."
-            } else {
-                "There are no events listed under this category at the moment. Please check back later."
-            },
-            style = SsplTypographyTokens.bodySmall.copy(color = SsplColorTokens.textSecondary),
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(SsplSpacingTokens.lg))
-        SsplPrimaryButton(
-            text = "View All Upcoming Events",
-            onClick = onViewAll
-        )
+private fun IntroHero(intro: EventsIntro, state: EventsUiState) {
+    GradientHeroCard(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp)) {
+        GlassPill(intro.eyebrow, icon = intro.icon)
+        Spacer(Modifier.height(10.dp))
+        Text(intro.title, style = AppTheme.typography.headlineSmall.copy(color = Color.White))
+        Spacer(Modifier.height(4.dp))
+        Text(intro.summary, style = AppTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.78f)))
+        if (state.hasData) {
+            Spacer(Modifier.height(14.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Bottom) {
+                EventStatusTab.entries.forEachIndexed { i, t ->
+                    HeroStat("${state.counts.getOrElse(i) { 0 }}", t.label, Modifier.weight(1f))
+                }
+            }
+        }
     }
 }
 
+internal val ConferencesIntro = EventsIntro(
+    eyebrow = "ANNUAL EVENTS",
+    title = "Conferences & scientific programmes",
+    summary = "Register here, then use the Event Portal for sessions, attendance, feedback and certificates.",
+    icon = Icons.Default.Event
+)
+
+internal val WorkshopsIntro = EventsIntro(
+    eyebrow = "PRE-EVENT WORKSHOPS",
+    title = "Hands-on workshops",
+    summary = "Workshops have their own registration. Attendance and certificates follow the member portal flow.",
+    icon = Icons.Default.Event
+)

@@ -1,49 +1,56 @@
 package com.sspl.ui.components
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.sspl.designsystem.components.PrimaryButton
+import com.sspl.designsystem.theme.AppTheme
+
+/*
+ * Legacy button API kept for existing callers; visuals now come from the design system
+ * (gradient PrimaryButton, LoadingDots instead of a spinner, theme colours for disabled state).
+ */
 
 @Composable
-fun AppRoundedCornerButton(modifier: Modifier = Modifier,title:String,isEnabled:Boolean=true,onClick:()->Unit) {
-    Button(
+fun AppRoundedCornerButton(modifier: Modifier = Modifier, title: String, isEnabled: Boolean = true, onClick: () -> Unit) {
+    PrimaryButton(
+        text = title,
         onClick = onClick,
-        enabled =isEnabled ,
-        shape = RoundedCornerShape(16), colors = ButtonDefaults.buttonColors(
-            disabledContainerColor = Color.LightGray.copy(0.7f),
-        ),
+        enabled = isEnabled,
         modifier = modifier.fillMaxWidth().padding(horizontal = 10.dp)
-    ) {
-        AppTextLabel(
-            title, color = if(isEnabled) Color.White else Color.DarkGray
-        )
-    }
+    )
 }
+
 @Composable
-fun AppRoundedCornerButton(modifier: Modifier = Modifier,onClick:()->Unit,isEnabled:Boolean=true,content: @Composable RowScope.() -> Unit) {
+fun AppRoundedCornerButton(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+    isEnabled: Boolean = true,
+    content: @Composable RowScope.() -> Unit
+) {
+    val colors = AppTheme.colors
     Button(
         onClick = onClick,
-        enabled = isEnabled, colors = ButtonDefaults.buttonColors(
-            disabledContainerColor = Color.LightGray.copy(0.7f),
+        enabled = isEnabled,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = colors.primary,
+            contentColor = colors.onPrimary,
+            disabledContainerColor = colors.boxColor,
+            disabledContentColor = colors.muted
         ),
-        shape = RoundedCornerShape(16),
-        modifier = modifier.fillMaxWidth().padding(horizontal = 10.dp)
+        shape = AppTheme.shapes.button,
+        modifier = modifier.fillMaxWidth().heightIn(min = 48.dp).padding(horizontal = 10.dp)
     ) {
-        content()
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, content = content)
     }
 }
 
@@ -52,35 +59,14 @@ fun ButtonWithProgress(
     isEnabled: Boolean,
     isLoading: Boolean,
     buttonText: String,
-    modifier: Modifier=Modifier,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    AppRoundedCornerButton(
-        onClick = { onClick() },
-        isEnabled = isEnabled,
-        modifier = modifier
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            AppTextLabel(
-                text = buttonText,
-                color = if (isEnabled) Color.White else Color.DarkGray
-            )
-
-            // Use AnimatedVisibility for the CircularProgressIndicator
-            AnimatedVisibility(visible = isLoading) {
-                Row {
-                    Spacer(Modifier.size(8.dp))
-                    CircularProgressIndicator(
-                        color = Color.White,
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp
-                    )
-                }
-            }
-        }
-    }
+    PrimaryButton(
+        text = buttonText,
+        onClick = onClick,
+        enabled = isEnabled,
+        loading = isLoading,
+        modifier = modifier.fillMaxWidth().padding(horizontal = 10.dp)
+    )
 }

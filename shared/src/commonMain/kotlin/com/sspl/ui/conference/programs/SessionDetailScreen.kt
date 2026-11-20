@@ -1,131 +1,120 @@
 package com.sspl.ui.conference.programs
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.EventBusy
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.sspl.core.models.Breakdown
 import com.sspl.core.models.Session
-import com.sspl.theme.boxColor
-import com.sspl.theme.columnColor
-import com.sspl.theme.orange
-import com.sspl.ui.components.AppTextBody
-import com.sspl.ui.components.AppTextLabel
-import com.sspl.ui.components.AppTextSubTitle
-import com.sspl.ui.components.ConferenceAddsOn
+import com.sspl.designsystem.components.EmptyState
+import com.sspl.designsystem.components.ExpandableText
+import com.sspl.designsystem.components.FactRow
+import com.sspl.designsystem.components.GlassPill
+import com.sspl.designsystem.components.GradientHeroCard
+import com.sspl.designsystem.components.OutlineButton
+import com.sspl.designsystem.components.SsplCard
+import com.sspl.designsystem.theme.AppTheme
+import com.sspl.platform.shared.UrlOpener
 import com.sspl.ui.components.SessionBreakDown
-import com.sspl.utils.DASH
-import com.sspl.utils.FORMAT_TIME_12HOUR
-import com.sspl.utils.getJoinedDateTime
+import com.sspl.ui.conference.components.AddOnSetsList
+import com.sspl.ui.conference.components.safeTime
+import com.sspl.utils.DisplayDates
 import kotlinx.serialization.json.Json
+import org.koin.compose.koinInject
 
-/**
- * Created by M Imran
- * Senior Software Engineer at
- * BhimSoft on 05/01/2025.
- * se.muhammadimran@gmail.com
- */
-
+/** C6: Session detail (scientific programme). Receives the small Session JSON as `data`. */
 @Composable
 fun SessionDetailScreen(
-    navController: NavController
+    navController: NavController,
+    urlOpener: UrlOpener = koinInject()
 ) {
-    val data = navController.previousBackStackEntry?.savedStateHandle?.get<String>("data")
-    if (data == null) return
-    val session: Session = Json.decodeFromString<Session>(data)
+    val session: Session? = remember {
+        navController.previousBackStackEntry?.savedStateHandle?.get<String>("data")?.let {
+            runCatching { Json { ignoreUnknownKeys = true; coerceInputValues = true }.decodeFromString<Session>(it) }.getOrNull()
+        }
+    }
+    if (session == null) {
+        EmptyState(
+            title = "Session unavailable",
+            message = "Open the session again from the event schedule.",
+            icon = Icons.Default.EventBusy,
+            modifier = Modifier.fillMaxSize()
+        )
+        return
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(all = 12.dp)
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item {
-            HeaderDetail(session)
-        }
-        item {
-            Breakdown(session.breakdown)
-        }
-    }
-}
-
-@Composable
-private fun HeaderDetail(
-    session: Session
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(
-                shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp)
-            )
-            .background(columnColor)
-            .padding(all = 12.dp)
-    ) {
-        AppTextSubTitle(
-            text = session.title.trim()
-        )
-
-        if (!session.summary.isNullOrEmpty()) {
-            AppTextBody(
-                text = session.summary.orEmpty().trim()
-            )
-        }
-        Spacer(modifier = Modifier.size(4.dp))
-
-        val startAt = session.startsAt
-        val endAt = session.endsAt
-        val time = getJoinedDateTime(
-            startAt.orEmpty(),
-            endAt.orEmpty(),
-            outFormat = FORMAT_TIME_12HOUR,
-            divider = DASH
-        )
-        AppTextLabel(
-            text = time,
-            color = MaterialTheme.colorScheme.tertiary,
-        )
-        Spacer(modifier = Modifier.size(8.dp))
-        session.venue?.let { venue ->
-            venue.title?.let {
-                AppTextBody(text = venue.title.trim())
+        item(key = "hero") {
+            GradientHeroCard {
+                GlassPill(if (session.isBreak) "BREAK" else "SESSION")
+                Spacer(Modifier.height(10.dp))
+                Text(session.title.trim(), style = AppTheme.typography.headlineSmall.copy(color = Color.White))
             }
-            venue.address?.let {
-                AppTextBody(text = venue.address.trim())
+        }
+        item(key = "facts") {
+            SsplCard {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    DisplayDates.medium(session.startsAt).takeIf { it.isNotBlank() }?.let {
+                        FactRow(Icons.Default.CalendarMonth, "Date", "${DisplayDates.weekdayShort(session.startsAt)}, $it")
+                    }
+                    val time = listOf(safeTime(session.startsAt), safeTime(session.endsAt)).filter { it.isNotBlank() }.joinToString(" – ")
+                    if (time.isNotBlank()) FactRow(Icons.Default.Schedule, "Time", time)
+                    val venue = listOfNotNull(session.venue?.title ?: session.venue?.name, session.venue?.address)
+                        .filter { it.isNotBlank() }.joinToString(", ")
+                    if (venue.isNotBlank()) FactRow(Icons.Default.Place, "Venue", venue)
+                }
             }
-            Spacer(modifier = Modifier.size(8.dp))
         }
-        if (!session.addOnSets.isNullOrEmpty()) {
-            Spacer(modifier = Modifier.size(4.dp))
-            ConferenceAddsOn(session.addOnSets)
+        session.summary?.takeIf { it.isNotBlank() }?.let { summary ->
+            item(key = "summary") {
+                SsplCard {
+                    Text("OVERVIEW", style = AppTheme.typography.overline)
+                    Spacer(Modifier.height(6.dp))
+                    ExpandableText(summary.trim(), maxLines = 6)
+                }
+            }
         }
-    }
-}
-
-@Composable
-private fun Breakdown(breakdown: List<Breakdown>?) {
-    if (breakdown.isNullOrEmpty()) return
-    Column(
-        modifier = Modifier.fillMaxWidth()
-            .clip(
-                shape = RoundedCornerShape(0.dp, 0.dp, 16.dp, 16.dp)
-            )
-            .background(boxColor)
-            .padding(all = 12.dp)
-    ) {
-        AppTextSubTitle(
-            text = "Breakdown",
-            color = orange
-        )
-        SessionBreakDown(breakdown = breakdown, isClickEnabled = false)
+        session.breakdown?.takeIf { it.isNotEmpty() }?.let { breakdown ->
+            item(key = "breakdown") {
+                SsplCard {
+                    Text("RUNDOWN & SPEAKERS", style = AppTheme.typography.overline)
+                    Spacer(Modifier.height(6.dp))
+                    SessionBreakDown(breakdown = breakdown, isClickEnabled = false)
+                }
+            }
+        }
+        session.addOnSets?.takeIf { it.isNotEmpty() }?.let { sets ->
+            item(key = "addons") {
+                Column {
+                    Text("ADD-ONS", style = AppTheme.typography.overline, modifier = Modifier.padding(start = 4.dp, bottom = 8.dp))
+                    AddOnSetsList(sets)
+                }
+            }
+        }
+        session.webLink?.takeIf { it.isNotBlank() }?.let { link ->
+            item(key = "link") {
+                OutlineButton("Open session link", onClick = { urlOpener.openUrl(link) }, icon = Icons.AutoMirrored.Filled.OpenInNew)
+            }
+        }
     }
 }

@@ -31,7 +31,7 @@ actual suspend fun getClient(userSession: UserSession): HttpClient {
 
 actual fun formatDateTime(dateTime: String, inFormat: String, outFormat: String): String {
     return try {
-        println(">>>dateTime=$dateTime")
+
         val inputFormat = SimpleDateFormat(inFormat, Locale.getDefault()).apply {
             timeZone = TimeZone.getTimeZone("UTC")
         }

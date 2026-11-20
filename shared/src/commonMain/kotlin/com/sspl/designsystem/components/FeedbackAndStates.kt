@@ -38,6 +38,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -55,84 +56,77 @@ fun EmptyState(
     actionText: String? = null,
     onActionClick: (() -> Unit)? = null
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Box(
-            modifier = Modifier
-                .size(64.dp)
-                .clip(AppTheme.shapes.card)
-                .background(AppTheme.colors.surfaceTint),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = AppTheme.colors.primary,
-                modifier = Modifier.size(32.dp)
-            )
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = title,
-            style = AppTheme.typography.titleMedium.copy(
-                color = AppTheme.colors.heading,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-            )
-        )
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = message,
-            style = AppTheme.typography.bodyMedium.copy(
-                color = AppTheme.colors.muted,
-                textAlign = TextAlign.Center
-            )
-        )
-        if (actionText != null && onActionClick != null) {
-            Spacer(modifier = Modifier.height(16.dp))
-            PrimaryButton(
-                text = actionText,
-                onClick = onActionClick,
-                modifier = Modifier.fillMaxWidth(0.6f)
-            )
-        }
-    }
+    StateLayout(
+        modifier = modifier,
+        icon = icon,
+        iconTint = AppTheme.colors.primary,
+        iconBg = AppTheme.colors.primaryContainer,
+        title = title,
+        message = message,
+        actionText = actionText,
+        actionIcon = null,
+        onAction = onActionClick
+    )
 }
 
 @Composable
 fun ErrorState(
     message: String,
     modifier: Modifier = Modifier,
-    title: String = "Something went wrong",
+    title: String = "Couldn't load this",
     onRetry: (() -> Unit)? = null
+) {
+    StateLayout(
+        modifier = modifier,
+        icon = Icons.Default.CloudOff,
+        iconTint = AppTheme.colors.error,
+        iconBg = AppTheme.colors.errorContainer,
+        title = title,
+        message = message,
+        actionText = if (onRetry != null) "Try again" else null,
+        actionIcon = Icons.Default.Refresh,
+        onAction = onRetry
+    )
+}
+
+@Composable
+private fun StateLayout(
+    modifier: Modifier,
+    icon: ImageVector,
+    iconTint: Color,
+    iconBg: Color,
+    title: String,
+    message: String,
+    actionText: String?,
+    actionIcon: ImageVector?,
+    onAction: (() -> Unit)?
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(32.dp),
+            .padding(horizontal = 32.dp, vertical = 40.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        // Soft double ring around the icon.
         Box(
             modifier = Modifier
-                .size(64.dp)
-                .clip(AppTheme.shapes.card)
-                .background(AppTheme.colors.errorContainer),
+                .size(92.dp)
+                .clip(CircleShape)
+                .background(iconBg.copy(alpha = 0.45f)),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Default.Warning,
-                contentDescription = null,
-                tint = AppTheme.colors.error,
-                modifier = Modifier.size(32.dp)
-            )
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(CircleShape)
+                    .background(iconBg),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(28.dp))
+            }
         }
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(18.dp))
         Text(
             text = title,
             style = AppTheme.typography.titleMedium.copy(
@@ -149,82 +143,35 @@ fun ErrorState(
                 textAlign = TextAlign.Center
             )
         )
-        if (onRetry != null) {
-            Spacer(modifier = Modifier.height(16.dp))
-            PrimaryButton(
-                text = "Try Again",
-                onClick = onRetry,
-                icon = Icons.Default.Refresh,
-                modifier = Modifier.fillMaxWidth(0.5f)
+        if (actionText != null && onAction != null) {
+            Spacer(modifier = Modifier.height(20.dp))
+            SecondaryButton(
+                text = actionText,
+                onClick = onAction,
+                icon = actionIcon,
+                modifier = Modifier.fillMaxWidth(0.6f)
             )
         }
     }
 }
 
+/** Legacy API — now backed by the synced skeleton shimmer. */
 @Composable
 fun ShimmerBox(
     modifier: Modifier = Modifier,
     height: Dp = 16.dp,
     shape: androidx.compose.ui.graphics.Shape = AppTheme.shapes.small
 ) {
-    val transition = rememberInfiniteTransition()
-    val translateAnim by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1000f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1200),
-            repeatMode = RepeatMode.Restart
-        )
-    )
-
-    val shimmerColors = listOf(
-        Color(0xFFE8EEF3),
-        Color(0xFFF6F9FC),
-        Color(0xFFE8EEF3)
-    )
-
-    val brush = Brush.linearGradient(
-        colors = shimmerColors,
-        start = Offset.Zero,
-        end = Offset(x = translateAnim, y = translateAnim)
-    )
-
-    Box(
-        modifier = modifier
-            .height(height)
-            .clip(shape)
-            .background(brush)
-    )
+    Box(modifier = modifier.height(height).shimmer(shape))
 }
 
+/** Legacy API — now renders [SkeletonList]. */
 @Composable
 fun ShimmerList(
     modifier: Modifier = Modifier,
     itemCount: Int = 4
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(AppTheme.spacing.screenHorizontal),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        repeat(itemCount) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(AppTheme.shapes.card)
-                    .background(AppTheme.colors.surface)
-                    .border(1.dp, AppTheme.colors.border, AppTheme.shapes.card)
-                    .padding(14.dp)
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    ShimmerBox(modifier = Modifier.fillMaxWidth(0.7f), height = 18.dp)
-                    ShimmerBox(modifier = Modifier.fillMaxWidth(0.4f), height = 13.dp)
-                    ShimmerBox(modifier = Modifier.fillMaxWidth(0.9f), height = 12.dp)
-                }
-            }
-        }
-    }
+    SkeletonList(modifier = modifier, count = itemCount)
 }
 
 @Composable

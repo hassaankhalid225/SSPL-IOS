@@ -183,7 +183,7 @@ class EditProfileViewModel (
                     it.copy(
                         designation = event.designationText,
                         designationError = if (result is ValidationResult.Error) "Designation can't be empty" else null
-                    ).apply { updateSaveEnabledState() }
+                    )
                 }
             }
 
@@ -193,7 +193,7 @@ class EditProfileViewModel (
                     it.copy(
                         institution = event.institutionText,
                         institutionError = if (result is ValidationResult.Error) "Institution can't be empty" else null
-                    ).apply { updateSaveEnabledState() }
+                    )
                 }
             }
 
@@ -203,17 +203,17 @@ class EditProfileViewModel (
                     it.copy(
                         pmDcNumber = event.pmDcNumberText,
                         pmDcNumberError = if (result is ValidationResult.Error) "PMDC Number can't be empty" else null
-                    ).apply { updateSaveEnabledState() }
+                    )
                 }
             }
 
             is ProfessionalProfileEvents.OnRegistrationNumberTextChange -> {
-                val result = validateUserRegistrationNumberUseCase(event.registrationNumberText)
+                // optional field (see updateSaveEnabledState)
                 _professionalProfileUiState.update {
                     it.copy(
                         registrationNumber = event.registrationNumberText,
-                        registrationNumberError = if (result is ValidationResult.Error) "Registration number can't be empty" else null
-                    ).apply { updateSaveEnabledState() }
+                        registrationNumberError = null
+                    )
                 }
             }
 
@@ -221,24 +221,21 @@ class EditProfileViewModel (
                 updateUserProfessionalInfo()
             }
         }
+        if (event !is ProfessionalProfileEvents.OnSave) updateSaveEnabledState()
     }
 
     private fun updateSaveEnabledState() {
         _professionalProfileUiState.update { currentState ->
             currentState.copy(
-                isUpdateEnabled = listOf(
-                    currentState.institution,
-                    currentState.registrationNumber
-                ).all { field -> field.isNotEmpty() } && listOf(
-                    currentState.institutionError,
-                    currentState.registrationNumberError,
-                ).all { error -> error == null })
+                // Institution is required; society registration number is optional (the web has no
+                // such requirement, and members without one could otherwise never save).
+                isUpdateEnabled = currentState.institution.isNotBlank() && currentState.institutionError == null
+            )
         }
     }
 
     private fun updateUserProfessionalInfo() {
         viewModelScope.launch(Dispatchers.IO) {
-            println("Fucking Launch")
             if (_professionalProfileUiState.value.isUpdateEnabled && !_professionalProfileUiState.value.isLoading) {
 
                 postUserDetailsUseCase.invoke(

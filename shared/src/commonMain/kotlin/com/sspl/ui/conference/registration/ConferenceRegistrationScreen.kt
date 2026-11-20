@@ -2,127 +2,105 @@ package com.sspl.ui.conference.registration
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.CreditCard
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.EventBusy
+import androidx.compose.material.icons.filled.HourglassTop
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.core.models.Conference
-import com.sspl.designsystem.components.BadgeVariant
-import com.sspl.designsystem.components.FeedbackBanner
-import com.sspl.designsystem.components.SsplBadge
-import com.sspl.designsystem.components.SsplCard
-import com.sspl.designsystem.components.SsplPrimaryButton
-import com.sspl.designsystem.components.SsplSecondaryButton
-import com.sspl.designsystem.tokens.SsplColorTokens
-import com.sspl.designsystem.tokens.SsplSpacingTokens
-import com.sspl.designsystem.tokens.SsplTypographyTokens
+import com.sspl.designsystem.components.EmptyState
+import com.sspl.designsystem.components.ErrorState
+import com.sspl.designsystem.components.GlassPill
+import com.sspl.designsystem.components.GradientHeroCard
+import com.sspl.designsystem.components.IconTile
+import com.sspl.designsystem.components.ListRowCard
+import com.sspl.designsystem.components.SkeletonDetail
+import com.sspl.designsystem.components.StatusBadge
+import com.sspl.designsystem.components.StickyCtaBar
+import com.sspl.designsystem.theme.AppTheme
+import com.sspl.ui.conference.formatPkr
 import kotlinx.serialization.json.Json
 import org.koin.compose.viewmodel.koinViewModel
 
+private val lenientJson = Json { ignoreUnknownKeys = true; coerceInputValues = true }
+
+/**
+ * C5: Legacy conference registration (POST /conferences/{id}/register → Swich initiate-payment
+ * inside PaymentWebView). Flow unchanged; UI rebuilt.
+ */
 @Composable
 fun ConferenceRegistrationScreen(
     navController: NavController,
     viewModel: ConferenceRegistrationViewModel = koinViewModel()
 ) {
-    val dataString = navController.previousBackStackEntry?.savedStateHandle?.get<String>("data")
-    val conferenceArg = remember(dataString) {
-        dataString?.let {
-            try { Json.decodeFromString<Conference>(it) } catch (e: Exception) { null }
-        }
+    val conferenceArg = remember {
+        navController.previousBackStackEntry?.savedStateHandle?.get<String>("data")
+            ?.let { runCatching { lenientJson.decodeFromString<Conference>(it) }.getOrNull() }
+    }
+    LaunchedEffect(conferenceArg) { conferenceArg?.let { viewModel.loadData(it.id) } }
+
+    if (conferenceArg == null) {
+        EmptyState(
+            title = "Conference unavailable",
+            message = "Open registration again from the conference page.",
+            icon = Icons.Default.EventBusy,
+            modifier = Modifier.fillMaxSize()
+        )
+        return
     }
 
-    LaunchedEffect(conferenceArg) {
-        conferenceArg?.let { viewModel.loadData(it.id) }
-    }
-
-    val uiState by viewModel.uiState.collectAsState()
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(SsplColorTokens.background)
-    ) {
-        // App bar
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(SsplColorTokens.surface)
-                .padding(horizontal = SsplSpacingTokens.sm, vertical = SsplSpacingTokens.xs),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = { navController.popBackStack() }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = SsplColorTokens.textPrimary
-                )
-            }
-            Text(
-                text = "Conference Registration",
-                style = SsplTypographyTokens.headlineSmall.copy(fontSize = 18.sp),
-                color = SsplColorTokens.textPrimary
-            )
-        }
-
-        when (val state = uiState) {
-            is RegistrationUiState.Loading -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = SsplColorTokens.primary)
-                }
-            }
-            is RegistrationUiState.Error -> {
-                Box(modifier = Modifier.fillMaxSize().padding(SsplSpacingTokens.lg), contentAlignment = Alignment.Center) {
-                    FeedbackBanner(message = state.message, isError = true)
-                }
-            }
-            is RegistrationUiState.Content -> {
-                ConferenceRegistrationContent(
-                    state = state,
-                    viewModel = viewModel,
-                    navController = navController,
-                    initialTitle = conferenceArg?.title
-                )
-            }
-        }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    when (val state = uiState) {
+        is RegistrationUiState.Loading -> SkeletonDetail(Modifier.fillMaxSize(), showHero = false)
+        is RegistrationUiState.Error -> ErrorState(
+            message = state.message,
+            onRetry = { viewModel.loadData(conferenceArg.id) },
+            modifier = Modifier.fillMaxSize()
+        )
+        is RegistrationUiState.Content -> ConferenceRegistrationContent(
+            state = state,
+            viewModel = viewModel,
+            navController = navController,
+            initialTitle = conferenceArg.title
+        )
     }
 }
 
@@ -133,229 +111,140 @@ fun ConferenceRegistrationContent(
     navController: NavController,
     initialTitle: String?
 ) {
+    val colors = AppTheme.colors
     val roles = state.roles
-    
-    var selectedRoleIndex by remember(state.isRegistered, state.registration) { 
-        val registeredRoleId = state.registration?.roleId
-        val index = if (registeredRoleId != null) {
-            roles.indexOfFirst { it.id == registeredRoleId }.takeIf { it >= 0 } ?: 0
-        } else 0
-        mutableStateOf(index)
+    var selected by remember(state.isRegistered, state.registration) {
+        val rid = state.registration?.roleId
+        mutableIntStateOf(if (rid != null) roles.indexOfFirst { it.id == rid }.coerceAtLeast(0) else 0)
     }
 
-    // Payment WebView Dialog
+    // Payment WebView (unchanged behaviour)
     if (state.paymentUrl != null) {
         androidx.compose.ui.window.Dialog(
             onDismissRequest = { viewModel.onPaymentUrlOpened() },
             properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
         ) {
-             com.sspl.ui.components.PaymentWebView(
-                 url = state.paymentUrl,
-                 onPaymentSuccess = {
-                     viewModel.onPaymentUrlOpened()
-                     viewModel.loadData(state.details.id) // Refresh status
-                 },
-                 onPaymentFailed = {
-                     viewModel.onPaymentUrlOpened()
-                 },
-                 onClose = { viewModel.onPaymentUrlOpened() },
-                 modifier = Modifier.fillMaxSize()
-             )
+            com.sspl.ui.components.PaymentWebView(
+                url = state.paymentUrl,
+                onPaymentSuccess = {
+                    viewModel.onPaymentUrlOpened()
+                    viewModel.loadData(state.details.id)
+                },
+                onPaymentFailed = { viewModel.onPaymentUrlOpened() },
+                onClose = { viewModel.onPaymentUrlOpened() },
+                modifier = Modifier.fillMaxSize()
+            )
         }
     }
 
-    // If payment succeeds (status updated after refresh), navigate
     LaunchedEffect(state.registration?.paymentStatus) {
         if (state.registration?.paymentStatus == "SUCCESS") {
-            navController.currentBackStackEntry?.savedStateHandle?.set("status", true)
-            navController.navigate(Screen.PaymentStatusScreen.route)
+            navController.currentBackStackEntry?.savedStateHandle?.set("status", "success")
+            navController.currentBackStackEntry?.savedStateHandle?.set("registrationId", state.registration.id)
+            navController.navigate(Screen.PaymentStatusScreen.route) { launchSingleTop = true }
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(SsplSpacingTokens.md),
-        verticalArrangement = Arrangement.spacedBy(SsplSpacingTokens.md)
-    ) {
-        // Conference Name
-        SsplCard(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(SsplSpacingTokens.md)) {
-                SsplBadge(text = "CONFERENCE", variant = BadgeVariant.PRIMARY)
-                Spacer(modifier = Modifier.height(4.dp))
+    Box(Modifier.fillMaxSize()) {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 110.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            GradientHeroCard {
+                GlassPill("CONFERENCE REGISTRATION")
+                Spacer(Modifier.height(10.dp))
                 Text(
-                    text = initialTitle ?: state.details.title ?: "Annual Conference",
-                    style = SsplTypographyTokens.headlineSmall.copy(fontSize = 18.sp),
-                    color = SsplColorTokens.textPrimary
+                    initialTitle ?: state.details.title ?: "Annual conference",
+                    style = AppTheme.typography.headlineSmall.copy(color = Color.White)
                 )
-                if (!state.details.summary.isNullOrBlank()) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = state.details.summary,
-                        style = SsplTypographyTokens.bodySmall.copy(color = SsplColorTokens.textSecondary),
-                        maxLines = 2
-                    )
+                state.details.summary?.takeIf { it.isNotBlank() }?.let {
+                    Text(it, style = AppTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.78f)), maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
             }
-        }
 
-        // Registration status banner if registered
-        if (state.isRegistered && state.registration != null) {
-            val pStatus = state.registration.paymentStatus
-            val isPaid = pStatus == "SUCCESS"
-            SsplCard(
-                modifier = Modifier.fillMaxWidth(),
-                backgroundColor = if (isPaid) SsplColorTokens.success.copy(alpha = 0.08f) else SsplColorTokens.secondary.copy(alpha = 0.1f)
-            ) {
-                Row(
-                    modifier = Modifier.padding(SsplSpacingTokens.md),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(SsplSpacingTokens.sm)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = null,
-                        tint = if (isPaid) SsplColorTokens.success else SsplColorTokens.secondary,
-                        modifier = Modifier.size(32.dp)
-                    )
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = if (isPaid) "Registration Confirmed" else "Registration Submitted",
-                            style = SsplTypographyTokens.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                            color = if (isPaid) SsplColorTokens.success else SsplColorTokens.textPrimary
+            if (state.isRegistered && state.registration != null) {
+                val paid = state.registration.paymentStatus == "SUCCESS"
+                ListRowCard(
+                    title = if (paid) "Registration confirmed" else "Registration submitted",
+                    subtitle = if (paid) "Your seat is confirmed." else "Complete payment to confirm your seat.",
+                    leading = {
+                        IconTile(
+                            if (paid) Icons.Default.CheckCircle else Icons.Default.HourglassTop,
+                            tint = if (paid) colors.success else colors.warning,
+                            background = if (paid) colors.successContainer else colors.warningContainer
                         )
-                        Text(
-                            text = "Payment Status: $pStatus",
-                            style = SsplTypographyTokens.caption.copy(color = SsplColorTokens.textSecondary)
-                        )
-                    }
-                }
+                    },
+                    trailing = { StatusBadge(state.registration.paymentStatus) }
+                )
             }
-        }
 
-        if (roles.isNotEmpty()) {
-            Text(
-                text = "Select Registration Role",
-                style = SsplTypographyTokens.headlineSmall.copy(fontSize = 16.sp),
-                color = SsplColorTokens.textPrimary
-            )
-
-            roles.forEachIndexed { index, role ->
-                val isSelected = selectedRoleIndex == index
-                val borderColor = if (isSelected) SsplColorTokens.primary else SsplColorTokens.divider
-                val bgColor = if (isSelected) SsplColorTokens.primary.copy(alpha = 0.05f) else SsplColorTokens.surface
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(bgColor)
-                        .border(1.5.dp, borderColor, RoundedCornerShape(12.dp))
-                        .clickable(enabled = !state.isRegistered) { selectedRoleIndex = index }
-                        .padding(SsplSpacingTokens.md)
-                ) {
+            if (roles.isNotEmpty()) {
+                Text("Select your category", style = AppTheme.typography.titleMedium, modifier = Modifier.padding(top = 6.dp))
+                roles.forEachIndexed { i, role ->
+                    val sel = i == selected
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(SsplSpacingTokens.sm)
+                        Modifier
+                            .fillMaxWidth()
+                            .clip(AppTheme.shapes.card)
+                            .background(if (sel) colors.surfaceTint else colors.surface)
+                            .border(if (sel) 1.5.dp else 1.dp, if (sel) colors.primary else colors.border, AppTheme.shapes.card)
+                            .selectable(selected = sel, enabled = !state.isRegistered, role = Role.RadioButton) { selected = i }
+                            .padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Radio circle
                         Box(
-                            modifier = Modifier
-                                .size(22.dp)
-                                .clip(CircleShape)
-                                .border(2.dp, if (isSelected) SsplColorTokens.primary else SsplColorTokens.muted, CircleShape),
+                            Modifier.size(22.dp).clip(CircleShape)
+                                .background(if (sel) colors.primary else colors.surface)
+                                .border(2.dp, if (sel) colors.primary else colors.border, CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            if (isSelected) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(12.dp)
-                                        .clip(CircleShape)
-                                        .background(SsplColorTokens.primary)
-                                )
-                            }
+                            if (sel) Icon(Icons.Default.Check, null, tint = colors.onPrimary, modifier = Modifier.size(14.dp))
                         }
-
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = role.name,
-                                style = SsplTypographyTokens.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                                color = SsplColorTokens.textPrimary
-                            )
-                            if (!role.description.isNullOrBlank()) {
-                                Text(
-                                    text = role.description,
-                                    style = SsplTypographyTokens.caption.copy(color = SsplColorTokens.textSecondary)
-                                )
-                            }
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(role.name, style = AppTheme.typography.titleSmall)
+                            role.description?.takeIf { it.isNotBlank() }?.let { Text(it, style = AppTheme.typography.bodySmall) }
                         }
-
-                        Text(
-                            text = "PKR ${role.fee.toInt()}",
-                            style = SsplTypographyTokens.bodyLarge.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = SsplColorTokens.primary
-                            )
-                        )
+                        Text(formatPkr(role.fee), style = AppTheme.typography.titleSmall.copy(color = colors.primary, fontWeight = FontWeight.Bold))
                     }
                 }
             }
-        }
-        
-        state.error?.let {
-            FeedbackBanner(message = it, isError = true)
+
+            state.error?.let { msg ->
+                Row(
+                    Modifier.fillMaxWidth().clip(AppTheme.shapes.small).background(colors.errorContainer).padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.ErrorOutline, null, tint = colors.error, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(msg, style = AppTheme.typography.bodySmall.copy(color = colors.error))
+                }
+            }
         }
 
-        Spacer(modifier = Modifier.height(SsplSpacingTokens.sm))
-
-        // Action Buttons
-        val isRegistered = state.isRegistered
         val paymentStatus = state.registration?.paymentStatus
-
-        when {
-            !isRegistered -> {
-                SsplPrimaryButton(
-                    text = if (state.isLoading) "Registering..." else "Register for Conference",
-                    onClick = {
-                        roles.getOrNull(selectedRoleIndex)?.let { role ->
-                            viewModel.register(role.id)
-                        }
-                    },
-                    enabled = !state.isLoading && roles.isNotEmpty(),
-                    modifier = Modifier.fillMaxWidth(),
-                    leadingIcon = {
-                        if (state.isLoading) {
-                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                        } else {
-                            Icon(imageVector = Icons.Default.CreditCard, contentDescription = null, modifier = Modifier.size(18.dp))
-                        }
-                    }
-                )
-            }
-
-            paymentStatus == "PENDING" || paymentStatus == "FAILED" -> {
-                SsplPrimaryButton(
-                    text = if (state.isLoading) "Processing..." else "Pay Online Now",
-                    onClick = { viewModel.initiatePayment() },
-                    enabled = !state.isLoading,
-                    modifier = Modifier.fillMaxWidth(),
-                    leadingIcon = {
-                        Icon(imageVector = Icons.Default.CreditCard, contentDescription = null, modifier = Modifier.size(18.dp))
-                    }
-                )
-            }
-
-            paymentStatus == "SUCCESS" -> {
-                SsplSecondaryButton(
-                    text = "View Participation Pass",
-                    onClick = { navController.navigate(Screen.MyRegistrationsScreen.route) },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
+        val fee = state.registration?.feeAmount ?: roles.getOrNull(selected)?.fee ?: 0.0
+        val cta: Triple<String, Boolean, () -> Unit>? = when {
+            !state.isRegistered -> Triple("Register", roles.isNotEmpty(), { roles.getOrNull(selected)?.let { viewModel.register(it.id) }; Unit })
+            paymentStatus == "PENDING" || paymentStatus == "FAILED" -> Triple("Pay online", true, { viewModel.initiatePayment() })
+            paymentStatus == "SUCCESS" -> Triple("View my registrations", true, {
+                navController.navigate(Screen.MyRegistrationsScreen.route) { launchSingleTop = true }
+            })
+            else -> null
         }
-
-        Spacer(modifier = Modifier.height(SsplSpacingTokens.lg))
+        if (cta != null) {
+            StickyCtaBar(
+                primaryText = cta.first,
+                onPrimaryClick = cta.third,
+                enabled = cta.second && !state.isLoading,
+                loading = state.isLoading,
+                priceText = if (paymentStatus == "SUCCESS") null else formatPkr(fee),
+                priceSubtext = if (paymentStatus == "SUCCESS") null else "Total",
+                modifier = Modifier.align(Alignment.BottomCenter).consumeWindowInsets(WindowInsets.navigationBars)
+            )
+        }
     }
 }

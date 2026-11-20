@@ -1,341 +1,257 @@
 package com.sspl.ui.contact
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.Directions
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Map
-import androidx.compose.material.icons.filled.Message
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.Send
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.sspl.core.models.ContactInquiryRequest
 import com.sspl.core.repositories.PublicRepository
 import com.sspl.designsystem.components.AvatarImage
-import com.sspl.designsystem.components.BadgeVariant
 import com.sspl.designsystem.components.FeedbackBanner
+import com.sspl.designsystem.components.IconTile
+import com.sspl.designsystem.components.OutlineButton
 import com.sspl.designsystem.components.PrimaryButton
-import com.sspl.designsystem.components.SsplBadge
+import com.sspl.designsystem.components.QuickActionTile
+import com.sspl.designsystem.components.SectionHeader
+import com.sspl.designsystem.components.SkeletonLine
+import com.sspl.designsystem.components.SsplRefreshBox
 import com.sspl.designsystem.components.SsplTextField
 import com.sspl.designsystem.theme.AppTheme
 import com.sspl.platform.shared.UrlOpener
-import kotlinx.coroutines.launch
+import com.sspl.ui.components.InfoSurface
+import com.sspl.ui.components.PageIntroHero
+import com.sspl.ui.council.SOCIETY_SECRETARY
+import io.ktor.http.encodeURLParameter
 import org.koin.compose.koinInject
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ContactUsScreen(
     navController: NavController,
     publicRepository: PublicRepository = koinInject(),
     urlOpener: UrlOpener = koinInject()
 ) {
-    var name by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var message by remember { mutableStateOf("") }
-    var isSubmitting by remember { mutableStateOf(false) }
-    var successMessage by remember { mutableStateOf<String?>(null) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-    val scope = rememberCoroutineScope()
+    val viewModel: ContactViewModel = viewModel { ContactViewModel(publicRepository) }
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val focus = LocalFocusManager.current
+    val contact = state.contact
+    val open: (String) -> Unit = remember(urlOpener) { { url -> urlOpener.openUrl(url) } }
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(AppTheme.colors.background),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+    SsplRefreshBox(
+        isRefreshing = state.isRefreshing,
+        onRefresh = viewModel::refresh,
+        modifier = Modifier.fillMaxSize().background(AppTheme.colors.background)
     ) {
-        // Hero Card
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = AppTheme.colors.primary)
-            ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Text(
-                        text = "GET IN TOUCH",
-                        style = AppTheme.typography.labelSmall,
-                        color = AppTheme.colors.secondary,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.3.sp
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Contact SSPL Secretariat",
-                        style = AppTheme.typography.headlineMedium,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = "Connect directly with chapter office bearers for membership, conferences, and partnerships.",
-                        style = AppTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.88f)
-                    )
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().imePadding(),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            item(key = "hero") {
+                PageIntroHero(
+                    eyebrow = "Contact SSP Lahore",
+                    eyebrowIcon = Icons.Default.SupportAgent,
+                    title = "Get in touch",
+                    summary = "Reach the secretariat for membership, events, collaborations, and general inquiries."
+                )
+            }
+
+            item(key = "actions") {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    QuickActionTile(Icons.Default.Phone, "Call", { open(contact.telUri) }, Modifier.weight(1f))
+                    QuickActionTile(Icons.Default.Chat, "WhatsApp", { open(contact.whatsappUri) }, Modifier.weight(1f))
+                    QuickActionTile(Icons.Default.Email, "Email", { open(contact.mailUri) }, Modifier.weight(1f))
+                    QuickActionTile(Icons.Default.Directions, "Directions", { open(contact.mapUrl) }, Modifier.weight(1f))
                 }
             }
-        }
 
-        // Quick Intent Actions Grid
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                ContactActionPill(
-                    icon = Icons.Default.Phone,
-                    label = "Call Us",
-                    modifier = Modifier.weight(1f),
-                    onClick = { urlOpener.openUrl("tel:+924237420101") }
-                )
-                ContactActionPill(
-                    icon = Icons.Default.Email,
-                    label = "Email",
-                    modifier = Modifier.weight(1f),
-                    onClick = { urlOpener.openUrl("mailto:info@ssplahore.com") }
-                )
-                ContactActionPill(
-                    icon = Icons.Default.Message,
-                    label = "WhatsApp",
-                    modifier = Modifier.weight(1f),
-                    onClick = { urlOpener.openUrl("https://wa.me/923001234567") }
-                )
-                ContactActionPill(
-                    icon = Icons.Default.Map,
-                    label = "Map",
-                    modifier = Modifier.weight(1f),
-                    onClick = { urlOpener.openUrl("https://maps.google.com/?q=PMA+Trade+Center+66+Ferozepur+Road+Lahore") }
-                )
-            }
-        }
-
-        // Office Location Card
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = AppTheme.colors.surface),
-                border = BorderStroke(1.dp, AppTheme.colors.border)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .background(AppTheme.colors.primary.copy(alpha = 0.1f), CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = null,
-                            tint = AppTheme.colors.primary,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Lahore Secretariat",
-                            style = AppTheme.typography.titleMedium,
-                            color = AppTheme.colors.onSurface,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Office # 8, 2nd Floor, PMA Trade Center, 66 Ferozepur Road, Lahore, Pakistan",
-                            style = AppTheme.typography.bodyMedium,
-                            color = AppTheme.colors.textMuted,
-                            lineHeight = 20.sp
-                        )
-                    }
-                }
-            }
-        }
-
-        // Society Secretary Card
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = AppTheme.colors.surface),
-                border = BorderStroke(1.dp, AppTheme.colors.border)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    AvatarImage(
-                        name = "Dr. Ahmad Naeem Akhtar",
-                        size = 52.dp
-                    )
-                    Spacer(modifier = Modifier.width(14.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        SsplBadge(
-                            text = "General Secretary",
-                            variant = BadgeVariant.PRIMARY
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Dr. Ahmad Naeem Akhtar",
-                            style = AppTheme.typography.titleMedium,
-                            color = AppTheme.colors.onSurface,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "Primary contact for official correspondence & secretariat affairs.",
-                            style = AppTheme.typography.bodySmall,
-                            color = AppTheme.colors.textMuted
-                        )
-                    }
-                }
-            }
-        }
-
-        // Contact Form
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = AppTheme.colors.surface),
-                border = BorderStroke(1.dp, AppTheme.colors.border)
-            ) {
-                Column(modifier = Modifier.padding(18.dp)) {
-                    Text(
-                        text = "Send a Message",
-                        style = AppTheme.typography.titleMedium,
-                        color = AppTheme.colors.onSurface,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Have questions regarding membership or events? Leave your message below.",
-                        style = AppTheme.typography.bodySmall,
-                        color = AppTheme.colors.textMuted
-                    )
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    if (successMessage != null) {
-                        FeedbackBanner(
-                            message = successMessage!!,
-                            isError = false
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                    }
-
-                    if (errorMessage != null) {
-                        FeedbackBanner(
-                            message = errorMessage!!,
-                            isError = true
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                    }
-
-                    SsplTextField(
-                        value = name,
-                        onValueChange = { name = it },
-                        label = "Your Name",
-                        placeholder = "e.g. Dr. Muhammad Ahmed",
-                        leadingIcon = Icons.Default.Person,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    SsplTextField(
-                        value = email,
-                        onValueChange = { email = it },
-                        label = "Email Address",
-                        placeholder = "e.g. doctor@hospital.org",
-                        leadingIcon = Icons.Default.Email,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    SsplTextField(
-                        value = message,
-                        onValueChange = { message = it },
-                        label = "Message",
-                        placeholder = "Write your inquiry or feedback here...",
-                        singleLine = false,
-                        modifier = Modifier.fillMaxWidth().height(110.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    PrimaryButton(
-                        text = "Send Message",
-                        icon = Icons.Default.Send,
-                        isLoading = isSubmitting,
-                        enabled = name.isNotBlank() && email.isNotBlank() && message.isNotBlank(),
-                        onClick = {
-                            scope.launch {
-                                isSubmitting = true
-                                errorMessage = null
-                                successMessage = null
-                                publicRepository.submitContactInquiry(
-                                    ContactInquiryRequest(
-                                        name = name.trim(),
-                                        email = email.trim(),
-                                        message = message.trim()
-                                    )
-                                ).collect { resp ->
-                                    isSubmitting = false
-                                    if (resp.success) {
-                                        successMessage = resp.message ?: "Thank you! Your message has been sent to the SSPL Secretariat."
-                                        name = ""
-                                        email = ""
-                                        message = ""
-                                    } else {
-                                        errorMessage = resp.message ?: "Failed to deliver message. Please try again."
-                                    }
-                                }
+            item(key = "details") {
+                Column {
+                    SectionHeader(title = "Secretariat")
+                    Spacer(Modifier.height(8.dp))
+                    InfoSurface {
+                        if (state.loading) {
+                            repeat(3) {
+                                SkeletonLine(widthFraction = 0.35f, height = 10.dp)
+                                Spacer(Modifier.height(6.dp))
+                                SkeletonLine(widthFraction = 0.9f)
+                                Spacer(Modifier.height(14.dp))
                             }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                        } else {
+                            DetailRow(Icons.Default.Place, "Office address · ${contact.location}", contact.address) { open(contact.mapUrl) }
+                            DetailRow(Icons.Default.Phone, "Phone and WhatsApp", contact.phone) { open(contact.telUri) }
+                            DetailRow(Icons.Default.Email, "Email", contact.email) { open(contact.mailUri) }
+                            Spacer(Modifier.height(8.dp))
+                            OutlineButton(
+                                text = "Open in Google Maps",
+                                onClick = { open(contact.mapUrl) },
+                                icon = Icons.Default.Directions,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+                }
+            }
+
+            item(key = "secretary") {
+                InfoSurface {
+                    Text("SOCIETY SECRETARY", style = AppTheme.typography.overline)
+                    Spacer(Modifier.height(10.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        AvatarImage(url = SOCIETY_SECRETARY.imageUrl, name = SOCIETY_SECRETARY.name, size = 60.dp)
+                        Spacer(Modifier.width(14.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(SOCIETY_SECRETARY.name, style = AppTheme.typography.titleMedium.copy(color = AppTheme.colors.heading))
+                            Text(
+                                "Primary contact for membership, events, and secretariat inquiries.",
+                                style = AppTheme.typography.bodySmall.copy(color = AppTheme.colors.body)
+                            )
+                        }
+                    }
+                }
+            }
+
+            item(key = "form") {
+                Column {
+                    SectionHeader(title = "Send us a message")
+                    Spacer(Modifier.height(8.dp))
+                    InfoSurface {
+                        SsplTextField(
+                            value = state.form.name,
+                            onValueChange = viewModel::onName,
+                            label = "Full name *",
+                            placeholder = "Your name",
+                            leadingIcon = Icons.Default.Person,
+                            error = state.form.nameError,
+                            enabled = !state.submitting,
+                            keyboardActions = KeyboardActions(
+                                onNext = { focus.moveFocus(FocusDirection.Down) },
+                                onDone = { focus.moveFocus(FocusDirection.Down) }
+                            )
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        SsplTextField(
+                            value = state.form.email,
+                            onValueChange = viewModel::onEmail,
+                            label = "Email address *",
+                            placeholder = "you@example.com",
+                            leadingIcon = Icons.Default.Email,
+                            error = state.form.emailError,
+                            enabled = !state.submitting,
+                            keyboardType = KeyboardType.Email,
+                            keyboardActions = KeyboardActions(
+                                onNext = { focus.moveFocus(FocusDirection.Down) },
+                                onDone = { focus.moveFocus(FocusDirection.Down) }
+                            )
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        SsplTextField(
+                            value = state.form.message,
+                            onValueChange = viewModel::onMessage,
+                            label = "Message *",
+                            placeholder = "How can we help?",
+                            error = state.form.messageError,
+                            enabled = !state.submitting,
+                            singleLine = false,
+                            maxLines = 6
+                        )
+                        state.submitResult?.let { (msg, isError) ->
+                            Spacer(Modifier.height(12.dp))
+                            FeedbackBanner(message = msg, isError = isError)
+                            // If the inquiry endpoint is unavailable, hand the same message to the mail app.
+                            if (isError && state.form.message.isNotBlank() && state.form.nameError == null &&
+                                state.form.emailError == null && state.form.messageError == null
+                            ) {
+                                Spacer(Modifier.height(8.dp))
+                                OutlineButton(
+                                    text = "Email the secretariat instead",
+                                    onClick = {
+                                        val subject = "Inquiry from ${state.form.name.trim()}".encodeURLParameter()
+                                        val body = (state.form.message.trim() + "\n\n— " + state.form.name.trim() + " (" + state.form.email.trim() + ")").encodeURLParameter()
+                                        open("${contact.mailUri}?subject=$subject&body=$body")
+                                    },
+                                    icon = Icons.Default.Email,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        }
+                        Spacer(Modifier.height(14.dp))
+                        PrimaryButton(
+                            text = if (state.submitting) "Sending…" else "Send message",
+                            onClick = {
+                                focus.clearFocus()
+                                viewModel.submit()
+                            },
+                            loading = state.submitting,
+                            enabled = !state.submitting,
+                            trailingIcon = Icons.AutoMirrored.Filled.Send,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+            }
+
+            item(key = "social") {
+                Column {
+                    SectionHeader(title = "Follow SSP Lahore")
+                    Spacer(Modifier.height(8.dp))
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        SOCIAL_LINKS.forEach { s ->
+                            Row(
+                                Modifier
+                                    .clip(AppTheme.shapes.chip)
+                                    .background(AppTheme.colors.primaryContainer)
+                                    .clickable { open(s.url) }
+                                    .heightIn(min = 44.dp)
+                                    .padding(horizontal = 14.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Default.Public, contentDescription = null, tint = AppTheme.colors.onPrimaryContainer, modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text(s.label, style = AppTheme.typography.labelMedium.copy(color = AppTheme.colors.onPrimaryContainer, fontWeight = FontWeight.SemiBold))
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -343,47 +259,21 @@ fun ContactUsScreen(
 }
 
 @Composable
-private fun ContactActionPill(
-    icon: ImageVector,
-    label: String,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .clickable { onClick() },
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = AppTheme.colors.surface),
-        border = BorderStroke(1.dp, AppTheme.colors.border)
+private fun DetailRow(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String, onClick: () -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clip(AppTheme.shapes.small)
+            .clickable(onClick = onClick)
+            .heightIn(min = 52.dp)
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .background(AppTheme.colors.primary.copy(alpha = 0.1f), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = label,
-                    tint = AppTheme.colors.primary,
-                    modifier = Modifier.size(18.dp)
-                )
-            }
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = label,
-                style = AppTheme.typography.labelSmall,
-                color = AppTheme.colors.onSurface,
-                fontWeight = FontWeight.SemiBold
-            )
+        IconTile(icon, size = 38.dp, iconSize = 18.dp, corner = 12.dp)
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            Text(label, style = AppTheme.typography.labelSmall)
+            Text(value, style = AppTheme.typography.bodyMedium.copy(color = AppTheme.colors.primary, fontWeight = FontWeight.Medium))
         }
     }
 }
-

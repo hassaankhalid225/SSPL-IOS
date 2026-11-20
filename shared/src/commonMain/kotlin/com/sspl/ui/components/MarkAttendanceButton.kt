@@ -5,9 +5,17 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.HowToReg
+import androidx.compose.material3.Icon
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import com.sspl.designsystem.components.LoadingDots
+import com.sspl.designsystem.theme.AppTheme
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -211,12 +219,11 @@ fun MarkAttendanceButton(
             launchCamera = true
         })
     }
-    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        AppTextLabel(
-            text = "Mark Attendance",
-            textDecoration = TextDecoration.Underline,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.clickable(onClick = {
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(50))
+            .background(AppTheme.colors.primaryContainer)
+            .clickable(enabled = !isGettingLocation, onClickLabel = "Mark attendance", onClick = {
                 scope.launch {
                     requestPermissions(locationPermissionController = locationPermissionController,
                         onPermissionGranted = {
@@ -304,10 +311,20 @@ fun MarkAttendanceButton(
                 }
 
             })
-        )
-        AnimatedVisibility(isGettingLocation && locationState.latitude.isNullOrEmpty()) {
-            CircularProgressIndicator(modifier = Modifier.size(16.dp))
+            .heightIn(min = 40.dp)
+            .padding(horizontal = 14.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (isGettingLocation && locationState.latitude.isNullOrEmpty()) {
+            LoadingDots(dotSize = 5.dp, spacing = 3.dp)
+        } else {
+            Icon(Icons.Default.HowToReg, contentDescription = null, tint = AppTheme.colors.primary, modifier = Modifier.size(16.dp))
         }
+        Text(
+            text = if (isGettingLocation) "Locating…" else "Mark attendance",
+            style = AppTheme.typography.labelMedium.copy(color = AppTheme.colors.onPrimaryContainer, fontWeight = FontWeight.SemiBold)
+        )
     }
 
 }
@@ -346,19 +363,14 @@ fun Double.toRadians(): Double = this * PI / 180.0
 
 @Composable
 fun CameraDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
-    AlertDialog(onDismissRequest = onDismiss,
-        title = { Text(text = "Location Outside Radius") },
-        text = { Text(text = "It seems your location is not in the specified radius. Please take a selfie to upload and mark your attendance.") },
-        confirmButton = {
-            Button(onClick = onConfirm) {
-                Text("OK", color = Color.White)
-            }
-        },
-        dismissButton = {
-            Button(onClick = onDismiss) {
-                Text("Cancel", color = Color.White)
-            }
-        })
+    ConfirmDialog(
+        title = "You're outside the venue radius",
+        message = "We couldn't confirm you're at the venue. Take a selfie to send your attendance for approval.",
+        confirmText = "Take selfie",
+        dismissText = "Cancel",
+        onConfirm = onConfirm,
+        onDismiss = onDismiss
+    )
 }
 data class LocationState(
     val latitude: String? = null,
@@ -387,20 +399,12 @@ suspend fun requestPermissions(
 }
 @Composable
 fun PermissionDeniedDialog(onDismiss: () -> Unit, onGoToSettings: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { AppTextTitle("Location Permission Required") },
-        text = { AppTextBody("This app needs location permission to function properly. Please grant the permission in Settings.") },
-        confirmButton = {
-            Button(onClick = onGoToSettings) {
-                AppTextSubTitle("Go to Settings", color = Color.White)
-            }
-        },
-        dismissButton = {
-            Button(onClick = onDismiss) {
-                AppTextSubTitle("Cancel", color = Color.White)
-            }
-        }
+    ConfirmDialog(
+        title = "Location permission needed",
+        message = "Attendance uses your location to confirm you're at the venue. Allow location access in Settings.",
+        confirmText = "Open Settings",
+        dismissText = "Cancel",
+        onConfirm = onGoToSettings,
+        onDismiss = onDismiss
     )
 }
-

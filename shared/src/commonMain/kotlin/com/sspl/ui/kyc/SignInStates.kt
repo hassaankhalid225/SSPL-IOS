@@ -23,6 +23,10 @@ data class LoginUiState(
     val isLoginEnabled: Boolean = false,
     val phoneNo: String = "",
     val isLoading: Boolean = false,
+    /** True while "Continue as guest" is in flight (kept separate so only that button shows dots). */
+    val isGuestLoading: Boolean = false,
+    /** Form-level error shown above the actions (mirrors the web AuthErrorAlert). */
+    val formError: String? = null,
     val country: Country = Pakistan,
     val showCountryChooser: Boolean = false,
     val isPasswordVisible: Boolean = false,

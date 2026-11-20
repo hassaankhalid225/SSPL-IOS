@@ -5,6 +5,7 @@ import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngineConfig
 import io.ktor.client.engine.HttpClientEngineFactory
 import io.ktor.client.plugins.DefaultRequest
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.cache.storage.CacheStorage
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -43,15 +44,37 @@ import kotlinx.serialization.json.Json
 //            publicStorage(CacheStorage.Disabled) // Disables response caching
 //        }
         install(ContentNegotiation) {
-            json(Json { 
+            json(Json {
                 ignoreUnknownKeys = true
-                prettyPrint = true
                 isLenient = true
+                explicitNulls = false
             })
         }
+        // Some list endpoints (e.g. /external/events) embed base64 images and weigh several MB.
+        // Generous request timeout, tight connect timeout so offline fails fast.
+        install(HttpTimeout) {
+            connectTimeoutMillis = 15_000
+            socketTimeoutMillis = 60_000
+            requestTimeoutMillis = 120_000
+        }
+        // Flaky mobile networks ("connection abort", DNS blips): retry idempotent GETs only.
+        // POST/PUT/DELETE are never retried (no double registrations or payments).
+        install(io.ktor.client.plugins.HttpRequestRetry) {
+            maxRetries = 2
+            retryOnExceptionIf { request, cause ->
+                request.method == io.ktor.http.HttpMethod.Get &&
+                    cause !is io.ktor.client.plugins.HttpRequestTimeoutException
+            }
+            retryIf { request, response ->
+                request.method == io.ktor.http.HttpMethod.Get && response.status.value in 500..599
+            }
+            exponentialDelay()
+        }
+        // INFO = method + URL + status only. BODY logging stringified multi-MB payloads on every call
+        // and was a major source of jank.
         install(Logging) {
             logger = Logger.SIMPLE
-            level = LogLevel.BODY
+            level = LogLevel.INFO
             sanitizeHeader { header -> header == HttpHeaders.Authorization }
         }
         defaultRequest {
@@ -61,7 +84,6 @@ import kotlinx.serialization.json.Json
             token?.let {
                 bearerAuth(it)
             }
-            println(">>>Token: $token")
             header(HttpHeaders.UserAgent, "SSPL Application")
         }
 

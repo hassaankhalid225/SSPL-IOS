@@ -1,9 +1,13 @@
 package com.sspl.ui.portal
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,240 +18,133 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CardMembership
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.RadioButtonUnchecked
+import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.core.models.MembershipPlan
-import com.sspl.core.repositories.PortalRepository
-import com.sspl.designsystem.components.ModernSupportCard
-import com.sspl.designsystem.components.SsplBadge
-import com.sspl.designsystem.components.SsplBadgeVariant
-import com.sspl.designsystem.components.SsplButton
-import com.sspl.designsystem.components.SsplButtonVariant
-import com.sspl.designsystem.components.SsplCard
+import com.sspl.designsystem.components.BlockingLoader
+import com.sspl.designsystem.components.EmptyState
+import com.sspl.designsystem.components.LoadState
+import com.sspl.designsystem.components.LoadStateSwitch
+import com.sspl.designsystem.components.LocalShellActions
+import com.sspl.designsystem.components.NavTile
+import com.sspl.designsystem.components.SkeletonList
+import com.sspl.designsystem.components.SkeletonVariant
+import com.sspl.designsystem.components.SsplRefreshBox
+import com.sspl.designsystem.components.StickyCtaBar
 import com.sspl.designsystem.theme.AppTheme
-import kotlinx.coroutines.launch
-import org.koin.compose.koinInject
+import com.sspl.ui.components.PaymentWebView
 
 /**
- * D3: Public Membership Plans
+ * D3: Membership plans (web `/membership-plans`). Comparable plan cards, single selection,
+ * sticky CTA → POST /membership/register → payment (flow unchanged).
  */
 @Composable
 fun MembershipPlansScreen(
     navController: NavController,
-    portalRepository: PortalRepository = koinInject()
+    viewModel: MembershipPlansViewModel = portalViewModel { MembershipPlansViewModel(it.get()) }
 ) {
-    val scope = rememberCoroutineScope()
-    var plans by remember { mutableStateOf<List<MembershipPlan>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
-    var actionMessage by remember { mutableStateOf<String?>(null) }
-    var processingPlanId by remember { mutableStateOf<Long?>(null) }
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val shell = LocalShellActions.current
 
-    LaunchedEffect(Unit) {
-        portalRepository.getMembershipPlans().collect { planList ->
-            plans = planList
-            isLoading = false
+    state.paymentUrl?.let { url ->
+        Dialog(
+            onDismissRequest = { viewModel.onPaymentFinished(false) },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            PaymentWebView(
+                url = url,
+                onPaymentSuccess = { viewModel.onPaymentFinished(true) },
+                onPaymentFailed = { viewModel.onPaymentFinished(false) },
+                onClose = { viewModel.onPaymentFinished(false) },
+                modifier = Modifier.fillMaxSize()
+            )
         }
     }
+    if (state.isApplying) BlockingLoader("Preparing your application…")
 
-    val handleApplyPlan = { plan: MembershipPlan ->
-        scope.launch {
-            processingPlanId = plan.id
-            actionMessage = null
-            val res = portalRepository.registerMembership(plan.id)
-            processingPlanId = null
-            if (res.isSuccess) {
-                actionMessage = "Application for ${plan.name} registered successfully!"
-            } else {
-                actionMessage = res.exceptionOrNull()?.message ?: "Application failed. Please retry."
-            }
-        }
-    }
-
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(AppTheme.colors.background)
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        item {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "MEMBERSHIP PLANS",
-                style = AppTheme.typography.labelSmall.copy(
-                    color = AppTheme.colors.secondary,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
-                )
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Choose Your Membership Tier",
-                style = AppTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = AppTheme.colors.heading
-                )
-            )
-            Text(
-                text = "Select a plan that suits your practice and professional standing.",
-                style = AppTheme.typography.bodySmall.copy(color = AppTheme.colors.muted)
-            )
-        }
-
-        if (actionMessage != null) {
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(AppTheme.colors.accent.copy(alpha = 0.15f))
-                        .padding(12.dp)
-                ) {
-                    Text(
-                        text = actionMessage!!,
-                        style = AppTheme.typography.bodySmall.copy(
-                            color = AppTheme.colors.secondary,
-                            fontWeight = FontWeight.Medium
-                        )
+    Column(Modifier.fillMaxSize()) {
+        SsplRefreshBox(
+            isRefreshing = state.isRefreshing,
+            onRefresh = viewModel::refresh,
+            modifier = Modifier.weight(1f)
+        ) {
+            LoadStateSwitch(
+                state = state.plans,
+                modifier = Modifier.fillMaxSize(),
+                skeleton = { SkeletonList(count = 3, variant = SkeletonVariant.MEDIA) },
+                empty = {
+                    EmptyState(
+                        title = "No plans open right now",
+                        message = "No membership plans are available at the moment. Please check back or contact the office.",
+                        icon = Icons.Default.CardMembership,
+                        actionText = "Contact us",
+                        onActionClick = { navController.openPortal(Screen.ContactUsScreen.route) },
+                        modifier = Modifier.fillMaxSize()
                     )
-                }
-            }
-        }
-
-        if (isLoading) {
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp),
-                    contentAlignment = Alignment.Center
+                },
+                onRetry = viewModel::retry
+            ) { plans ->
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    CircularProgressIndicator(color = AppTheme.colors.secondary)
-                }
-            }
-        } else if (plans.isEmpty()) {
-            item {
-                SsplCard(modifier = Modifier.fillMaxWidth()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(32.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "No membership plans available at this time.",
-                            style = AppTheme.typography.bodyMedium.copy(color = AppTheme.colors.muted)
+                    item(key = "hero") {
+                        PortalHero(
+                            eyebrow = "Membership",
+                            title = "Join the professional community",
+                            summary = "Choose the membership that fits your practice and gain access to events, directory listing and society resources.",
+                            icon = Icons.Default.CardMembership,
+                            stats = listOf("${plans.size}" to "Plans available")
                         )
                     }
-                }
-            }
-        } else {
-            items(plans) { plan ->
-                val isLife = plan.type == "LIFE" || plan.name.contains("Life", ignoreCase = true)
-                SsplCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    state.message?.let { msg ->
+                        item(key = "msg") {
+                            PortalNotice(msg, if (state.isError) NoticeTone.Error else NoticeTone.Success, onDismiss = viewModel::dismissMessage)
+                        }
+                    }
+                    items(plans, key = { it.id }) { plan ->
+                        PlanCard(plan, selected = plan.id == state.selectedPlanId, onSelect = { viewModel.select(plan.id) })
+                    }
+                    item(key = "secure") {
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            Modifier.fillMaxWidth().padding(top = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
                         ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = plan.name,
-                                    style = AppTheme.typography.titleMedium.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        color = AppTheme.colors.heading
-                                    )
-                                )
-                                Text(
-                                    text = plan.duration ?: if (isLife) "Lifetime" else "Annual",
-                                    style = AppTheme.typography.bodySmall.copy(color = AppTheme.colors.muted)
-                                )
-                            }
-
-                            if (isLife) {
-                                SsplBadge(
-                                    text = "POPULAR",
-                                    variant = SsplBadgeVariant.Success
-                                )
-                            }
+                            Icon(Icons.Default.Lock, contentDescription = null, tint = AppTheme.colors.muted, modifier = Modifier.size(14.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("Payments are processed securely through Swich.", style = AppTheme.typography.bodySmall)
                         }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Text(
-                            text = if (plan.displayFee > 0) "PKR ${plan.displayFee.toLong()}" else "Free",
-                            style = AppTheme.typography.displaySmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = AppTheme.colors.secondary
-                            )
-                        )
-
-                        if (!plan.description.isNullOrBlank()) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = plan.description,
-                                style = AppTheme.typography.bodySmall.copy(color = AppTheme.colors.body)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        val planBenefits = plan.benefits ?: listOf(
-                            "Directory listing with verification mark",
-                            "Conferences & workshops discounts",
-                            "Voting rights in society governance",
-                            "Society certificate and credentials"
-                        )
-
-                        planBenefits.forEach { benefit ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 3.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.CheckCircle,
-                                    contentDescription = null,
-                                    tint = AppTheme.colors.secondary,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = benefit,
-                                    style = AppTheme.typography.bodySmall.copy(color = AppTheme.colors.body)
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        SsplButton(
-                            text = if (processingPlanId == plan.id) "Processing..." else "Apply for ${plan.name}",
-                            onClick = { handleApplyPlan(plan) },
-                            enabled = processingPlanId == null,
+                    }
+                    item(key = "help") {
+                        NavTile(
+                            icon = Icons.Default.SupportAgent,
+                            title = "Questions before you join?",
+                            subtitle = "Talk to the membership office",
+                            onClick = { navController.openPortal(Screen.ContactUsScreen.route) },
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -255,18 +152,82 @@ fun MembershipPlansScreen(
             }
         }
 
-        item {
-            ModernSupportCard(
-                title = "Membership Office",
-                subtitle = "Need assistance with membership verification, annual dues payment, or certificate delivery? Contact the secretary.",
-                buttonText = "Contact Secretary",
-                onContactClick = { navController.navigate(Screen.ContactUsScreen.route) }
+        val selected = state.selectedPlan
+        if (state.plans is LoadState.Ready && selected != null) {
+            StickyCtaBar(
+                primaryText = if (shell.isGuest) "Sign in to apply" else if (selected.displayFee > 0) "Continue to pay" else "Apply now",
+                onPrimaryClick = { if (shell.isGuest) shell.onAvatar() else viewModel.apply() },
+                priceText = formatRupees(selected.displayFee),
+                priceSubtext = selected.name,
+                loading = state.isApplying,
+                enabled = !state.isApplying
             )
-        }
-
-        item {
-            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
 
+@Composable
+private fun PlanCard(plan: MembershipPlan, selected: Boolean, onSelect: () -> Unit) {
+    val c = AppTheme.colors
+    val borderColor by animateColorAsState(if (selected) c.primary else c.border.copy(alpha = 0.7f), label = "planBorder")
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(AppTheme.shapes.card)
+            .background(if (selected) c.surfaceTint else c.surface)
+            .border(if (selected) 1.5.dp else 1.dp, borderColor, AppTheme.shapes.card)
+            .clickable(onClick = onSelect)
+            .padding(16.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(plan.name, style = AppTheme.typography.titleMedium)
+                    if (plan.isPopular()) {
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            "Most chosen",
+                            style = AppTheme.typography.labelSmall.copy(color = Color.White, fontWeight = FontWeight.SemiBold),
+                            modifier = Modifier.clip(RoundedCornerShape(50)).background(c.primaryGradient)
+                                .padding(horizontal = 8.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+                Text(plan.durationText(), style = AppTheme.typography.bodySmall)
+            }
+            Icon(
+                if (selected) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
+                contentDescription = if (selected) "Selected plan" else "Select plan",
+                tint = if (selected) c.primary else c.muted,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        Spacer(Modifier.height(10.dp))
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text(formatRupees(plan.displayFee), style = AppTheme.typography.number.copy(color = c.primary))
+            if (plan.displayFee > 0 && !plan.type.equals("LIFE", true) && plan.type != null) {
+                Spacer(Modifier.width(4.dp))
+                Text("/${plan.type.lowercase()}", style = AppTheme.typography.bodySmall, modifier = Modifier.padding(bottom = 3.dp))
+            }
+        }
+        plan.description?.takeIf { it.isNotBlank() }?.let {
+            Spacer(Modifier.height(6.dp))
+            Text(it, style = AppTheme.typography.bodySmall.copy(color = c.body))
+        }
+        Spacer(Modifier.height(12.dp))
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            plan.features().forEach { feat ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        Modifier.size(18.dp).clip(CircleShape).background(c.primaryContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.Check, contentDescription = null, tint = c.primary, modifier = Modifier.size(12.dp))
+                    }
+                    Spacer(Modifier.width(10.dp))
+                    Text(feat, style = AppTheme.typography.bodyMedium)
+                }
+            }
+        }
+    }
+}

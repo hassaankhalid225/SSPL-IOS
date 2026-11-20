@@ -333,7 +333,13 @@ fun otherScreens(): List<NavItem> = listOf(
     NavItem(screen = Screen.ContactUsScreen, component = { ContactUsScreen(navController = it) }),
     NavItem(screen = Screen.TermsScreen, component = { TermsScreen(navController = it) }),
     NavItem(screen = Screen.DownloadsScreen, component = { DownloadsScreen(navController = it) }),
-    NavItem(screen = Screen.VerifyCertificateScreen, component = { VerifyCertificateScreen(navController = it) }),
+    NavItem(screen = Screen.VerifyCertificateScreen, component = {
+        // Optional pre-fill: callers set savedStateHandle["certSerial"] before navigating.
+        VerifyCertificateScreen(
+            navController = it,
+            initialSerial = it.previousBackStackEntry?.savedStateHandle?.get<String>("certSerial")
+        )
+    }),
     NavItem(screen = Screen.MembersDirectoryScreen, component = { MembersDirectoryScreen(navController = it) }),
     NavItem(screen = Screen.FellowshipHubScreen, component = { FellowshipHubScreen(navController = it) }),
     NavItem(screen = Screen.EventsListScreen, component = { EventsListScreen(navController = it) }),

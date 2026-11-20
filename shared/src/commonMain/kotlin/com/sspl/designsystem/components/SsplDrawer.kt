@@ -1,5 +1,22 @@
 package com.sspl.designsystem.components
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.border
+import androidx.compose.material.icons.automirrored.filled.Login
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.PhoneAndroid
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextOverflow
+import com.sspl.designsystem.theme.ThemeMode
+import com.sspl.designsystem.theme.ThemePreferences
+import org.koin.compose.koinInject
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,7 +31,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.Logout
@@ -55,7 +71,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -155,34 +170,34 @@ fun SsplDrawerContent(
     onSignIn: () -> Unit,
     onLogout: () -> Unit,
     onCloseDrawer: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    themePreferences: ThemePreferences = koinInject()
 ) {
     val displayName = RoleUtils.getUserDisplayName(user)
     val initials = RoleUtils.getUserInitials(user)
     val membershipLabel = RoleUtils.getMembershipLabel(user)
     val roles = RoleUtils.getUserRoles(user)
     val profilePhoto = RoleUtils.getProfileImageUrl(user?.profilePicture)
+    val themeMode by themePreferences.mode.collectAsState()
+    val colors = AppTheme.colors
 
     ModalDrawerSheet(
-        modifier = modifier.width(310.dp),
-        drawerContainerColor = AppTheme.colors.background
+        modifier = modifier.width(318.dp),
+        drawerContainerColor = colors.background,
+        drawerShape = RoundedCornerShape(topEnd = 28.dp, bottomEnd = 28.dp),
+        windowInsets = WindowInsets(0, 0, 0, 0)
     ) {
         Column(modifier = Modifier.fillMaxHeight()) {
-            // Gradient Header
+            // ---- Header ---------------------------------------------------------------
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(AppTheme.colors.primary, AppTheme.colors.tertiary)
-                        )
-                    )
-                    .padding(horizontal = 16.dp, vertical = 20.dp)
+                    .clip(RoundedCornerShape(bottomEnd = 28.dp))
+                    .background(colors.headerGradientVertical)
+                    .statusBarsPadding()
+                    .padding(start = 18.dp, end = 10.dp, top = 12.dp, bottom = 20.dp)
             ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -191,106 +206,100 @@ fun SsplDrawerContent(
                         AvatarImage(
                             url = profilePhoto,
                             initials = initials,
-                            size = 54.dp
+                            size = 58.dp,
+                            modifier = Modifier.border(2.dp, Color.White.copy(alpha = 0.5f), CircleShape)
                         )
-                        IconButton(onClick = onCloseDrawer) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Close drawer",
-                                tint = Color.White
-                            )
-                        }
+                        GlassIconButton(
+                            icon = Icons.Default.Close,
+                            contentDescription = "Close menu",
+                            onClick = onCloseDrawer
+                        )
                     }
-
-                    Text(
-                        text = if (isGuest) "Guest User" else displayName,
-                        style = AppTheme.typography.titleMedium.copy(
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 17.sp
+                    Column {
+                        Text(
+                            text = if (isGuest) "Welcome, guest" else displayName,
+                            style = AppTheme.typography.headlineSmall.copy(color = Color.White, fontWeight = FontWeight.Bold),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
-                    )
-
+                        Text(
+                            text = if (isGuest) "Sign in to unlock your member portal" else (user?.email ?: ""),
+                            style = AppTheme.typography.labelMedium.copy(color = Color.White.copy(alpha = 0.72f)),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        MembershipBadge(label = membershipLabel)
-                    }
-
-                    if (!isGuest) {
+                        if (!isGuest) MembershipBadge(label = membershipLabel)
                         Text(
-                            text = "View Profile →",
-                            style = AppTheme.typography.labelSmall.copy(
-                                color = AppTheme.colors.surfaceTint,
-                                fontWeight = FontWeight.SemiBold
-                            ),
+                            text = if (isGuest) "Sign in →" else "View profile →",
+                            style = AppTheme.typography.labelMedium.copy(color = Color.White, fontWeight = FontWeight.SemiBold),
                             modifier = Modifier
+                                .clip(RoundedCornerShape(50))
+                                .background(Color.White.copy(alpha = 0.14f))
                                 .clickable {
                                     onCloseDrawer()
-                                    onNavigate(Route.Profile)
+                                    if (isGuest) onSignIn() else onNavigate(Route.Profile)
                                 }
-                                .padding(top = 2.dp)
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
                         )
                     }
                 }
             }
 
-            // Scrollable Menu Groups
+            // ---- Menu -----------------------------------------------------------------
             LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 10.dp)
             ) {
                 DRAWER_GROUPS.forEach { group ->
-                    item {
+                    item(key = "h_${group.label}") {
                         Text(
                             text = group.label.uppercase(),
-                            style = AppTheme.typography.labelSmall.copy(
-                                color = AppTheme.colors.muted,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 0.8.sp
-                            ),
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                            style = AppTheme.typography.overline.copy(color = colors.muted),
+                            modifier = Modifier.padding(start = 22.dp, end = 16.dp, top = 12.dp, bottom = 6.dp)
                         )
                     }
-
-                    items(group.items.size) { index ->
-                        val item = group.items[index]
-
-                        // If item requires a role and user doesn't have it, skip
-                        if (item.requiredRole != null && !roles.contains(item.requiredRole.uppercase())) {
-                            return@items
-                        }
-
+                    val visible = group.items.filter {
+                        it.requiredRole == null || roles.contains(it.requiredRole.uppercase())
+                    }
+                    items(visible.size, key = { "${group.label}_${visible[it].title}" }) { index ->
+                        val item = visible[index]
                         val isLocked = item.requiresAuth && isGuest
-
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .padding(horizontal = 10.dp)
+                                .clip(RoundedCornerShape(14.dp))
                                 .clickable {
                                     onCloseDrawer()
-                                    if (isLocked) {
-                                        onSignIn()
-                                    } else {
-                                        onNavigate(item.route)
-                                    }
+                                    if (isLocked) onSignIn() else onNavigate(item.route)
                                 }
-                                .padding(horizontal = 16.dp, vertical = 10.dp),
+                                .padding(horizontal = 12.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(14.dp)
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Icon(
-                                imageVector = item.icon,
-                                contentDescription = null,
-                                tint = if (isLocked) AppTheme.colors.muted else AppTheme.colors.primary,
-                                modifier = Modifier.size(20.dp)
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(34.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(if (isLocked) colors.boxColor else colors.primaryContainer),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = item.icon,
+                                    contentDescription = null,
+                                    tint = if (isLocked) colors.muted else colors.primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
                             Text(
                                 text = item.title,
-                                style = AppTheme.typography.bodyMedium.copy(
-                                    color = if (isLocked) AppTheme.colors.muted else AppTheme.colors.heading,
+                                style = AppTheme.typography.bodyLarge.copy(
+                                    color = if (isLocked) colors.muted else colors.heading,
                                     fontWeight = FontWeight.Medium
                                 ),
                                 modifier = Modifier.weight(1f)
@@ -298,56 +307,106 @@ fun SsplDrawerContent(
                             if (isLocked) {
                                 Icon(
                                     imageVector = Icons.Default.Lock,
-                                    contentDescription = "Requires Login",
-                                    tint = AppTheme.colors.muted,
-                                    modifier = Modifier.size(16.dp)
+                                    contentDescription = "Sign in required",
+                                    tint = colors.muted,
+                                    modifier = Modifier.size(15.dp)
                                 )
                             }
                         }
                     }
-
-                    item {
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-                            color = AppTheme.colors.border
-                        )
-                    }
                 }
             }
 
-            // Footer
-            HorizontalDivider(color = AppTheme.colors.border)
-            Row(
+            // ---- Footer: theme + sign in/out -----------------------------------------
+            HorizontalDivider(color = colors.divider)
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable {
-                        onCloseDrawer()
-                        if (isGuest) onSignIn() else onLogout()
-                    }
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    .navigationBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Icon(
-                    imageVector = if (isGuest) Icons.Default.Login else Icons.AutoMirrored.Filled.Logout,
-                    contentDescription = null,
-                    tint = if (isGuest) AppTheme.colors.primary else AppTheme.colors.error,
-                    modifier = Modifier.size(20.dp)
-                )
-                Text(
-                    text = if (isGuest) "Sign In / Register" else "Sign Out",
-                    style = AppTheme.typography.bodyMedium.copy(
-                        color = if (isGuest) AppTheme.colors.primary else AppTheme.colors.error,
-                        fontWeight = FontWeight.SemiBold
-                    ),
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = "v2.0",
-                    style = AppTheme.typography.labelSmall.copy(color = AppTheme.colors.muted)
-                )
+                ThemeModeSwitch(selected = themeMode, onSelect = themePreferences::setMode)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(if (isGuest) colors.primaryContainer else colors.errorContainer)
+                        .clickable {
+                            onCloseDrawer()
+                            if (isGuest) onSignIn() else onLogout()
+                        }
+                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Icon(
+                        imageVector = if (isGuest) Icons.AutoMirrored.Filled.Login else Icons.AutoMirrored.Filled.Logout,
+                        contentDescription = null,
+                        tint = if (isGuest) colors.primary else colors.error,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Text(
+                        text = if (isGuest) "Sign in or create account" else "Sign out",
+                        style = AppTheme.typography.bodyLarge.copy(
+                            color = if (isGuest) colors.primary else colors.error,
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(text = "v2.0", style = AppTheme.typography.labelSmall)
+                }
             }
         }
     }
 }
 
+/** Segmented System / Light / Dark switch. */
+@Composable
+fun ThemeModeSwitch(
+    selected: ThemeMode,
+    onSelect: (ThemeMode) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val colors = AppTheme.colors
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(50))
+            .background(colors.boxColor)
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        ThemeMode.entries.forEach { mode ->
+            val isSel = mode == selected
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(50))
+                    .background(if (isSel) colors.surface else Color.Transparent)
+                    .clickable { onSelect(mode) }
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = when (mode) {
+                        ThemeMode.SYSTEM -> Icons.Default.PhoneAndroid
+                        ThemeMode.LIGHT -> Icons.Default.LightMode
+                        ThemeMode.DARK -> Icons.Default.DarkMode
+                    },
+                    contentDescription = null,
+                    tint = if (isSel) colors.primary else colors.muted,
+                    modifier = Modifier.size(15.dp)
+                )
+                Text(
+                    text = " ${mode.label}",
+                    style = AppTheme.typography.labelMedium.copy(
+                        color = if (isSel) colors.heading else colors.muted,
+                        fontWeight = if (isSel) FontWeight.SemiBold else FontWeight.Medium
+                    )
+                )
+            }
+        }
+    }
+}

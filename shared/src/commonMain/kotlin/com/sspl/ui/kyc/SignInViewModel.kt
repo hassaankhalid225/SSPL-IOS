@@ -36,9 +36,9 @@ class SignInViewModel(
     private val passwordValidationUseCase: PasswordValidationUseCase,
     private val loginUserUseCase: LoginUserUseCase,
     private val signUpUseCase: SignUpUserUseCase,
-    private val pushNotificationService: PushNotificationService
-
-    ) : ViewModel() {
+    private val pushNotificationService: PushNotificationService,
+    private val userSession: com.sspl.session.UserSession
+) : ViewModel() {
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -53,20 +53,12 @@ class SignInViewModel(
     fun onEvent(event: LoginScreenUiEvents) {
         when (event) {
             is LoginScreenUiEvents.OnEmailTextChange -> {
-                _uiState.update {
-                    it.copy(
-                        email = event.emailText, emailError = null
-                    )
-                }
+                _uiState.update { it.copy(email = event.emailText, emailError = null, formError = null) }
                 validateEmail()
             }
 
             is LoginScreenUiEvents.OnPasswordTextChange -> {
-                _uiState.update {
-                    it.copy(
-                        password = event.passwordText, passwordError = null
-                    )
-                }
+                _uiState.update { it.copy(password = event.passwordText, passwordError = null, formError = null) }
                 validatePassword()
             }
 
@@ -81,86 +73,83 @@ class SignInViewModel(
                     phoneNo = "",
                     email = "",
                     isLoginEnabled = false,
-                    password = ""
+                    password = "",
+                    emailError = null,
+                    passwordError = null,
+                    formError = null
                 )
             }
 
             is LoginScreenUiEvents.OnPhoneNoChange -> {
-                _uiState.update {
-                    it.copy(phoneNo = event.phoneNumber)
-                }
+                _uiState.update { it.copy(phoneNo = event.phoneNumber) }
                 validatePhoneNumber()
             }
 
             is LoginScreenUiEvents.OnCountryChange -> _uiState.update {
-                it.copy(
-                    country = event.country, showCountryChooser = false
-                )
+                it.copy(country = event.country, showCountryChooser = false)
             }
 
             LoginScreenUiEvents.ToggleCountryChooser -> _uiState.update {
                 it.copy(showCountryChooser = !it.showCountryChooser)
             }
 
-            LoginScreenUiEvents.ContinueAsGuest -> {
-                viewModelScope.launch {
-                    continueAsGuest()
-                }
-            }
-
-
+            LoginScreenUiEvents.ContinueAsGuest -> continueAsGuest()
         }
     }
 
+    /*
+     * Validation mirrors the web sign-in form (sspl-frotend/src/pages/auth/Login.jsx):
+     * both fields are required and the email must be a valid address. The web does NOT
+     * enforce a minimum password length on sign-in (only on sign-up / reset), so neither do we -
+     * otherwise members with older short passwords could not sign in from the app.
+     */
+    private fun isPasswordPresent(password: String) = password.isNotEmpty()
+
     private fun validatePassword() {
-        val isPasswordValid = passwordValidationUseCase(_uiState.value.password)
+        val ok = isPasswordPresent(_uiState.value.password)
         _uiState.update {
             it.copy(
-                passwordError = if (!isPasswordValid) "Password must be at least 6 characters long" else null,
-                isLoginEnabled = isPasswordValid && _uiState.value.emailError == null && _uiState.value.email.isNotBlank(),  // Enable login only if both email and password are valid
+                passwordError = if (!ok) PASSWORD_REQUIRED else null,
+                isLoginEnabled = ok && it.emailError == null && it.email.isNotBlank()
             )
         }
     }
 
     private fun validateEmail() {
-        val isEmailValid = emailValidationUseCase(_uiState.value.email)
+        val email = _uiState.value.email.trim()
+        val ok = emailValidationUseCase(email)
         _uiState.update {
             it.copy(
-                emailError = if (!isEmailValid) "Invalid email address" else null,
-                isLoginEnabled = isEmailValid && _uiState.value.passwordError == null && _uiState.value.password.isNotBlank(),  // Enable login only if both email and password are valid
-
+                emailError = when {
+                    email.isEmpty() -> EMAIL_REQUIRED
+                    !ok -> EMAIL_INVALID
+                    else -> null
+                },
+                isLoginEnabled = ok && it.passwordError == null && isPasswordPresent(it.password)
             )
         }
     }
 
     private fun validatePhoneNumber() {
         val phoneNo = "${_uiState.value.country.dialCode.first()}${_uiState.value.phoneNo}"
-
         val isPhoneValid = phoneNumberValidationUseCase(phoneNo)
         _uiState.update {
             it.copy(
                 phoneNoError = if (!isPhoneValid) "Invalid phone number" else null,
-                isLoginEnabled = isPhoneValid && _uiState.value.isOtpMode,  // Enable login only if phone number is valid in OTP mode
-
+                isLoginEnabled = isPhoneValid && it.isOtpMode
             )
         }
     }
 
-
     private fun handleSave() {
+        if (_uiState.value.isLoading || _uiState.value.isGuestLoading) return
         viewModelScope.launch {
-            if (_uiState.value.isOtpMode) {
-                handleOtpSave()
-            } else {
-                handleEmailPasswordSave()
-            }
-
+            if (_uiState.value.isOtpMode) handleOtpSave() else handleEmailPasswordSave()
         }
     }
 
     private suspend fun handleOtpSave() {
         val phoneNo = "${_uiState.value.country.dialCode.first()}${_uiState.value.phoneNo}"
-
         if (phoneNumberValidationUseCase(phoneNo)) {
             _oneTimeEvents.emit(OneTimeEvents.NavigateToOtpScreen)
         } else {
@@ -169,62 +158,57 @@ class SignInViewModel(
     }
 
     private suspend fun handleEmailPasswordSave() {
-        val isEmailValid = emailValidationUseCase(_uiState.value.email)
-        val isPasswordValid = passwordValidationUseCase(_uiState.value.password)
+        val email = _uiState.value.email.trim()
+        val password = _uiState.value.password
+        val isEmailValid = emailValidationUseCase(email)
+        val isPasswordValid = isPasswordPresent(password)
 
         if (!isEmailValid || !isPasswordValid) {
-            if (!isEmailValid) {
-                _uiState.update { it.copy(emailError = "Invalid email address") }
-            }
-            if (!isPasswordValid) {
-                _uiState.update {
-                    it.copy(
-                        passwordError = "Password must be at least 8 characters long"
-                    )
-                }
+            _uiState.update {
+                it.copy(
+                    emailError = if (!isEmailValid) (if (email.isEmpty()) EMAIL_REQUIRED else EMAIL_INVALID) else it.emailError,
+                    passwordError = if (!isPasswordValid) PASSWORD_REQUIRED else it.passwordError
+                )
             }
             return
         }
-        logInViaEmailPassword(
-            email = _uiState.value.email,
-            password = _uiState.value.password
-        )
+        logInViaEmailPassword(email = email, password = password)
     }
 
     private suspend fun logInViaEmailPassword(email: String, password: String) {
-        loginUserUseCase.signInUserViaEmail(
-            email = email, password = password
-        ).collect { state ->
+        loginUserUseCase.signInUserViaEmail(email = email, password = password).collect { state ->
             _uiState.update { it.copy(isLoading = state is ApiStates.Loading) }
 
             var isHandled = false
             if (state is ApiStates.Failure) {
-                val errorMsg = state.error.message
-                if (errorMsg.contains(
-                        "Unauthorized",
-                        ignoreCase = true
-                    ) || errorMsg.contains(
-                        "Invalid credentials",
-                        ignoreCase = true
-                    )
-                ) {
-                    _uiState.update {
-                        it.copy(
-                            emailError = "Invalid email or password."
-                        )
+                // Same classification as the web Login.jsx error handler.
+                val msg = "${state.error.message} ${state.error.error.orEmpty()}".trim().lowercase()
+                val isNotFound = msg == "not found" ||
+                        msg.contains("user not found") || msg.contains("account not found") ||
+                        msg.contains("does not exist") || msg.contains("no user") ||
+                        msg.contains("no account") || msg.contains("not registered")
+                val isInvalidCreds = msg.contains("unauthorized") ||
+                        msg.contains("invalid credential") || msg.contains("invalid password") ||
+                        msg.contains("wrong password")
+                when {
+                    isNotFound -> {
+                        _uiState.update {
+                            it.copy(
+                                emailError = "Account does not exist with this email.",
+                                formError = "Account does not exist with this email. Please create an account to continue."
+                            )
+                        }
+                        isHandled = true
                     }
-                    isHandled = true
-                } else if (errorMsg.contains(
-                        "Account does not exist",
-                        ignoreCase = true
-                    )
-                ) {
-                    _uiState.update {
-                        it.copy(
-                            emailError = "Account does not exist against this email address."
-                        )
+                    isInvalidCreds -> {
+                        _uiState.update {
+                            it.copy(
+                                passwordError = "Check your password or use password recovery.",
+                                formError = "Invalid email or password. Please check your credentials and try again."
+                            )
+                        }
+                        isHandled = true
                     }
-                    isHandled = true
                 }
             }
 
@@ -236,7 +220,15 @@ class SignInViewModel(
     }
 
     private fun continueAsGuest() {
+        if (_uiState.value.isLoading || _uiState.value.isGuestLoading) return
         viewModelScope.launch {
+            // Reuse an existing guest session instead of registering a new guest account each time.
+            val cachedUser = userSession.userFlow.value
+            val cachedToken = userSession.token
+            if (cachedUser?.isGuest() == true && !cachedToken.isNullOrBlank()) {
+                _networkState.emit(ApiStates.Success(UserResponse(accessToken = cachedToken, user = cachedUser)))
+                return@launch
+            }
             val email = "${DateTimeUtils.timeInMilliNow()}." + EMAIL_GUEST_USER
             signUpUseCase.signUpUser(
                 firstName = "Guest",
@@ -245,11 +237,16 @@ class SignInViewModel(
                 password = PASSWORD_GUEST_USER,
                 phoneNumber = PHONE_GUEST_USER
             ).collect { state ->
-                _uiState.update { it.copy(isLoading = state is ApiStates.Loading) }
+                _uiState.update { it.copy(isGuestLoading = state is ApiStates.Loading) }
                 // Note: registerDeviceToken() is already called in SignUpUserUseCase after successful signup
                 _networkState.emit(state)
             }
         }
     }
-}
 
+    private companion object {
+        const val EMAIL_REQUIRED = "Email is required"
+        const val EMAIL_INVALID = "Enter a valid email address"
+        const val PASSWORD_REQUIRED = "Password is required"
+    }
+}

@@ -23,6 +23,7 @@ data class UserUiState(
     val showCountryChooser: Boolean = false,
     val isPasswordVisible: Boolean = false,
     val isReenteredPasswordVisible: Boolean = false,
+    val formError: String? = null,
 
     )
 

@@ -30,9 +30,11 @@ class FeedbackViewModel(
     private val _conferenceId = MutableStateFlow<Long?>(null)
     private val _sessionId = MutableStateFlow<Long?>(null)
 
+    private val _retry = MutableStateFlow(0)
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val feedbackFormResponse =
-        _conferenceId.filterNotNull().filterNotNull().flatMapLatest { confID ->
+        kotlinx.coroutines.flow.combine(_conferenceId.filterNotNull(), _retry) { id, _ -> id }.flatMapLatest { confID ->
             getFeedbackFormUseCase(confID)
         }.stateIn(
             scope = viewModelScope,
@@ -46,6 +48,8 @@ class FeedbackViewModel(
     private val _isFeedbackSubmitted: MutableSharedFlow<ApiStates<CommonResponse>> = MutableSharedFlow()
     val isFeedbackSubmitted = _isFeedbackSubmitted.asSharedFlow()
 
+
+    fun retry() { _retry.update { it + 1 } }
 
     fun setConferenceId(conferenceId: Long) {
         viewModelScope.launch {

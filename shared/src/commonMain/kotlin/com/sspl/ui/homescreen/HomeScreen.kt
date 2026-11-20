@@ -1,7 +1,7 @@
 package com.sspl.ui.homescreen
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,386 +9,222 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.automirrored.filled.Assignment
+import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.CardMembership
+import androidx.compose.material.icons.filled.Campaign
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Newspaper
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.HowToVote
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.QuestionAnswer
 import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.SupportAgent
+import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.filled.WorkspacePremium
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import coil3.compose.AsyncImage
 import com.sspl.Screen
-import com.sspl.core.auth.RoleUtils
-import com.sspl.core.models.Banner
-import com.sspl.core.models.PublicEventItem
+import com.sspl.core.models.EventItem
+import com.sspl.core.models.FellowshipStats
 import com.sspl.core.models.SocietyNewsItem
 import com.sspl.designsystem.components.AvatarImage
-import com.sspl.designsystem.components.BadgeVariant
-import com.sspl.designsystem.components.ModernCapsuleSearchBar
-import com.sspl.designsystem.components.ModernMediaCard
-import com.sspl.designsystem.components.ModernQuickCategoryChip
-import com.sspl.designsystem.components.ModernSupportCard
-import com.sspl.designsystem.components.PrimaryButton
-import com.sspl.designsystem.components.SecondaryButton
+import com.sspl.designsystem.components.BannerCarousel
+import com.sspl.designsystem.components.DecorativeRings
+import com.sspl.designsystem.components.ErrorState
+import com.sspl.designsystem.components.GlassIconButton
+import com.sspl.designsystem.components.GlassPill
+import com.sspl.designsystem.components.GradientHeroCard
+import com.sspl.designsystem.components.HeroStat
+import com.sspl.designsystem.components.IconTile
+import com.sspl.designsystem.components.ListRowCard
+import com.sspl.designsystem.components.LoadState
+import com.sspl.designsystem.components.LocalShellActions
+import com.sspl.designsystem.components.NavTile
+import com.sspl.designsystem.components.QuickActionTile
 import com.sspl.designsystem.components.SectionHeader
-import com.sspl.designsystem.components.SsplBadge
-import com.sspl.designsystem.components.SsplCard
-import com.sspl.designsystem.components.StatCard
+import com.sspl.designsystem.components.SkeletonBox
+import com.sspl.designsystem.components.SkeletonMediaCard
+import com.sspl.designsystem.components.SsplImage
+import com.sspl.designsystem.components.SsplRefreshBox
 import com.sspl.designsystem.theme.AppTheme
-import com.sspl.session.UserSession
-import com.sspl.ui.components.AppHorizontalPager
-import com.sspl.ui.components.GuestUserWarning
-import com.sspl.ui.userdetails.ProfileViewModel
-import com.sspl.utils.BASE_URL
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import org.koin.compose.koinInject
+import com.sspl.utils.DisplayDates
 import org.koin.compose.viewmodel.koinViewModel
 
+private data class QuickAction(
+    val icon: ImageVector,
+    val label: String,
+    val requiresAuth: Boolean = false,
+    val go: () -> Unit
+)
+
+/**
+ * B1: Home.
+ * Hero header (draws behind status bar) → banners overlapping the hero edge (max 3) →
+ * quick actions → featured event + carousel → fellowship impact → society → news → help.
+ */
 @Composable
 fun HomeScreen(
     navController: NavController,
-    homeViewModel: HomeScreenViewModel = koinViewModel(),
-    profileViewModel: ProfileViewModel = koinViewModel(),
-    userSession: UserSession = koinInject()
+    viewModel: HomeScreenViewModel = koinViewModel()
 ) {
-    val isGuestUser by profileViewModel.isGuestUser.collectAsState()
-    val user by userSession.userFlow.collectAsState()
-    val banners by homeViewModel.banners.collectAsState()
-    val upcomingEvents by homeViewModel.upcomingEvents.collectAsState()
-    val latestNews by homeViewModel.latestNews.collectAsState()
-    val scope = rememberCoroutineScope()
-    var searchQuery by remember { mutableStateOf("") }
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val shell = LocalShellActions.current
 
-    val sliderBanners = banners.filter { it.type == "SLIDER" || it.type == null }
-    val pagerState = rememberPagerState(pageCount = { sliderBanners.size })
-
-    // Auto-advance banner carousel every 4 seconds
-    LaunchedEffect(sliderBanners) {
-        if (sliderBanners.isNotEmpty()) {
-            while (true) {
-                delay(4000L)
-                val currentPage = pagerState.currentPage
-                scope.launch {
-                    if (currentPage + 1 >= sliderBanners.size) {
-                        pagerState.animateScrollToPage(0)
-                    } else {
-                        pagerState.animateScrollToPage(currentPage + 1)
-                    }
-                }
-            }
-        }
+    fun open(route: String) = navController.navigate(route) { launchSingleTop = true }
+    fun openEvent(e: EventItem) {
+        // Pass only the id (never the event JSON: it carries a multi-MB base64 image).
+        navController.currentBackStackEntry?.savedStateHandle?.set("eventId", e.effectiveId)
+        open(Screen.EventDetailScreen.route)
     }
+    fun gated(action: () -> Unit) = if (shell.isGuest) shell.onAvatar() else action()
 
-    LaunchedEffect(Unit) {
-        homeViewModel.loadHomeData()
-    }
+    val quickActions = listOf(
+        QuickAction(Icons.Default.Event, "Events") { open(Screen.ScientificProgramsScreen.route) },
+        QuickAction(Icons.Default.CalendarMonth, "Conferences") { open(Screen.ConferencesScreen.route) },
+        QuickAction(Icons.Default.School, "Workshops") { open(Screen.WorkshopsScreen.route) },
+        QuickAction(Icons.Default.WorkspacePremium, "Fellowship") { open(Screen.FellowshipHubScreen.route) },
+        QuickAction(Icons.AutoMirrored.Filled.Assignment, "My events", requiresAuth = true) { gated { open(Screen.MyRegistrationsScreen.route) } },
+        QuickAction(Icons.Default.Badge, "Certificates", requiresAuth = true) { gated { open(Screen.MyCertificatesScreen.route) } },
+        QuickAction(Icons.Default.Verified, "Verify") { open(Screen.VerifyCertificateScreen.route) },
+        QuickAction(Icons.Default.Download, "Downloads") { open(Screen.DownloadsScreen.route) }
+    )
 
-    val greetingName = when {
-        user != null && !user!!.fullName.isNullOrBlank() -> "Dr. ${user!!.fullName}"
-        user != null && !user!!.firstName.isNullOrBlank() -> "Dr. ${user!!.firstName}"
-        else -> "Doctor"
-    }
-
-    val membershipStatusText = when {
-        user == null || user!!.isGuest() -> "Guest"
-        RoleUtils.isLifeMember(user) -> "Life Member"
-        RoleUtils.isRegularMember(user) -> "Regular Member"
-        else -> "Member"
-    }
-
-    val membershipBadgeVariant = when {
-        user == null || user!!.isGuest() -> BadgeVariant.NEUTRAL
-        RoleUtils.isLifeMember(user) -> BadgeVariant.SUCCESS
-        else -> BadgeVariant.PRIMARY
-    }
-
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(AppTheme.colors.background),
-        contentPadding = PaddingValues(bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+    SsplRefreshBox(
+        isRefreshing = state.isRefreshing,
+        onRefresh = viewModel::refresh,
+        modifier = Modifier.fillMaxSize()
     ) {
-        // Guest mode banner
-        if (isGuestUser == true || user == null || user?.isGuest() == true) {
-            item {
-                GuestUserWarning(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp)
-                )
-            }
-        }
-
-        // Modern Greeting & Header
-        item {
-            ModernHomeGreetingHeader(
-                greetingName = greetingName,
-                membershipStatus = membershipStatusText,
-                badgeVariant = membershipBadgeVariant,
-                onProfileClick = {
-                    if (user != null && !user!!.isGuest()) {
-                        navController.navigate(Screen.ProfileScreen.route)
-                    } else {
-                        navController.navigate(Screen.SignInScreen.route)
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 28.dp)
+        ) {
+            // ---- Hero + banners ---------------------------------------------------------
+            item(key = "hero") {
+                val banners = state.banners
+                val hasBanners = banners is LoadState.Ready && banners.data.isNotEmpty()
+                val bannersLoading = banners is LoadState.Loading
+                Box {
+                    HomeHero(bottomSpace = if (hasBanners || bannersLoading) 92.dp else 24.dp)
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .offset(y = if (hasBanners || bannersLoading) 0.dp else 0.dp)
+                    ) {
+                        when {
+                            bannersLoading -> SkeletonBox(
+                                Modifier
+                                    .padding(horizontal = 20.dp)
+                                    .fillMaxWidth()
+                                    .aspectRatio(16f / 7f)
+                                    .offset(y = 72.dp),
+                                AppTheme.shapes.banner
+                            )
+                            hasBanners -> BannerCarousel(
+                                banners = (banners as LoadState.Ready).data,
+                                modifier = Modifier.offset(y = 72.dp)
+                            )
+                        }
                     }
                 }
-            )
-        }
-
-        // Modern Capsule Search Bar
-        item {
-            ModernCapsuleSearchBar(
-                query = searchQuery,
-                onQueryChange = { searchQuery = it },
-                placeholder = "Search events, CME, conferences...",
-                modifier = Modifier.padding(horizontal = 16.dp),
-                onFilterClick = { navController.navigate(Screen.ScientificProgramsScreen.route) }
-            )
-        }
-
-        // Quick Category Action Row (4 icons: Events, Congress, Fellowship, Directory)
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                ModernQuickCategoryChip(
-                    title = "Events",
-                    icon = Icons.Default.CalendarMonth,
-                    isSelected = true,
-                    onClick = { navController.navigate(Screen.ScientificProgramsScreen.route) },
-                    modifier = Modifier.weight(1f)
-                )
-                ModernQuickCategoryChip(
-                    title = "Congress",
-                    icon = Icons.Default.WorkspacePremium,
-                    isSelected = false,
-                    onClick = { navController.navigate(Screen.ConferencesScreen.route) },
-                    modifier = Modifier.weight(1f)
-                )
-                ModernQuickCategoryChip(
-                    title = "Fellowship",
-                    icon = Icons.Default.School,
-                    isSelected = false,
-                    onClick = { navController.navigate(Screen.FellowshipHubScreen.route) },
-                    modifier = Modifier.weight(1f)
-                )
-                ModernQuickCategoryChip(
-                    title = "Directory",
-                    icon = Icons.Default.Groups,
-                    isSelected = false,
-                    onClick = { navController.navigate(Screen.MembersDirectoryScreen.route) },
-                    modifier = Modifier.weight(1f)
-                )
+                if (hasBanners || bannersLoading) Spacer(Modifier.height(84.dp)) else Spacer(Modifier.height(8.dp))
             }
-        }
 
-        // Hero Featured Banner Card (Modern Villa luxury style with specs, badges, and bookmark)
-        if (sliderBanners.isNotEmpty()) {
-            item {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    AppHorizontalPager(
-                        list = sliderBanners,
-                        pagerState = pagerState,
-                        showIndicator = true
-                    ) { modifier, item, _ ->
-                        val fullImageUrl = if (item.imageUrl.startsWith("/")) {
-                            "$BASE_URL${item.imageUrl}"
-                        } else {
-                            "$BASE_URL/${item.imageUrl}"
-                        }
-
-                        Card(
-                            modifier = modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
-                            shape = RoundedCornerShape(22.dp),
-                            colors = CardDefaults.cardColors(containerColor = AppTheme.colors.surface),
-                            border = BorderStroke(1.dp, AppTheme.colors.border),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            // ---- Quick actions ---------------------------------------------------------
+            item(key = "quick") {
+                Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                    SectionHeader(title = "Quick access")
+                    Spacer(Modifier.height(6.dp))
+                    quickActions.chunked(4).forEach { row ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            Column {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(185.dp)
-                                ) {
-                                    AsyncImage(
-                                        model = fullImageUrl,
-                                        contentDescription = item.title ?: "Banner",
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentScale = ContentScale.Crop
-                                    )
-                                    // Floating "Featured" badge top-left
-                                    Box(
-                                        modifier = Modifier
-                                            .padding(12.dp)
-                                            .clip(RoundedCornerShape(50.dp))
-                                            .background(Color.Black.copy(alpha = 0.55f))
-                                            .padding(horizontal = 10.dp, vertical = 4.dp)
-                                            .align(Alignment.TopStart)
-                                    ) {
-                                        Text(
-                                            text = "Featured CME",
-                                            style = AppTheme.typography.labelSmall.copy(
-                                                color = Color.White,
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 10.sp
-                                            )
-                                        )
-                                    }
-                                    // Floating bookmark button top-right
-                                    var isSaved by remember { mutableStateOf(false) }
-                                    Box(
-                                        modifier = Modifier
-                                            .padding(12.dp)
-                                            .size(36.dp)
-                                            .clip(CircleShape)
-                                            .background(Color.White.copy(alpha = 0.85f))
-                                            .clickable { isSaved = !isSaved }
-                                            .align(Alignment.TopEnd),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                                            contentDescription = "Save",
-                                            tint = AppTheme.colors.heading,
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                    }
-                                }
+                            row.forEach { qa ->
+                                QuickActionTile(
+                                    icon = qa.icon,
+                                    label = qa.label,
+                                    onClick = qa.go,
+                                    locked = qa.requiresAuth && shell.isGuest,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
 
-                                // Card Content below image
-                                Column(modifier = Modifier.padding(14.dp)) {
-                                    Text(
-                                        text = item.title ?: "Annual Surgical Conference",
-                                        style = AppTheme.typography.titleMedium.copy(
-                                            color = AppTheme.colors.heading,
-                                            fontWeight = FontWeight.Bold
-                                        ),
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.LocationOn,
-                                            contentDescription = null,
-                                            tint = AppTheme.colors.muted,
-                                            modifier = Modifier.size(14.dp)
-                                        )
-                                        Text(
-                                            text = "Pearl Continental, Lahore",
-                                            style = AppTheme.typography.bodySmall.copy(
-                                                color = AppTheme.colors.muted,
-                                                fontSize = 12.sp
-                                            )
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.height(10.dp))
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                            modifier = Modifier
-                                                .clip(RoundedCornerShape(8.dp))
-                                                .background(AppTheme.colors.boxColor)
-                                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.WorkspacePremium,
-                                                contentDescription = null,
-                                                tint = AppTheme.colors.primaryDark,
-                                                modifier = Modifier.size(14.dp)
-                                            )
-                                            Text(
-                                                text = "12 CME Points",
-                                                style = AppTheme.typography.labelSmall.copy(
-                                                    color = AppTheme.colors.heading,
-                                                    fontWeight = FontWeight.Bold,
-                                                    fontSize = 10.5.sp
-                                                )
-                                            )
-                                        }
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                            modifier = Modifier
-                                                .clip(RoundedCornerShape(8.dp))
-                                                .background(AppTheme.colors.boxColor)
-                                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Groups,
-                                                contentDescription = null,
-                                                tint = AppTheme.colors.primaryDark,
-                                                modifier = Modifier.size(14.dp)
-                                            )
-                                            Text(
-                                                text = "In-Person & Live",
-                                                style = AppTheme.typography.labelSmall.copy(
-                                                    color = AppTheme.colors.heading,
-                                                    fontWeight = FontWeight.Bold,
-                                                    fontSize = 10.5.sp
-                                                )
-                                            )
-                                        }
+            // ---- Events -----------------------------------------------------------------
+            item(key = "events") {
+                Column(Modifier.padding(top = 12.dp)) {
+                    SectionHeader(
+                        title = "Happening next",
+                        actionText = "All events",
+                        onActionClick = { open(Screen.ScientificProgramsScreen.route) },
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    when (val ev = state.events) {
+                        is LoadState.Loading -> Column(Modifier.padding(horizontal = 16.dp)) {
+                            SkeletonMediaCard(Modifier.fillMaxWidth(), imageAspect = 2f)
+                        }
+                        is LoadState.Error -> ErrorState(
+                            title = "Events didn't load",
+                            message = ev.message,
+                            onRetry = viewModel::retryEvents
+                        )
+                        is LoadState.Ready -> if (ev.data.isEmpty()) {
+                            NoEventsCard(onBrowse = { open(Screen.EventArchiveScreen.route) })
+                        } else {
+                            FeaturedEventCard(
+                                event = ev.data.first(),
+                                onClick = { openEvent(ev.data.first()) },
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+                            if (ev.data.size > 1) {
+                                Spacer(Modifier.height(14.dp))
+                                LazyRow(
+                                    contentPadding = PaddingValues(horizontal = 16.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    items(ev.data.drop(1), key = { it.effectiveId }) { e ->
+                                        CompactEventCard(e, onClick = { openEvent(e) })
                                     }
                                 }
                             }
@@ -396,401 +232,373 @@ fun HomeScreen(
                     }
                 }
             }
-        }
 
-        // Horizontal Section: Upcoming Events (Popular Locations style)
-        if (upcomingEvents.isNotEmpty()) {
-            item {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    SectionHeader(
-                        title = "Popular Events & CME",
-                        action = "View all",
-                        onAction = { navController.navigate(Screen.ScientificProgramsScreen.route) },
-                        modifier = Modifier.padding(horizontal = 16.dp)
+            // ---- Fellowship impact ----------------------------------------------------------
+            state.stats?.takeIf { it.activeFellows + it.graduatedFellows + it.trainingCenters > 0 }?.let { stats ->
+                item(key = "fellowship") {
+                    FellowshipImpactCard(
+                        stats = stats,
+                        onClick = { open(Screen.FellowshipHubScreen.route) },
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp)
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(upcomingEvents) { event ->
-                            val eventImg = if (!event.imageUrl.isNullOrBlank()) {
-                                if (event.imageUrl.startsWith("/")) "$BASE_URL${event.imageUrl}" else "$BASE_URL/${event.imageUrl}"
-                            } else null
-                            val dateFormatted = event.startDate?.take(10) ?: "Upcoming"
-                            val city = event.venue ?: "Lahore"
+                }
+            }
 
-                            ModernMediaCard(
-                                title = event.title,
-                                subtitle = "$dateFormatted · $city",
-                                imageUrl = eventImg,
-                                badgeText = event.type ?: "CME",
-                                onClick = {
-                                    if (event.id != null && event.id > 0) {
-                                        navController.currentBackStackEntry?.savedStateHandle?.set("eventId", event.id)
-                                        navController.navigate(Screen.EventDetailScreen.route)
-                                    } else {
-                                        navController.navigate(Screen.ScientificProgramsScreen.route)
-                                    }
-                                }
-                            )
+            // ---- Society ----------------------------------------------------------------
+            item(key = "society") {
+                Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp)) {
+                    SectionHeader(title = "Your society")
+                    Spacer(Modifier.height(8.dp))
+                    val tiles = listOf(
+                        Triple(Icons.Default.AccountBalance, "About SSPL", Screen.AboutScreen.route),
+                        Triple(Icons.Default.Groups, "Executive council", Screen.ExecutiveCouncilScreen.route),
+                        Triple(Icons.Default.HowToVote, "Elections", Screen.ElectionsScreen.route),
+                        Triple(Icons.Default.Badge, "Members directory", Screen.MembersDirectoryScreen.route),
+                        Triple(Icons.Default.CardMembership, "Membership plans", Screen.MembershipPlansScreen.route),
+                        Triple(Icons.Default.MenuBook, "Our history", Screen.HistoryScreen.route)
+                    )
+                    tiles.chunked(2).forEach { row ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            row.forEach { (icon, label, route) ->
+                                NavTile(icon = icon, title = label, onClick = { open(route) }, modifier = Modifier.weight(1f))
+                            }
                         }
                     }
                 }
             }
-        }
 
-        // Stats Band
-        item {
-            HomeStatsBand()
-        }
+            // ---- News ------------------------------------------------------------------
+            if (state.news.isNotEmpty()) {
+                item(key = "newsHeader") {
+                    SectionHeader(
+                        title = "Announcements",
+                        actionText = "View all",
+                        onActionClick = { open(Screen.NotificationsScreen.route) },
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp)
+                    )
+                }
+                items(state.news, key = { "news_" + it.effectiveId }) { n ->
+                    NewsRow(n, onClick = { open(Screen.NotificationsScreen.route) })
+                }
+            }
 
-        // Society News Section
-        if (latestNews.isNotEmpty()) {
-            item {
-                Column(
+            // ---- Help ------------------------------------------------------------------
+            item(key = "help") {
+                HelpStrip(
+                    onContact = { open(Screen.ContactUsScreen.route) },
+                    onFaq = { open(Screen.FaqsScreen.route) },
+                    onGuide = { open(Screen.MemberGuideScreen.route) },
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 20.dp)
+                )
+            }
+        }
+    }
+}
+
+// =====================================================================================
+// Hero
+// =====================================================================================
+
+@Composable
+private fun HomeHero(bottomSpace: androidx.compose.ui.unit.Dp) {
+    val shell = LocalShellActions.current
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp))
+            .background(AppTheme.colors.headerGradient)
+    ) {
+        DecorativeRings(Modifier.matchParentSize())
+        Column(
+            modifier = Modifier
+                .statusBarsPadding()
+                .padding(start = 18.dp, end = 18.dp, top = 8.dp, bottom = bottomSpace)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                GlassIconButton(Icons.Default.Menu, "Open menu", shell.openDrawer)
+                Spacer(Modifier.weight(1f))
+                GlassIconButton(
+                    Icons.Outlined.Notifications, "Notifications", shell.onNotifications,
+                    badgeCount = shell.unreadCount
+                )
+                Spacer(Modifier.width(10.dp))
+                AvatarImage(
+                    url = shell.avatarUrl,
+                    initials = shell.initials,
+                    size = 42.dp,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
+                        .clip(CircleShape)
+                        .border(2.dp, Color.White.copy(alpha = 0.55f), CircleShape)
+                        .clickable(onClick = shell.onAvatar)
+                )
+            }
+            Spacer(Modifier.height(22.dp))
+            Text(
+                text = DisplayDates.greeting().uppercase(),
+                style = AppTheme.typography.overline.copy(color = Color(0xFF9FDCF0))
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = shell.displayName?.let { "Dr. ${it.removePrefix("Dr. ").removePrefix("Dr ")}" } ?: "Welcome to SSPL",
+                style = AppTheme.typography.displaySmall.copy(color = Color.White),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = "Society of Surgeons of Pakistan · Lahore",
+                style = AppTheme.typography.bodyMedium.copy(color = Color.White.copy(alpha = 0.72f))
+            )
+            if (shell.isGuest) {
+                Spacer(Modifier.height(14.dp))
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50))
+                        .background(Color.White)
+                        .clickable(onClick = shell.onAvatar)
+                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    SectionHeader(
-                        title = "Society Announcements",
-                        action = "See More",
-                        onAction = { navController.navigate(Screen.NotificationsScreen.route) }
+                    Text(
+                        "Sign in to your member portal",
+                        style = AppTheme.typography.labelMedium.copy(color = Color(0xFF0B4A8C), fontWeight = FontWeight.SemiBold)
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    latestNews.forEach { newsItem ->
-                        SocietyNewsCard(item = newsItem) {
-                            navController.navigate(Screen.NotificationsScreen.route)
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
+                    Spacer(Modifier.width(6.dp))
+                    Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Color(0xFF0B4A8C), modifier = Modifier.size(14.dp))
                 }
             }
         }
+    }
+}
 
-        // Fellowship CTA Banner
-        item {
-            FellowshipCtaCard(
-                onExplore = { navController.navigate(Screen.FellowshipHubScreen.route) }
+// =====================================================================================
+// Events
+// =====================================================================================
+
+@Composable
+private fun FeaturedEventCard(event: EventItem, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val colors = AppTheme.colors
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(AppTheme.shapes.card)
+            .background(colors.surface)
+            .border(1.dp, colors.border.copy(alpha = 0.7f), AppTheme.shapes.card)
+            .clickable(onClick = onClick)
+    ) {
+        Box(Modifier.fillMaxWidth().aspectRatio(2f)) {
+            SsplImage(
+                source = event.effectiveImage,
+                contentDescription = event.title,
+                modifier = Modifier.fillMaxSize(),
+                fallbackIcon = Icons.Default.Event,
+                fallbackIconSize = 44.dp
             )
+            Box(
+                Modifier.matchParentSize().background(
+                    Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.55f)))
+                )
+            )
+            DateBlock(event, Modifier.align(Alignment.TopStart).padding(12.dp))
+            Row(
+                Modifier.align(Alignment.TopEnd).padding(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                if (event.computedStatus == "ongoing") GlassPill("LIVE NOW")
+                GlassPill(event.readableType.uppercase())
+            }
+            val rel = DisplayDates.relative(event.effectiveStart)
+            if (rel.isNotEmpty() && event.computedStatus == "upcoming") {
+                GlassPill(rel, modifier = Modifier.align(Alignment.BottomStart).padding(12.dp), icon = Icons.Default.Schedule)
+            }
         }
-
-        // President's Message Teaser Card
-        item {
-            PresidentMessageTeaser(
-                onReadMore = { navController.navigate(Screen.AboutScreen.route) }
-            )
-        }
-
-        // Executive Leadership Preview Strip
-        item {
-            LeadershipPreviewCard(
-                onViewCouncil = { navController.navigate(Screen.ExecutiveCouncilScreen.route) }
-            )
-        }
-
-        // Modern Support Card (Screen 3 style)
-        item {
-            ModernSupportCard(
-                title = "Need Help?",
-                subtitle = "Our support team is here to assist you with registration, CME certificates, and membership queries.",
-                buttonText = "Contact Support",
-                onContactClick = { navController.navigate(Screen.ContactUsScreen.route) },
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
+        Column(Modifier.padding(16.dp)) {
+            Text(event.title, style = AppTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Spacer(Modifier.height(8.dp))
+            MetaLine(Icons.Default.CalendarMonth, listOf(event.formattedDateRange, event.formattedTimeRange).filter { it.isNotBlank() }.joinToString(" · "))
+            Spacer(Modifier.height(4.dp))
+            MetaLine(Icons.Default.Place, event.effectiveVenue)
+            Spacer(Modifier.height(14.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = if (event.isRegistrationAllowed) "Registration open" else "View details",
+                    style = AppTheme.typography.labelMedium.copy(
+                        color = if (event.isRegistrationAllowed) colors.success else colors.muted,
+                        fontWeight = FontWeight.SemiBold
+                    ),
+                    modifier = Modifier.weight(1f)
+                )
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50))
+                        .background(colors.primaryGradient)
+                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        if (event.isRegistrationAllowed) "Register" else "Details",
+                        style = AppTheme.typography.labelMedium.copy(color = Color.White, fontWeight = FontWeight.SemiBold)
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Color.White, modifier = Modifier.size(14.dp))
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun ModernHomeGreetingHeader(
-    greetingName: String,
-    membershipStatus: String,
-    badgeVariant: BadgeVariant,
-    onProfileClick: () -> Unit
-) {
+private fun CompactEventCard(event: EventItem, onClick: () -> Unit) {
+    val colors = AppTheme.colors
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .width(250.dp)
+            .clip(AppTheme.shapes.card)
+            .background(colors.surface)
+            .border(1.dp, colors.border.copy(alpha = 0.7f), AppTheme.shapes.card)
+            .clickable(onClick = onClick)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Hi, $greetingName 👋",
-                    style = AppTheme.typography.titleMedium.copy(
-                        color = AppTheme.colors.muted,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 15.sp
-                    )
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = "Find your upcoming CME & sessions",
-                    style = AppTheme.typography.displaySmall.copy(
-                        color = AppTheme.colors.heading,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    )
-                )
-            }
-            Spacer(modifier = Modifier.width(10.dp))
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(50.dp))
-                    .clickable(onClick = onProfileClick)
-            ) {
-                SsplBadge(
-                    text = membershipStatus,
-                    variant = badgeVariant
-                )
-            }
+        Box(Modifier.fillMaxWidth().height(118.dp)) {
+            SsplImage(event.effectiveImage, event.title, Modifier.fillMaxSize(), fallbackIcon = Icons.Default.Event)
+            DateBlock(event, Modifier.align(Alignment.TopStart).padding(10.dp), compact = true)
+        }
+        Column(Modifier.padding(12.dp)) {
+            Text(
+                event.readableType.uppercase(),
+                style = AppTheme.typography.overline
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(event.title, style = AppTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Spacer(Modifier.height(6.dp))
+            MetaLine(Icons.Default.Place, event.effectiveVenue)
         }
     }
 }
 
 @Composable
-private fun HomeStatsBand() {
-    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            StatCard(value = "1,200+", label = "Surgeons", description = "Verified Members", modifier = Modifier.weight(1f))
-            StatCard(value = "150+", label = "CME Sessions", description = "Organized Annually", modifier = Modifier.weight(1f))
+private fun DateBlock(event: EventItem, modifier: Modifier = Modifier, compact: Boolean = false) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color.White)
+            .padding(horizontal = if (compact) 9.dp else 11.dp, vertical = if (compact) 5.dp else 7.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            event.startDayNumber,
+            style = AppTheme.typography.number.copy(
+                color = Color(0xFF0B2A4A),
+                fontSize = if (compact) AppTheme.typography.titleMedium.fontSize else AppTheme.typography.number.fontSize
+            )
+        )
+        Text(
+            event.startMonthName.uppercase(),
+            style = AppTheme.typography.labelSmall.copy(color = Color(0xFF0B5AA6), fontWeight = FontWeight.Bold)
+        )
+    }
+}
+
+@Composable
+private fun MetaLine(icon: ImageVector, text: String) {
+    if (text.isBlank()) return
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(icon, null, tint = AppTheme.colors.muted, modifier = Modifier.size(14.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(text, style = AppTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
+}
+
+@Composable
+private fun NoEventsCard(onBrowse: () -> Unit) {
+    ListRowCard(
+        title = "No upcoming events right now",
+        subtitle = "New CME events and workshops are announced here first. Browse past events meanwhile.",
+        leading = { IconTile(Icons.Default.CalendarMonth) },
+        onClick = onBrowse,
+        modifier = Modifier.padding(horizontal = 16.dp)
+    )
+}
+
+// =====================================================================================
+// Fellowship / news / help
+// =====================================================================================
+
+@Composable
+private fun FellowshipImpactCard(stats: FellowshipStats, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    GradientHeroCard(modifier = modifier, onClick = onClick) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                GlassPill("FELLOWSHIP PROGRAMME", icon = Icons.Default.WorkspacePremium)
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    "Training the next generation of surgeons",
+                    style = AppTheme.typography.titleMedium.copy(color = Color.White),
+                    maxLines = 2
+                )
+            }
+            Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Color.White, modifier = Modifier.size(20.dp))
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            StatCard(value = "45+", label = "Workshops", description = "Hands-on Training", modifier = Modifier.weight(1f))
-            StatCard(value = "25+", label = "Years", description = "Surgical Excellence", modifier = Modifier.weight(1f))
+        Spacer(Modifier.height(16.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+            HeroStat("${stats.activeFellows}", "Active fellows", Modifier.weight(1f))
+            HeroStat("${stats.graduatedFellows}", "Completed", Modifier.weight(1f))
+            HeroStat("${stats.trainingCenters}", "Centres", Modifier.weight(1f))
+            if (stats.totalCasesLogged > 0) HeroStat("${stats.totalCasesLogged}", "Procedures", Modifier.weight(1f))
         }
     }
 }
 
 @Composable
-private fun SocietyNewsCard(
-    item: SocietyNewsItem,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
+private fun NewsRow(item: SocietyNewsItem, onClick: () -> Unit) {
+    ListRowCard(
+        title = item.title ?: "Announcement",
+        subtitle = (item.message ?: item.description)?.take(140),
+        meta = DisplayDates.medium(item.createdAt).takeIf { it.isNotBlank() },
+        leading = { IconTile(Icons.Default.Campaign, tint = AppTheme.colors.accent, background = AppTheme.colors.infoContainer) },
+        onClick = onClick,
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp)
+    )
+}
+
+@Composable
+private fun HelpStrip(onContact: () -> Unit, onFaq: () -> Unit, onGuide: () -> Unit, modifier: Modifier = Modifier) {
+    val colors = AppTheme.colors
+    Column(
+        modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp))
-            .clickable { onClick() },
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = AppTheme.colors.surface),
-        border = BorderStroke(1.dp, AppTheme.colors.border)
+            .clip(AppTheme.shapes.card)
+            .background(colors.surfaceTint)
+            .padding(16.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(AppTheme.colors.boxColor),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Newspaper,
-                    contentDescription = null,
-                    tint = AppTheme.colors.primaryDark,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = item.title ?: "Society Update",
-                    style = AppTheme.typography.titleSmall,
-                    color = AppTheme.colors.heading,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = item.effectiveBody.take(70),
-                    style = AppTheme.typography.bodySmall,
-                    color = AppTheme.colors.muted,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-            Icon(
-                imageVector = Icons.Default.ChevronRight,
-                contentDescription = null,
-                tint = AppTheme.colors.muted
-            )
+        Text("Need a hand?", style = AppTheme.typography.titleSmall)
+        Text(
+            "Guides, answers and the secretariat are a tap away.",
+            style = AppTheme.typography.bodySmall
+        )
+        Spacer(Modifier.height(12.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            HelpChip(Icons.Default.SupportAgent, "Contact", onContact, Modifier.weight(1f))
+            HelpChip(Icons.Default.QuestionAnswer, "FAQs", onFaq, Modifier.weight(1f))
+            HelpChip(Icons.Default.MenuBook, "Guide", onGuide, Modifier.weight(1f))
         }
     }
 }
 
 @Composable
-private fun FellowshipCtaCard(onExplore: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = AppTheme.colors.primaryDark)
+private fun HelpChip(icon: ImageVector, label: String, onClick: () -> Unit, modifier: Modifier) {
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(50))
+            .background(AppTheme.colors.surface)
+            .clickable(onClick = onClick)
+            .padding(vertical = 10.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp)
-        ) {
-            Text(
-                text = "SURGICAL FELLOWSHIP",
-                style = AppTheme.typography.labelSmall,
-                color = AppTheme.colors.secondary,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.2.sp
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = "Advance Your Surgical Career",
-                style = AppTheme.typography.titleMedium,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Apply for accredited training centers, clinical case logs, and competency assessments under SSP Lahore.",
-                style = AppTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.85f)
-            )
-            Spacer(modifier = Modifier.height(14.dp))
-            SecondaryButton(
-                text = "Explore Fellowship",
-                onClick = onExplore,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-    }
-}
-
-@Composable
-private fun PresidentMessageTeaser(onReadMore: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = AppTheme.colors.surface),
-        border = BorderStroke(1.dp, AppTheme.colors.border)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(18.dp)
-        ) {
-            Text(
-                text = "PRESIDENT'S MESSAGE",
-                style = AppTheme.typography.labelSmall,
-                color = AppTheme.colors.primary,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.1.sp
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = "\"Our chapter has a rich history of advancing surgical knowledge, fostering collaboration, and promoting the highest standards of patient care.\"",
-                style = AppTheme.typography.bodyMedium,
-                fontStyle = FontStyle.Italic,
-                color = AppTheme.colors.onSurface
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Prof. Dr. Ali Azhar Naeem",
-                        style = AppTheme.typography.titleSmall,
-                        color = AppTheme.colors.primaryDark,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "President, SSP Lahore",
-                        style = AppTheme.typography.bodySmall,
-                        color = AppTheme.colors.muted
-                    )
-                }
-                Text(
-                    text = "Read More →",
-                    style = AppTheme.typography.labelMedium,
-                    color = AppTheme.colors.primaryDark,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable { onReadMore() }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun LeadershipPreviewCard(onViewCouncil: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .clickable { onViewCouncil() },
-        shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = AppTheme.colors.surface),
-        border = BorderStroke(1.dp, AppTheme.colors.border)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(18.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(46.dp)
-                    .clip(CircleShape)
-                    .background(AppTheme.colors.boxColor),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Groups,
-                    contentDescription = null,
-                    tint = AppTheme.colors.primaryDark,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(14.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Executive Council & Cabinet",
-                    style = AppTheme.typography.titleSmall,
-                    color = AppTheme.colors.heading,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "Meet the elected leaders guiding SSP Lahore",
-                    style = AppTheme.typography.bodySmall,
-                    color = AppTheme.colors.muted
-                )
-            }
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = null,
-                tint = AppTheme.colors.primaryDark,
-                modifier = Modifier.size(18.dp)
-            )
-        }
+        Icon(icon, null, tint = AppTheme.colors.primary, modifier = Modifier.size(16.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(label, style = AppTheme.typography.labelMedium.copy(color = AppTheme.colors.heading, fontWeight = FontWeight.SemiBold))
     }
 }

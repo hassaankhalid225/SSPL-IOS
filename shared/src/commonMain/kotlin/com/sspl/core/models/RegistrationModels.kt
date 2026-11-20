@@ -5,9 +5,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Role(
-    val id: Long,
-    val name: String,
-    val fee: Double, // API sends Int ("fee": 5000) but Double is safer for money
+    val id: Long = 0,
+    val name: String = "",
+    val fee: Double = 0.0, // API sends Int ("fee": 5000) but Double is safer for money
     val description: String? = null,
     @SerialName("conference_id") val conferenceId: Long? = null,
     @SerialName("active_status") val activeStatus: String? = null
@@ -19,8 +19,8 @@ data class Registration(
     @SerialName("person_id") val personId: Long? = null,
     @SerialName("conference_id") val conferenceId: Long? = null,
     @SerialName("role_id") val roleId: Long? = null,
-    @SerialName("fee_amount") val feeAmount: Double,
-    @SerialName("payment_status") val paymentStatus: String, // PENDING | SUCCESS | FAILED | REFUNDED
+    @SerialName("fee_amount") val feeAmount: Double = 0.0,
+    @SerialName("payment_status") val paymentStatus: String = "PENDING", // PENDING | SUCCESS | FAILED | REFUNDED
     @SerialName("payment_mode") val paymentMode: String? = null, // CASH | BANK | CARD | null
     @SerialName("transaction_id") val transactionId: String? = null,
     @SerialName("payment_date") val paymentDate: String? = null,
@@ -48,8 +48,8 @@ data class Registration(
 
 @Serializable
 data class CheckRegistrationResponse(
-    @SerialName("is_registered") val isRegistered: Boolean,
-    val registration: Registration?
+    @SerialName("is_registered") val isRegistered: Boolean = false,
+    val registration: Registration? = null
 )
 
 @Serializable

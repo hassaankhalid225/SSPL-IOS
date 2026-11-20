@@ -1,9 +1,10 @@
 package com.sspl.ui.conference
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,234 +14,111 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.FolderZip
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.PresentToAll
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.core.models.ArchiveMaterial
 import com.sspl.core.models.EventArchiveRecord
-import com.sspl.designsystem.components.BadgeVariant
-import com.sspl.designsystem.components.ModernCapsuleSearchBar
-import com.sspl.designsystem.components.SsplBadge
-import com.sspl.designsystem.components.SsplCard
-import com.sspl.designsystem.tokens.SsplColorTokens
-import com.sspl.designsystem.tokens.SsplSpacingTokens
-import com.sspl.designsystem.tokens.SsplTypographyTokens
+import com.sspl.designsystem.components.EmptyState
+import com.sspl.designsystem.components.ErrorState
+import com.sspl.designsystem.components.GlassPill
+import com.sspl.designsystem.components.GradientHeroCard
+import com.sspl.designsystem.components.HeroStat
+import com.sspl.designsystem.components.IconTile
+import com.sspl.designsystem.components.ImageSources
+import com.sspl.designsystem.components.SearchBar
+import com.sspl.designsystem.components.SkeletonList
+import com.sspl.designsystem.components.SsplRefreshBox
+import com.sspl.designsystem.components.StatusBadge
+import com.sspl.designsystem.theme.AppTheme
 import com.sspl.platform.shared.UrlOpener
-import com.sspl.utils.BASE_URL
+import com.sspl.utils.DisplayDates
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
+/** C8: Event archive — past events with downloadable materials. */
 @Composable
 fun EventArchiveScreen(
     navController: NavController,
     viewModel: EventArchiveViewModel = koinViewModel(),
     urlOpener: UrlOpener = koinInject()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(SsplColorTokens.background)
-    ) {
-        // Modern App bar
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(SsplColorTokens.background)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(SsplColorTokens.surface)
-                    .clickable { navController.popBackStack() },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = SsplColorTokens.heading,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-            Spacer(modifier = Modifier.size(12.dp))
-            Text(
-                text = "Event Archive",
-                style = SsplTypographyTokens.headlineSmall.copy(fontSize = 18.sp, fontWeight = FontWeight.Bold),
-                color = SsplColorTokens.heading,
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        // Modern Capsule Search Bar
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            ModernCapsuleSearchBar(
-                query = uiState.searchQuery,
-                onQueryChange = viewModel::setSearchQuery,
-                placeholder = "Search archives, presentations, documents...",
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-
-        // Content
-        if (uiState.isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = SsplColorTokens.primary)
-            }
-        } else if (uiState.filteredArchives.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(SsplSpacingTokens.xl),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = Icons.Default.FolderZip,
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp),
-                        tint = SsplColorTokens.muted
-                    )
-                    Spacer(modifier = Modifier.height(SsplSpacingTokens.md))
+    SsplRefreshBox(isRefreshing = state.isRefreshing, onRefresh = viewModel::refresh, modifier = Modifier.fillMaxSize()) {
+        LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 28.dp)) {
+            item(key = "hero") {
+                GradientHeroCard(Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp)) {
+                    GlassPill("EVENT ARCHIVE", icon = Icons.Default.History)
+                    Spacer(Modifier.height(10.dp))
+                    Text("Materials from past meetings", style = AppTheme.typography.headlineSmall.copy(color = Color.White))
                     Text(
-                        text = "No Archives Found",
-                        style = SsplTypographyTokens.headlineSmall,
-                        color = SsplColorTokens.textPrimary
+                        "Presentations, posters and abstract books shared by SSP Lahore.",
+                        style = AppTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.78f))
                     )
-                    Spacer(modifier = Modifier.height(SsplSpacingTokens.xs))
-                    Text(
-                        text = if (uiState.searchQuery.isNotBlank()) {
-                            "No materials matched \"${uiState.searchQuery}\"."
-                        } else {
-                            "There are currently no public event archives available."
-                        },
-                        style = SsplTypographyTokens.bodySmall.copy(color = SsplColorTokens.textSecondary),
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(SsplSpacingTokens.md),
-                verticalArrangement = Arrangement.spacedBy(SsplSpacingTokens.md)
-            ) {
-                items(uiState.filteredArchives, key = { it.id }) { archive ->
-                    ArchiveEventCard(
-                        archive = archive,
-                        onDownloadMaterial = { material ->
-                            val url = buildFileUrl(material.fileUrl)
-                            if (url != null) {
-                                urlOpener.openUrl(url)
-                            }
+                    if (state.loaded) {
+                        Spacer(Modifier.height(14.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            HeroStat("${state.archives.size}", "Events")
+                            HeroStat("${state.totalMaterials}", "Files")
                         }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ArchiveEventCard(
-    archive: EventArchiveRecord,
-    onDownloadMaterial: (ArchiveMaterial) -> Unit
-) {
-    SsplCard(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(SsplSpacingTokens.md)) {
-            // Header
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = archive.conference?.title ?: "Past Event",
-                        style = SsplTypographyTokens.headlineSmall.copy(fontSize = 17.sp),
-                        color = SsplColorTokens.textPrimary
-                    )
-                    if (!archive.conference?.startDate.isNullOrBlank()) {
-                        Text(
-                            text = archive.conference!!.startDate!!.split("T").first(),
-                            style = SsplTypographyTokens.caption.copy(color = SsplColorTokens.muted)
-                        )
                     }
                 }
-                SsplBadge(
-                    text = archive.conference?.type?.replace("_", " ") ?: "EVENT",
-                    variant = BadgeVariant.PRIMARY
+            }
+            item(key = "search") {
+                SearchBar(
+                    query = state.searchQuery,
+                    onQueryChange = viewModel::setSearchQuery,
+                    placeholder = "Search events or materials",
+                    onClear = { viewModel.setSearchQuery("") },
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
                 )
             }
-
-            if (!archive.notes.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(SsplSpacingTokens.sm))
-                Text(
-                    text = archive.notes,
-                    style = SsplTypographyTokens.bodySmall.copy(color = SsplColorTokens.textSecondary)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(SsplSpacingTokens.md))
-            HorizontalDivider(color = SsplColorTokens.divider)
-            Spacer(modifier = Modifier.height(SsplSpacingTokens.sm))
-
-            // Materials list
-            if (archive.materials.isEmpty()) {
-                Text(
-                    text = "No downloadable materials listed for this event.",
-                    style = SsplTypographyTokens.caption.copy(color = SsplColorTokens.muted)
-                )
-            } else {
-                Text(
-                    text = "Archived Materials (${archive.materials.size})",
-                    style = SsplTypographyTokens.bodySmall.copy(fontWeight = FontWeight.Bold),
-                    color = SsplColorTokens.textPrimary
-                )
-                Spacer(modifier = Modifier.height(SsplSpacingTokens.xs))
-
-                archive.materials.forEach { material ->
-                    MaterialRowItem(
-                        material = material,
-                        onClick = { onDownloadMaterial(material) }
+            when {
+                state.isLoading -> item(key = "sk") { SkeletonList(count = 4) }
+                state.errorMessage != null && !state.loaded -> item(key = "err") {
+                    ErrorState(message = state.errorMessage ?: "", onRetry = { viewModel.loadArchives() }, modifier = Modifier.padding(top = 24.dp))
+                }
+                state.visible.isEmpty() -> item(key = "empty") {
+                    EmptyState(
+                        title = if (state.searchQuery.isNotBlank()) "No matches" else "Archive is empty",
+                        message = if (state.searchQuery.isNotBlank()) "Nothing matched \"${state.searchQuery}\". Try another word."
+                        else "Materials from past events will appear here once they're published.",
+                        icon = if (state.searchQuery.isNotBlank()) Icons.Default.SearchOff else Icons.Default.FolderZip,
+                        modifier = Modifier.padding(top = 24.dp)
+                    )
+                }
+                else -> items(state.visible, key = { "arc_${it.id}" }) { archive ->
+                    ArchiveCard(
+                        archive = archive,
+                        onOpen = { m -> ImageSources.resolveUrl(m.fileUrl)?.let(urlOpener::openUrl) },
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
                     )
                 }
             }
@@ -249,66 +127,78 @@ private fun ArchiveEventCard(
 }
 
 @Composable
-private fun MaterialRowItem(
-    material: ArchiveMaterial,
-    onClick: () -> Unit
-) {
+private fun ArchiveCard(archive: EventArchiveRecord, onOpen: (ArchiveMaterial) -> Unit, modifier: Modifier = Modifier) {
+    val colors = AppTheme.colors
+    var expanded by rememberSaveable(archive.id) { mutableStateOf(archive.materials.size <= 3) }
+    Column(
+        modifier
+            .fillMaxWidth()
+            .clip(AppTheme.shapes.card)
+            .background(colors.surface)
+            .border(1.dp, colors.border.copy(alpha = 0.7f), AppTheme.shapes.card)
+            .animateContentSize()
+            .padding(14.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconTile(Icons.Default.History)
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(archive.conference?.title ?: "Past event", style = AppTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(
+                    DisplayDates.range(archive.conference?.startDate, archive.conference?.endDate).ifBlank { "Date not listed" },
+                    style = AppTheme.typography.labelSmall
+                )
+            }
+            archive.conference?.type?.let { StatusBadge(it.replace('_', ' ')) }
+        }
+        archive.notes?.takeIf { it.isNotBlank() }?.let {
+            Spacer(Modifier.height(8.dp))
+            Text(it, style = AppTheme.typography.bodySmall.copy(color = colors.body), maxLines = 3, overflow = TextOverflow.Ellipsis)
+        }
+        Spacer(Modifier.height(10.dp))
+        if (archive.materials.isEmpty()) {
+            Text("No downloadable materials for this event.", style = AppTheme.typography.labelMedium)
+        } else {
+            Row(
+                Modifier.fillMaxWidth().clip(AppTheme.shapes.small).clickable { expanded = !expanded }.padding(vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("${archive.materials.size} materials", style = AppTheme.typography.labelMedium.copy(color = colors.primary), modifier = Modifier.weight(1f))
+                Icon(
+                    if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    contentDescription = if (expanded) "Hide materials" else "Show materials",
+                    tint = colors.primary
+                )
+            }
+            if (expanded) {
+                archive.materials.forEach { m -> MaterialRow(m, onClick = { onOpen(m) }) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MaterialRow(material: ArchiveMaterial, onClick: () -> Unit) {
     val icon = when (material.type?.uppercase()) {
         "IMAGE", "POSTER" -> Icons.Default.Image
         "PRESENTATION" -> Icons.Default.PresentToAll
         "ABSTRACT", "ABSTRACT_BOOK" -> Icons.Default.PictureAsPdf
         else -> Icons.Default.Description
     }
-
     Row(
-        modifier = Modifier
+        Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .clickable(onClick = onClick)
-            .padding(vertical = 8.dp, horizontal = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(SsplSpacingTokens.sm)
+            .clip(AppTheme.shapes.small)
+            .clickable(enabled = !material.fileUrl.isNullOrBlank(), onClick = onClick)
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(SsplColorTokens.primary.copy(alpha = 0.08f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = SsplColorTokens.primary,
-                modifier = Modifier.size(18.dp)
-            )
+        IconTile(icon, size = 36.dp, iconSize = 17.dp, corner = 11.dp, tint = AppTheme.colors.accent, background = AppTheme.colors.infoContainer)
+        Spacer(Modifier.width(10.dp))
+        Column(Modifier.weight(1f)) {
+            Text(material.title ?: "Document", style = AppTheme.typography.bodyMedium.copy(color = AppTheme.colors.heading), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text((material.type ?: "File").replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() }, style = AppTheme.typography.labelSmall)
         }
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = material.title ?: "Document",
-                style = SsplTypographyTokens.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = SsplColorTokens.textPrimary
-            )
-            Text(
-                text = material.type ?: "FILE",
-                style = SsplTypographyTokens.caption.copy(color = SsplColorTokens.muted)
-            )
-        }
-
-        IconButton(onClick = onClick) {
-            Icon(
-                imageVector = Icons.Default.Download,
-                contentDescription = "Download",
-                tint = SsplColorTokens.primary
-            )
-        }
+        Icon(Icons.Default.Download, contentDescription = "Open ${material.title ?: "file"}", tint = AppTheme.colors.primary, modifier = Modifier.size(20.dp))
     }
 }
-
-private fun buildFileUrl(path: String?): String? {
-    if (path.isNullOrBlank()) return null
-    if (path.startsWith("http")) return path
-    return "${BASE_URL.trimEnd('/')}/${path.trimStart('/')}"
-}
-

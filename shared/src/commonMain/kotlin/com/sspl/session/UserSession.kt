@@ -86,19 +86,16 @@ class UserSession(private val storage: Storage) {
     private suspend fun getDeviceToken(): String? = storage.getString(DEVICE_TOKEN_KEY)
 
     suspend fun setToken(token: String) {
-        println(">>>Token: Saving $token")
         this.token = token
         storage.putString(TOKEN_KEY, token)
     }
 
     suspend fun setRefreshToken(token: String) {
-        println(">>>RefreshToken: Saving $token")
         this.refreshToken = token
         storage.putString(REFRESH_TOKEN_KEY, token)
     }
 
     suspend fun setDeviceToken(token: String) {
-        println(">>>Device Token: Saving $token")
         this.deviceToken = token
         storage.putString(DEVICE_TOKEN_KEY, token)
     }

@@ -1,398 +1,202 @@
 package com.sspl.ui.members
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.filled.PersonSearch
+import androidx.compose.material.icons.filled.SearchOff
+import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.sspl.Screen
 import com.sspl.core.models.DirectoryMemberRecord
-import com.sspl.core.models.DirectoryStatistics
 import com.sspl.core.repositories.PublicRepository
 import com.sspl.designsystem.components.AvatarImage
 import com.sspl.designsystem.components.BadgeVariant
-import com.sspl.designsystem.components.ModernCapsuleSearchBar
-import com.sspl.designsystem.components.ModernSupportCard
-import com.sspl.designsystem.components.SsplBadge
-import com.sspl.designsystem.components.SsplTextField
-import com.sspl.designsystem.components.StatCard
+import com.sspl.designsystem.components.EmptyState
+import com.sspl.designsystem.components.ErrorState
+import com.sspl.designsystem.components.ListRowCard
+import com.sspl.designsystem.components.LoadState
+import com.sspl.designsystem.components.SearchBar
+import com.sspl.designsystem.components.SegmentedTabs
+import com.sspl.designsystem.components.SkeletonList
+import com.sspl.designsystem.components.SkeletonVariant
+import com.sspl.designsystem.components.SsplRefreshBox
+import com.sspl.designsystem.components.StatTile
+import com.sspl.designsystem.components.StatusBadge
 import com.sspl.designsystem.theme.AppTheme
-import com.sspl.utils.BASE_URL
+import com.sspl.ui.components.LoadMoreFooter
+import com.sspl.ui.components.PageIntroHero
 import org.koin.compose.koinInject
 
-data class MemberFilterOption(
-    val label: String,
-    val value: String?
-)
-
-private val MEMBER_FILTERS = listOf(
-    MemberFilterOption("All Members", null),
-    MemberFilterOption("Life Members", "LIFE_MEMBER"),
-    MemberFilterOption("Regular Members", "REGULAR_MEMBER"),
-    MemberFilterOption("Deceased Members", "DECEASED_MEMBER")
-)
+private fun formatCount(n: Int): String {
+    val s = n.toString()
+    return s.reversed().chunked(3).joinToString(",").reversed()
+}
 
 @Composable
 fun MembersDirectoryScreen(
     navController: NavController,
     publicRepository: PublicRepository = koinInject()
 ) {
-    var selectedRole by remember { mutableStateOf<String?>(null) }
-    var searchQuery by remember { mutableStateOf("") }
-    var currentPage by remember { mutableStateOf(1) }
-    var totalPages by remember { mutableStateOf(1) }
-    var statistics by remember { mutableStateOf(DirectoryStatistics()) }
-    var members by remember { mutableStateOf<List<DirectoryMemberRecord>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
+    val viewModel: MembersDirectoryViewModel = viewModel { MembersDirectoryViewModel(publicRepository) }
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val stats = state.statistics
+    val listState = rememberLazyListState()
 
-    fun loadMembers() {
-        isLoading = true
-        publicRepository.getMembersDirectory(
-            page = currentPage,
-            role = selectedRole,
-            search = searchQuery
-        ).let { flow ->
-            // In a composable coroutine scope or LaunchedEffect
+    val nearEnd by remember {
+        derivedStateOf {
+            val info = listState.layoutInfo
+            val last = info.visibleItemsInfo.lastOrNull()?.index ?: 0
+            info.totalItemsCount > 0 && last >= info.totalItemsCount - 4
         }
     }
-
-    LaunchedEffect(selectedRole, searchQuery, currentPage) {
-        isLoading = true
-        publicRepository.getMembersDirectory(
-            page = currentPage,
-            role = selectedRole,
-            search = searchQuery
-        ).collect { resp ->
-            members = resp.records
-            statistics = resp.statistics
-            totalPages = resp.meta.totalPages.coerceAtLeast(1)
-            isLoading = false
-        }
+    LaunchedEffect(nearEnd, state.canLoadMore) {
+        if (nearEnd && state.canLoadMore && state.loadMoreError == null) viewModel.loadMore()
     }
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(AppTheme.colors.background),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+    SsplRefreshBox(
+        isRefreshing = state.isRefreshing,
+        onRefresh = viewModel::refresh,
+        modifier = Modifier.fillMaxSize().background(AppTheme.colors.background)
     ) {
-        // Hero Header
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = AppTheme.colors.primary)
-            ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Text(
-                        text = "FELLOWSHIP & REGISTRATION",
-                        style = AppTheme.typography.labelSmall,
-                        color = AppTheme.colors.secondary,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.3.sp
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Members Directory",
-                        style = AppTheme.typography.headlineMedium,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = "Verified roster of life and regular surgical members of SSP Lahore.",
-                        style = AppTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.88f)
-                    )
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            item(key = "hero") {
+                val total = stats?.let { it.lifeMembers + it.regularMembers + it.deceasedMembers }
+                PageIntroHero(
+                    eyebrow = "Members directory",
+                    eyebrowIcon = Icons.Default.Groups,
+                    title = "Our surgical community",
+                    summary = "Search SSP Lahore members by name, membership number, or PMDC.",
+                    stats = if (stats != null) listOf(
+                        formatCount(total ?: 0) to "Members",
+                        formatCount(stats.lifeMembers) to "Life",
+                        formatCount(stats.regularMembers) to "Regular"
+                    ) else emptyList()
+                )
+            }
+            if (stats != null) {
+                item(key = "stats") {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        StatTile(
+                            value = formatCount(stats.numberOfSpeakers),
+                            label = "Speakers",
+                            icon = Icons.Default.WorkspacePremium,
+                            modifier = Modifier.weight(1f)
+                        )
+                        StatTile(
+                            value = formatCount(stats.deceasedMembers),
+                            label = "Deceased",
+                            icon = Icons.Default.Badge,
+                            tint = AppTheme.colors.muted,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
             }
-        }
-
-        // Statistics Badges Row
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                StatCard(
-                    value = "${statistics.lifeMembers}",
-                    label = "Life",
-                    description = "Members",
-                    modifier = Modifier.weight(1f)
+            item(key = "search") {
+                SearchBar(
+                    query = state.query,
+                    onQueryChange = viewModel::onQuery,
+                    placeholder = "Name, membership no, or PMDC",
+                    onClear = { viewModel.onQuery("") }
                 )
-                StatCard(
-                    value = "${statistics.regularMembers}",
-                    label = "Regular",
-                    description = "Members",
-                    modifier = Modifier.weight(1f)
-                )
-                if (statistics.deceasedMembers > 0) {
-                    StatCard(
-                        value = "${statistics.deceasedMembers}",
-                        label = "In Memory",
-                        description = "Deceased",
-                        modifier = Modifier.weight(1f)
-                    )
-                }
             }
-        }
+            item(key = "filters") {
+                SegmentedTabs(
+                    options = MemberFilter.entries.map { if (it == MemberFilter.ALL) "All" else it.label },
+                    selectedIndex = state.filter.ordinal,
+                    onSelect = { viewModel.onFilter(MemberFilter.entries[it]) }
+                )
+            }
 
-        // Modern Capsule Search Bar
-        item {
-            ModernCapsuleSearchBar(
-                query = searchQuery,
-                onQueryChange = {
-                    searchQuery = it
-                    currentPage = 1
-                },
-                placeholder = "Search doctor name or PMDC number...",
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-
-        // Role Filter Tabs (Modern Capsule Pills)
-        item {
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(horizontal = 2.dp)
-            ) {
-                items(MEMBER_FILTERS) { opt ->
-                    val isSelected = selectedRole == opt.value
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(50.dp))
-                            .background(if (isSelected) AppTheme.colors.primaryDark else AppTheme.colors.boxColor)
-                            .clickable {
-                                selectedRole = opt.value
-                                currentPage = 1
+            when (val s = state.members) {
+                is LoadState.Loading -> item(key = "skeleton") {
+                    SkeletonList(count = 6, variant = SkeletonVariant.AVATAR_LIST, contentPadding = 0.dp)
+                }
+                is LoadState.Error -> item(key = "error") {
+                    ErrorState(title = "Members didn't load", message = s.message, onRetry = viewModel::retry)
+                }
+                is LoadState.Ready -> {
+                    item(key = "count") {
+                        Text(
+                            "Showing ${s.data.size} of ${formatCount(state.totalRecords)}",
+                            style = AppTheme.typography.labelMedium,
+                            modifier = Modifier.padding(start = 4.dp, top = 2.dp)
+                        )
+                    }
+                    if (s.data.isEmpty()) {
+                        item(key = "empty") {
+                            EmptyState(
+                                title = "No members found",
+                                message = "Adjust your search or filters to see more members.",
+                                icon = if (state.query.isNotBlank()) Icons.Default.SearchOff else Icons.Default.PersonSearch,
+                                actionText = if (state.query.isNotBlank() || state.filter != MemberFilter.ALL) "Clear filters" else null,
+                                onActionClick = { viewModel.onQuery(""); viewModel.onFilter(MemberFilter.ALL) }
+                            )
+                        }
+                    } else {
+                        items(s.data, key = { "m_" + it.id }) { m -> MemberRow(m) }
+                        if (state.loadingMore || state.loadMoreError != null) {
+                            item(key = "more") {
+                                LoadMoreFooter(
+                                    loading = state.loadingMore,
+                                    error = state.loadMoreError,
+                                    onRetry = viewModel::loadMore,
+                                    circleAvatar = true
+                                )
                             }
-                            .padding(horizontal = 16.dp, vertical = 9.dp)
-                    ) {
-                        Text(
-                            text = opt.label,
-                            style = AppTheme.typography.labelSmall,
-                            color = if (isSelected) Color.White else AppTheme.colors.heading,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                        )
+                        }
                     }
                 }
-            }
-        }
-
-        // Members List
-        if (isLoading) {
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 40.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = AppTheme.colors.primary)
-                }
-            }
-        } else if (members.isEmpty()) {
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 40.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = Icons.Default.Groups,
-                            contentDescription = null,
-                            tint = AppTheme.colors.textMuted,
-                            modifier = Modifier.size(36.dp)
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "No members found",
-                            style = AppTheme.typography.titleSmall,
-                            color = AppTheme.colors.onSurface
-                        )
-                    }
-                }
-            }
-        } else {
-            items(members) { record ->
-                MemberDirectoryCard(record = record)
-            }
-
-            // Pagination Controls
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(
-                        onClick = { if (currentPage > 1) currentPage-- },
-                        enabled = currentPage > 1
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Previous Page",
-                            tint = if (currentPage > 1) AppTheme.colors.primary else AppTheme.colors.textMuted
-                        )
-                    }
-                    Text(
-                        text = "Page $currentPage of $totalPages",
-                        style = AppTheme.typography.bodyMedium,
-                        color = AppTheme.colors.onSurface,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    IconButton(
-                        onClick = { if (currentPage < totalPages) currentPage++ },
-                        enabled = currentPage < totalPages
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = "Next Page",
-                            tint = if (currentPage < totalPages) AppTheme.colors.primary else AppTheme.colors.textMuted
-                        )
-                    }
-                }
-            }
-
-            item {
-                ModernSupportCard(
-                    title = "Not listed in the Directory?",
-                    subtitle = "If your member listing is missing or needs contact updates, reach out to the SSPL registry.",
-                    buttonText = "Contact Registry",
-                    onContactClick = { navController.navigate(Screen.ContactUsScreen.route) }
-                )
             }
         }
     }
 }
 
 @Composable
-private fun MemberDirectoryCard(record: DirectoryMemberRecord) {
-    val user = record.account?.user
-    val memNo = record.account?.memNo ?: "N/A"
-    val isLife = record.role == "LIFE_MEMBER"
-    val isDeceased = record.role == "DECEASED_MEMBER"
-
-    val roleLabel = when {
-        isDeceased -> "Deceased Member"
-        isLife -> "Life Member"
-        else -> "Regular Member"
+private fun MemberRow(m: DirectoryMemberRecord) {
+    val user = m.account?.user
+    val name = user?.fullName?.takeIf { it != "Member" } ?: "Unknown member"
+    val role = m.role.orEmpty()
+    val (label, variant) = when (role) {
+        "DECEASED_MEMBER" -> "Deceased" to BadgeVariant.NEUTRAL
+        "LIFE_MEMBER" -> "Life member" to BadgeVariant.SUCCESS
+        else -> "Regular" to BadgeVariant.PRIMARY
     }
-
-    val badgeVariant = when {
-        isDeceased -> BadgeVariant.NEUTRAL
-        isLife -> BadgeVariant.SUCCESS
-        else -> BadgeVariant.PRIMARY
-    }
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = AppTheme.colors.surface),
-        border = BorderStroke(1.dp, AppTheme.colors.border)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            val photoUrl = user?.profilePicture?.let { pic ->
-                if (pic.startsWith("http")) pic else "$BASE_URL/${pic.removePrefix("/")}"
-            }
-            AvatarImage(
-                url = photoUrl,
-                name = user?.fullName ?: "Member",
-                size = 50.dp
-            )
-            Spacer(modifier = Modifier.width(14.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = user?.fullName ?: "Unknown Member",
-                        style = AppTheme.typography.titleSmall,
-                        color = AppTheme.colors.onSurface,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.weight(1f)
-                    )
-                    SsplBadge(
-                        text = roleLabel,
-                        variant = badgeVariant
-                    )
-                }
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Membership No: $memNo",
-                    style = AppTheme.typography.bodySmall,
-                    color = AppTheme.colors.textMuted,
-                    fontWeight = FontWeight.Medium
-                )
-                if (!user?.pmdcNumber.isNullOrBlank()) {
-                    Text(
-                        text = "PMDC: ${user.pmdcNumber}",
-                        style = AppTheme.typography.bodySmall,
-                        color = AppTheme.colors.textMuted
-                    )
-                }
-                if (!user?.city.isNullOrBlank()) {
-                    Text(
-                        text = user.city,
-                        style = AppTheme.typography.bodySmall,
-                        color = AppTheme.colors.primary,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
-        }
-    }
+    val memNo = m.account?.memNo?.takeIf { it.isNotBlank() } ?: "N/A"
+    val details = listOfNotNull(user?.designation, user?.institute, user?.city).filter { it.isNotBlank() }.joinToString(" · ")
+    ListRowCard(
+        title = name,
+        subtitle = "Membership no: $memNo",
+        meta = listOfNotNull(
+            user?.pmdcNumber?.takeIf { it.isNotBlank() }?.let { "PMDC $it" },
+            details.takeIf { it.isNotBlank() }
+        ).joinToString(" · ").ifBlank { null },
+        leading = { AvatarImage(url = user?.profilePicture, name = name.removePrefix("Dr.").removePrefix("Mr").trim(), size = 46.dp) },
+        trailing = { StatusBadge(label, variant = variant) }
+    )
 }
-

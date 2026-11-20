@@ -77,7 +77,17 @@ data class EventItem(
     @SerialName("web_link") val webLink: String? = null,
     val roles: List<EventRole> = emptyList(),
     val sessions: List<Session> = emptyList(),
-    @SerialName("add_on_sets") val addOnSets: List<AddOnSet> = emptyList()
+    @SerialName("add_on_sets") val addOnSets: List<AddOnSet> = emptyList(),
+    // Fields the web displays (EventDetail.jsx) — all optional.
+    @SerialName("contact_email") val contactEmail: String? = null,
+    @SerialName("contact_phone") val contactPhone: String? = null,
+    @SerialName("registration_deadline") val registrationDeadline: String? = null,
+    @SerialName("abstract_deadline") val abstractDeadline: String? = null,
+    @SerialName("presentation_deadline") val presentationDeadline: String? = null,
+    @SerialName("is_abstract_enabled") val isAbstractEnabled: Boolean = false,
+    @SerialName("is_presentation_enabled") val isPresentationEnabled: Boolean = false,
+    @SerialName("active_status") val activeStatus: String? = null,
+    @SerialName("is_active") val isActive: Boolean = true
 ) {
     val effectiveId: Long get() = id
 
@@ -243,7 +253,9 @@ private fun String.capitalizeWords(): String =
 data class EventCheckData(
     @SerialName("is_registered") val isRegistered: Boolean = false,
     @SerialName("can_register") val canRegister: Boolean = true,
-    val registration: Registration? = null
+    val registration: Registration? = null,
+    /** Why registration is blocked (web: registrationStatus.reason). */
+    val reason: String? = null
 )
 
 @Serializable
@@ -259,7 +271,8 @@ data class EventPaymentInfo(
     @SerialName("payment_url") val paymentUrlSnake: String? = null,
     @SerialName("transactionId") val transactionIdCamel: String? = null,
     @SerialName("transaction_id") val transactionIdSnake: String? = null,
-    @SerialName("pending_approval") val pendingApproval: Boolean = false
+    @SerialName("pending_approval") val pendingApproval: Boolean = false,
+    val amount: Double? = null
 ) {
     val bestPaymentUrl: String? get() = paymentUrlSnake ?: paymentUrlCamel
     val bestTransactionId: String? get() = transactionIdSnake ?: transactionIdCamel

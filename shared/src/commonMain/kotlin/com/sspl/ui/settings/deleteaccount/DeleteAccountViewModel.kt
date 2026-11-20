@@ -49,12 +49,19 @@ class DeleteAccountViewModel(
     fun deleteAccount() {
         viewModelScope.launch(Dispatchers.IO) {
             val user = userSession.getUser()
+            if (user?.account?.email.isNullOrBlank()) {
+                _uiState.update {
+                    it.copy(isLoading = false, error = ApiError(message = "We couldn't find your account email. Please sign in again and retry."))
+                }
+                return@launch
+            }
             user?.account?.email?.let {
                 deleteAccountUseCase.invoke(it).collect { data ->
                     when (data) {
                         is ApiStates.Loading -> _uiState.update {
                             _uiState.value.copy(
                                 deleteAcRes = null,
+                                error = null,
                                 isLoading = true
                             )
                         }

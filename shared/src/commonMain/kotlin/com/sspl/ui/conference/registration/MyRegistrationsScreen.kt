@@ -1,12 +1,11 @@
 package com.sspl.ui.conference.registration
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,33 +15,25 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Assignment
+import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.QrCode
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.QrCode2
+import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,404 +42,215 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.Screen
-import com.sspl.core.models.MyRegistrationsData
 import com.sspl.core.models.Registration
-import com.sspl.core.repositories.EventRepository
-import com.sspl.designsystem.components.ModernSupportCard
-import com.sspl.designsystem.components.SsplBadge
-import com.sspl.designsystem.components.SsplBadgeVariant
-import com.sspl.designsystem.components.SsplButton
-import com.sspl.designsystem.components.SsplButtonVariant
-import com.sspl.designsystem.components.SsplCard
+import com.sspl.designsystem.components.BadgeVariant
+import com.sspl.designsystem.components.ChipRow
+import com.sspl.designsystem.components.DecorativeRings
+import com.sspl.designsystem.components.EmptyState
+import com.sspl.designsystem.components.ErrorState
+import com.sspl.designsystem.components.GlassPill
+import com.sspl.designsystem.components.IconTile
+import com.sspl.designsystem.components.ListRowCard
+import com.sspl.designsystem.components.PrimaryButton
+import com.sspl.designsystem.components.SecondaryButton
+import com.sspl.designsystem.components.SkeletonList
+import com.sspl.designsystem.components.SsplRefreshBox
+import com.sspl.designsystem.components.StatusBadge
 import com.sspl.designsystem.theme.AppTheme
+import com.sspl.platform.shared.UrlOpener
 import com.sspl.session.UserSession
-import kotlinx.coroutines.launch
+import com.sspl.utils.DisplayDates
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 
-/**
- * D4: My Registrations Screen with Entry Pass / QR Badge Modal
- */
+private data class RegStatus(val label: String, val variant: BadgeVariant, val note: String?)
+
+private fun Registration.uiStatus(): RegStatus = when {
+    isLocked -> RegStatus("Locked", BadgeVariant.NEUTRAL, null)
+    isConfirmed -> RegStatus("Approved", BadgeVariant.SUCCESS, "Approved — Event Portal features are available.")
+    approvalStatus.equals("REJECTED", ignoreCase = true) || paymentStatus.equals("FAILED", ignoreCase = true) && !needsPayment ->
+        RegStatus("Rejected", BadgeVariant.ERROR, null)
+    needsPayment -> RegStatus(if (paymentStatus.equals("FAILED", true)) "Payment failed" else "Pending payment", BadgeVariant.WARNING, "Complete payment to confirm your seat.")
+    feeAmount == 0.0 || isPendingApproval -> RegStatus("Pending approval", BadgeVariant.WARNING, "Submitted. Awaiting administrator review and approval.")
+    else -> RegStatus(paymentStatus.lowercase().replaceFirstChar { it.uppercase() }, BadgeVariant.NEUTRAL, null)
+}
+
+/** D4: My registrations — filter, entry badge, retry payment. */
 @Composable
 fun MyRegistrationsScreen(
     conferenceId: Long = 0L,
     navController: NavController,
-    eventRepository: EventRepository = koinInject(),
-    userSession: UserSession = koinInject()
+    viewModel: MyRegistrationsViewModel = koinViewModel(),
+    userSession: UserSession = koinInject(),
+    urlOpener: UrlOpener = koinInject()
 ) {
-    val user by userSession.userFlow.collectAsState()
-    val scope = rememberCoroutineScope()
-
-    var registrationsData by remember { mutableStateOf<MyRegistrationsData?>(null) }
-    var isLoading by remember { mutableStateOf(true) }
-    var selectedTab by remember { mutableStateOf("ALL") }
-    var selectedBadgeRegistration by remember { mutableStateOf<Registration?>(null) }
-    var retryingId by remember { mutableStateOf<Long?>(null) }
-
-    val loadRegistrations = {
-        scope.launch {
-            isLoading = true
-            eventRepository.getMyRegistrations().collect { data ->
-                registrationsData = data
-                isLoading = false
-            }
-        }
-    }
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val user by userSession.userFlow.collectAsStateWithLifecycle()
+    var badgeFor by remember { mutableStateOf<Registration?>(null) }
 
     LaunchedEffect(Unit) {
-        loadRegistrations()
+        viewModel.events.collect { ev ->
+            when (ev) {
+                is MyRegistrationsEvent.OpenPayment -> {
+                    urlOpener.openUrl(ev.url)
+                    navController.currentBackStackEntry?.savedStateHandle?.apply {
+                        set("awaitingTransactionId", ev.transactionId)
+                        set("registrationId", ev.registrationId)
+                    }
+                    navController.navigate(Screen.PaymentStatusScreen.route) { launchSingleTop = true }
+                }
+            }
+        }
     }
 
-    val allList = if (!registrationsData?.all.isNullOrEmpty()) {
-        registrationsData!!.all
-    } else {
-        ((registrationsData?.conferences ?: emptyList()) +
-         (registrationsData?.workshops ?: emptyList()) +
-         (registrationsData?.monthlyMeetings ?: emptyList()) +
-         (registrationsData?.conferenceEvents ?: emptyList())).distinctBy { it.id }
-    }
-
-    val activeList = when (selectedTab) {
-        "CONFERENCES" -> registrationsData?.conferences ?: emptyList()
-        "WORKSHOPS" -> registrationsData?.workshops ?: emptyList()
-        "MEETINGS" -> registrationsData?.monthlyMeetings ?: emptyList()
-        else -> allList
-    }
-
-    val tabs = listOf(
-        "ALL" to "All (${allList.size})",
-        "CONFERENCES" to "Conferences (${registrationsData?.conferences?.size ?: 0})",
-        "WORKSHOPS" to "Workshops (${registrationsData?.workshops?.size ?: 0})",
-        "MEETINGS" to "Monthly Meetings (${registrationsData?.monthlyMeetings?.size ?: 0})"
-    )
-
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(AppTheme.colors.background)
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+    SsplRefreshBox(
+        isRefreshing = state.isRefreshing,
+        onRefresh = viewModel::refresh,
+        modifier = Modifier.fillMaxSize()
     ) {
-        item {
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = "PARTICIPATION",
-                        style = AppTheme.typography.labelSmall.copy(
-                            color = AppTheme.colors.secondary,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.sp
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "My Registrations",
-                        style = AppTheme.typography.headlineMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = AppTheme.colors.heading
-                        )
-                    )
+        LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 28.dp)) {
+            item(key = "head") {
+                Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp)) {
+                    Text("PARTICIPATION", style = AppTheme.typography.overline)
+                    Text("My registrations", style = AppTheme.typography.headlineMedium)
+                    Text("Payment status, entry badge and approvals in one place.", style = AppTheme.typography.bodySmall)
                 }
-
-                IconButton(
-                    onClick = { loadRegistrations() }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = "Refresh",
-                        tint = AppTheme.colors.secondary
+            }
+            val data = state.data
+            if (data != null && !data.canRegisterConference && data.activeConferenceRegistration != null) {
+                item(key = "limit") {
+                    ListRowCard(
+                        title = "One conference at a time",
+                        subtitle = "You're registered for ${data.activeConferenceRegistration?.conference?.title ?: "a conference"}. Complete or cancel it to register for another.",
+                        leading = { IconTile(Icons.Default.Warning, tint = AppTheme.colors.warning, background = AppTheme.colors.warningContainer) },
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp)
                     )
                 }
             }
-            Text(
-                text = "Check payment status, view attendee pass & QR badge for entry.",
-                style = AppTheme.typography.bodySmall.copy(color = AppTheme.colors.muted)
-            )
-        }
-
-        // Conference Conflict Warning Banner (from web MyRegistrationsView.jsx)
-        if (!isLoading && registrationsData?.canRegisterConference == false && registrationsData?.activeConferenceRegistration != null) {
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF3C7)),
-                    border = BorderStroke(1.dp, Color(0xFFF59E0B).copy(alpha = 0.5f))
-                ) {
-                    Row(
-                        modifier = Modifier.padding(14.dp),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Warning,
-                            contentDescription = "Warning",
-                            tint = Color(0xFFB45309),
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Column {
-                            Text(
-                                text = "Conference Registration Limit",
-                                style = AppTheme.typography.titleSmall.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF78350F)
-                                )
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "You are currently registered for ${registrationsData?.activeConferenceRegistration?.conference?.title ?: "a conference"}. You can only register for one conference at a time. Complete or cancel this registration to register for another conference.",
-                                style = AppTheme.typography.bodySmall.copy(
-                                    color = Color(0xFF92400E)
-                                )
-                            )
-                        }
-                    }
+            if (data != null) {
+                item(key = "filters") {
+                    ChipRow(
+                        options = RegistrationFilter.entries.mapIndexed { i, f -> "${f.label} · ${state.counts.getOrElse(i) { 0 }}" },
+                        selected = "${state.filter.label} · ${state.counts.getOrElse(state.filter.ordinal) { 0 }}",
+                        onSelect = { label -> RegistrationFilter.entries.firstOrNull { label.startsWith(it.label + " ·") }?.let(viewModel::setFilter) },
+                        modifier = Modifier.padding(vertical = 12.dp)
+                    )
                 }
             }
-        }
-
-        // Filter Tabs
-        item {
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(tabs) { (key, label) ->
-                    val isSelected = selectedTab == key
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(50.dp))
-                            .background(
-                                if (isSelected) AppTheme.colors.primaryDark else AppTheme.colors.boxColor
-                            )
-                            .border(
-                                width = 1.dp,
-                                color = if (isSelected) Color.Transparent else AppTheme.colors.border,
-                                shape = RoundedCornerShape(50.dp)
-                            )
-                            .clickable { selectedTab = key }
-                            .padding(horizontal = 16.dp, vertical = 9.dp)
-                    ) {
-                        Text(
-                            text = label,
-                            style = AppTheme.typography.labelMedium.copy(
-                                color = if (isSelected) Color.White else AppTheme.colors.heading,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                            )
-                        )
-                    }
-                }
-            }
-        }
-
-        if (isLoading) {
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = AppTheme.colors.secondary)
-                }
-            }
-        } else if (activeList.isEmpty()) {
-            item {
-                SsplCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(32.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "No registrations found in this category.",
-                            style = AppTheme.typography.bodyMedium.copy(color = AppTheme.colors.muted),
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        SsplButton(
-                            text = "Browse Upcoming Events",
-                            onClick = { navController.navigate(Screen.ScientificProgramsScreen.route) }
-                        )
-                    }
-                }
-            }
-        } else {
-            items(activeList) { reg ->
-                val badgeText = when {
-                    reg.isLocked -> "LOCKED"
-                    reg.isConfirmed -> "APPROVED"
-                    reg.approvalStatus.equals("REJECTED", ignoreCase = true) || reg.paymentStatus == "FAILED" -> "REJECTED"
-                    reg.feeAmount == 0.0 -> "PENDING APPROVAL"
-                    else -> "PENDING PAYMENT"
-                }
-
-                val badgeVariant = when {
-                    reg.isLocked -> SsplBadgeVariant.Neutral
-                    reg.isConfirmed -> SsplBadgeVariant.Success
-                    badgeText == "REJECTED" -> SsplBadgeVariant.Error
-                    else -> SsplBadgeVariant.Warning
-                }
-
-                SsplCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = reg.conference?.title ?: "Society Event",
-                                style = AppTheme.typography.titleMedium.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = AppTheme.colors.heading
-                                ),
-                                modifier = Modifier.weight(1f)
-                            )
-
-                            SsplBadge(
-                                text = badgeText,
-                                variant = badgeVariant
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        reg.role?.name?.let { roleName ->
-                            Text(
-                                text = "Registered as: $roleName",
-                                style = AppTheme.typography.bodySmall.copy(
-                                    color = AppTheme.colors.secondary,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = if (reg.feeAmount == 0.0) "Fee: Free" else "Fee: PKR ${reg.feeAmount.toLong()}",
-                                style = AppTheme.typography.bodySmall.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = AppTheme.colors.body
-                                )
-                            )
-                            reg.paymentDate?.let { dt ->
-                                Text(
-                                    text = dt.split("T").firstOrNull() ?: dt,
-                                    style = AppTheme.typography.bodySmall.copy(color = AppTheme.colors.muted)
-                                )
+            state.actionError?.let { err ->
+                item(key = "actionError") {
+                    ListRowCard(
+                        title = "Payment couldn't start",
+                        subtitle = err,
+                        leading = { IconTile(Icons.Default.ErrorOutline, tint = AppTheme.colors.error, background = AppTheme.colors.errorContainer) },
+                        trailing = {
+                            IconButton(onClick = viewModel::clearActionError) {
+                                Icon(Icons.Default.Close, contentDescription = "Dismiss", tint = AppTheme.colors.muted)
                             }
-                        }
-
-                        // Approval & Status Information Notice (1:1 with Web MyRegistrationsView)
-                        if (reg.isPendingApproval && !reg.isConfirmed) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "Registration submitted. Awaiting administrator review and approval.",
-                                style = AppTheme.typography.bodySmall.copy(
-                                    color = Color(0xFFB45309),
-                                    fontWeight = FontWeight.Medium
-                                ),
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(Color(0xFFFEF3C7))
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        } else if (reg.isConfirmed) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "Registration approved. You can access Event Portal features.",
-                                style = AppTheme.typography.bodySmall.copy(
-                                    color = Color(0xFF047857),
-                                    fontWeight = FontWeight.Medium
-                                ),
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(Color(0xFFD1FAE5))
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(14.dp))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            if (reg.isConfirmed) {
-                                SsplButton(
-                                    text = "View Entry Badge",
-                                    onClick = { selectedBadgeRegistration = reg },
-                                    variant = SsplButtonVariant.Primary,
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                            } else if (reg.needsPayment) {
-                                SsplButton(
-                                    text = if (retryingId == reg.id) "Retrying..." else "Pay Now",
-                                    onClick = {
-                                        scope.launch {
-                                            retryingId = reg.id
-                                            eventRepository.retryEventPayment(reg.id).collect { retryResp ->
-                                                retryingId = null
-                                                val url = retryResp.payment?.bestPaymentUrl
-                                                if (!url.isNullOrBlank()) {
-                                                    navController.navigate(Screen.PaymentStatusScreen.route)
-                                                }
-                                            }
-                                        }
-                                    },
-                                    enabled = retryingId == null,
-                                    variant = SsplButtonVariant.Primary,
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                            }
-                        }
-                    }
+                        },
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                    )
                 }
             }
-        }
-
-        item {
-            ModernSupportCard(
-                title = "Need Help?",
-                subtitle = "Our support team is here to assist you with registration queries, pass issues, or payment status.",
-                buttonText = "Contact Support",
-                onContactClick = { navController.navigate(Screen.ContactUsScreen.route) }
-            )
-        }
-
-        item {
-            Spacer(modifier = Modifier.height(24.dp))
+            when {
+                state.isLoading -> item(key = "sk") { SkeletonList(count = 4) }
+                state.error != null && data == null -> item(key = "err") {
+                    ErrorState(message = state.error ?: "", onRetry = { viewModel.load() }, modifier = Modifier.padding(top = 24.dp))
+                }
+                state.visible.isEmpty() -> item(key = "empty") {
+                    EmptyState(
+                        title = if (state.filter == RegistrationFilter.ALL) "No registrations yet" else "Nothing in ${state.filter.label.lowercase()}",
+                        message = "When you register for an event it shows up here with its payment status and entry badge.",
+                        icon = Icons.AutoMirrored.Filled.Assignment,
+                        actionText = "Browse events",
+                        onActionClick = { navController.navigate(Screen.ScientificProgramsScreen.route) { launchSingleTop = true } },
+                        modifier = Modifier.padding(top = 24.dp)
+                    )
+                }
+                else -> items(state.visible, key = { "reg_${it.id}" }) { reg ->
+                    RegistrationCard(
+                        reg = reg,
+                        retrying = state.retryingId == reg.id,
+                        busy = state.retryingId != null,
+                        onBadge = { badgeFor = reg },
+                        onPay = { viewModel.retryPayment(reg) },
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                    )
+                }
+            }
+            item(key = "help") {
+                ListRowCard(
+                    title = "Need help with a registration?",
+                    subtitle = "Payment, badge or approval questions — the secretariat can help.",
+                    leading = { IconTile(Icons.Default.SupportAgent) },
+                    onClick = { navController.navigate(Screen.ContactUsScreen.route) { launchSingleTop = true } },
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 18.dp)
+                )
+            }
         }
     }
 
-    // Participation Badge Dialog
-    selectedBadgeRegistration?.let { reg ->
+    badgeFor?.let { reg ->
         AttendeeBadgeDialog(
             registration = reg,
             userName = listOfNotNull(user?.prefix, user?.firstName, user?.lastName).joinToString(" ").ifBlank { "Delegate" },
-            institution = user?.institution ?: user?.city ?: "SSP Member",
-            onDismiss = { selectedBadgeRegistration = null }
+            institution = user?.institution ?: "SSP member",
+            onDismiss = { badgeFor = null }
         )
     }
 }
 
-/**
- * Attendee Pass & QR Badge Dialog Modal
- */
+@Composable
+private fun RegistrationCard(
+    reg: Registration,
+    retrying: Boolean,
+    busy: Boolean,
+    onBadge: () -> Unit,
+    onPay: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val st = reg.uiStatus()
+    val isWorkshop = reg.conference?.type?.name == "WORKSHOP"
+    ListRowCard(
+        title = reg.conference?.title ?: "Society event",
+        subtitle = listOfNotNull(
+            reg.role?.name?.let { "Registered as $it" },
+            if (reg.feeAmount == 0.0) "Free" else com.sspl.ui.conference.formatPkr(reg.feeAmount)
+        ).joinToString(" · "),
+        meta = listOfNotNull(
+            reg.registrationNumber?.let { "Reg. $it" } ?: "Reg. #${reg.id}",
+            DisplayDates.medium(reg.conference?.startDate).takeIf { it.isNotBlank() }
+        ).joinToString(" · "),
+        leading = { IconTile(if (isWorkshop) Icons.Default.School else Icons.Default.Event) },
+        trailing = { StatusBadge(st.label, variant = st.variant) },
+        modifier = modifier,
+        footer = if (st.note != null || reg.isConfirmed || reg.needsPayment) {
+            {
+                st.note?.let {
+                    Text(it, style = AppTheme.typography.bodySmall.copy(color = AppTheme.colors.body))
+                }
+                if (reg.isConfirmed && !reg.isLocked) {
+                    Spacer(Modifier.height(10.dp))
+                    SecondaryButton("View entry badge", onBadge, icon = Icons.Default.QrCode2)
+                } else if (reg.needsPayment && !reg.isLocked) {
+                    Spacer(Modifier.height(10.dp))
+                    PrimaryButton(
+                        text = "Pay ${com.sspl.ui.conference.formatPkr(reg.feeAmount)}",
+                        onClick = onPay,
+                        loading = retrying,
+                        enabled = !busy
+                    )
+                }
+            }
+        } else null
+    )
+}
+
+/** Entry pass. Navy gradient header on a surface card (white text only on the gradient). */
 @Composable
 private fun AttendeeBadgeDialog(
     registration: Registration,
@@ -456,147 +258,73 @@ private fun AttendeeBadgeDialog(
     institution: String,
     onDismiss: () -> Unit
 ) {
+    val colors = AppTheme.colors
     Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = AppTheme.colors.surface,
-            modifier = Modifier
+        Column(
+            Modifier
                 .fillMaxWidth()
-                .padding(8.dp)
+                .clip(AppTheme.shapes.card)
+                .background(colors.surfaceElevated)
         ) {
-            Column(
-                modifier = Modifier.padding(20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .background(colors.headerGradient)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "ENTRY PASS & BADGE",
-                        style = AppTheme.typography.labelSmall.copy(
-                            color = AppTheme.colors.secondary,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.sp
-                        )
-                    )
-                    IconButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.size(24.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "Close",
-                            tint = AppTheme.colors.muted
-                        )
+                DecorativeRings(Modifier.matchParentSize())
+                Column(Modifier.padding(18.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        GlassPill("ENTRY PASS", icon = Icons.Default.Badge)
+                        Spacer(Modifier.weight(1f))
+                        IconButton(onClick = onDismiss) {
+                            Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+                        }
                     }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Role Banner
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(AppTheme.colors.primary)
-                        .padding(vertical = 8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
+                    Spacer(Modifier.height(6.dp))
                     Text(
-                        text = (registration.role?.name ?: "CONFERENCE DELEGATE").uppercase(),
-                        style = AppTheme.typography.labelMedium.copy(
-                            color = AppTheme.colors.onPrimary,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.sp
-                        )
+                        registration.conference?.title ?: "SSPL event",
+                        style = AppTheme.typography.titleMedium.copy(color = Color.White),
+                        maxLines = 2
+                    )
+                    Text(
+                        (registration.role?.name ?: "Delegate").uppercase(),
+                        style = AppTheme.typography.overline.copy(color = Color.White.copy(alpha = 0.8f))
                     )
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Attendee Name & Affiliation
-                Text(
-                    text = userName,
-                    style = AppTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = AppTheme.colors.heading
-                    ),
-                    textAlign = TextAlign.Center
-                )
-                Text(
-                    text = institution,
-                    style = AppTheme.typography.bodySmall.copy(color = AppTheme.colors.muted),
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Registration ID
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(AppTheme.colors.accent.copy(alpha = 0.15f))
-                        .padding(horizontal = 12.dp, vertical = 4.dp)
+            }
+            Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(userName, style = AppTheme.typography.titleLarge, textAlign = TextAlign.Center)
+                Text(institution, style = AppTheme.typography.bodySmall, textAlign = TextAlign.Center)
+                Spacer(Modifier.height(14.dp))
+                // White QR plate: scanners need a light background in both themes.
+                Column(
+                    Modifier
+                        .clip(AppTheme.shapes.small)
+                        .background(Color.White)
+                        .border(1.dp, colors.border, AppTheme.shapes.small)
+                        .padding(14.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    Icon(Icons.Default.QrCode2, contentDescription = "Registration code", tint = colors.primaryDark, modifier = Modifier.size(140.dp))
                     Text(
-                        text = "REG #${registration.id}",
-                        style = AppTheme.typography.labelSmall.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = AppTheme.colors.secondary
-                        )
+                        "SSPL-REG-${registration.id}",
+                        style = AppTheme.typography.labelMedium.copy(color = colors.primaryDark, fontWeight = FontWeight.Bold)
                     )
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Simulated QR Box with Icon & Payload verification
-                Box(
-                    modifier = Modifier
-                        .size(160.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .border(2.dp, AppTheme.colors.primary, RoundedCornerShape(12.dp))
-                        .background(Color.White),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.QrCode,
-                            contentDescription = "QR Code",
-                            tint = AppTheme.colors.primary,
-                            modifier = Modifier.size(100.dp)
-                        )
-                        Text(
-                            text = "SSPL-REG-${registration.id}",
-                            style = AppTheme.typography.labelSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Black
-                            )
-                        )
-                    }
+                Spacer(Modifier.height(12.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    StatusBadge(registration.registrationNumber ?: "REG #${registration.id}", variant = BadgeVariant.INFO)
+                    StatusBadge("Approved", variant = BadgeVariant.SUCCESS)
                 }
-
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(Modifier.height(12.dp))
                 Text(
-                    text = "Present this QR code at the registration desk for badge printing and venue check-in.",
-                    style = AppTheme.typography.bodySmall.copy(
-                        color = AppTheme.colors.muted,
-                        fontSize = 11.sp
-                    ),
+                    "Show this pass at the registration desk for badge printing and venue check-in.",
+                    style = AppTheme.typography.bodySmall,
                     textAlign = TextAlign.Center
                 )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                SsplButton(
-                    text = "Done",
-                    onClick = onDismiss,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                Spacer(Modifier.height(16.dp))
+                PrimaryButton("Done", onDismiss)
+                Spacer(Modifier.width(1.dp))
             }
         }
     }

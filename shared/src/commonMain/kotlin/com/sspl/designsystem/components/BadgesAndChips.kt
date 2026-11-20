@@ -149,7 +149,7 @@ fun RoleChip(
         Text(
             text = role.replace('_', ' '),
             style = AppTheme.typography.labelSmall.copy(
-                color = AppTheme.colors.primaryDark,
+                color = AppTheme.colors.onPrimaryContainer,
                 fontWeight = FontWeight.SemiBold
             )
         )
