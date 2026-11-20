@@ -171,7 +171,7 @@ fun SignUpScreenContent(
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = "Join the Sindh Society of Plastic Surgeons",
+                text = "Join Society of Surgeons Pakistan (Lahore)",
                 style = AppTheme.typography.bodyMedium.copy(
                     color = AppTheme.colors.muted
                 ),

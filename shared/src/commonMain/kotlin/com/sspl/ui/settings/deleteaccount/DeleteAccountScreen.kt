@@ -155,7 +155,7 @@ fun DeleteAccountScreen(
                             )
                         } else {
                             Text(
-                                text = "Deleting your account will permanently remove your member profile from the Sindh Society of Plastic Surgeons portal.",
+                                text = "Deleting your account will permanently remove your member profile from the Society of Surgeons Pakistan (Lahore) portal.",
                                 style = AppTheme.typography.bodyMedium.copy(color = AppTheme.colors.body)
                             )
 

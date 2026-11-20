@@ -21,6 +21,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material.icons.filled.HowToReg
 import androidx.compose.material.icons.filled.Launch
 import androidx.compose.material.icons.filled.LocationOn
@@ -51,6 +53,7 @@ import com.sspl.core.models.EventRole
 import com.sspl.core.models.Session
 import com.sspl.designsystem.components.BadgeVariant
 import com.sspl.designsystem.components.FeedbackBanner
+import com.sspl.designsystem.components.ModernSpecsGrid
 import com.sspl.designsystem.components.SsplBadge
 import com.sspl.designsystem.components.SsplCard
 import com.sspl.designsystem.components.SsplPrimaryButton
@@ -92,33 +95,50 @@ fun EventDetailScreen(
             .fillMaxSize()
             .background(SsplColorTokens.background)
     ) {
-        // App bar
+        // Modern App bar with circular buttons
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(SsplColorTokens.surface)
-                .padding(horizontal = SsplSpacingTokens.sm, vertical = SsplSpacingTokens.xs),
+                .background(SsplColorTokens.background)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = { navController.popBackStack() }) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(SsplColorTokens.surface)
+                    .clickable { navController.popBackStack() },
+                contentAlignment = Alignment.Center
+            ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = SsplColorTokens.textPrimary
+                    tint = SsplColorTokens.heading,
+                    modifier = Modifier.size(20.dp)
                 )
             }
+            Spacer(modifier = Modifier.width(12.dp))
             Text(
                 text = event?.readableType ?: "Event Details",
-                style = SsplTypographyTokens.headlineSmall.copy(fontSize = 18.sp),
-                color = SsplColorTokens.textPrimary,
+                style = SsplTypographyTokens.headlineSmall.copy(fontSize = 18.sp, fontWeight = FontWeight.Bold),
+                color = SsplColorTokens.heading,
                 modifier = Modifier.weight(1f)
             )
             if (!event?.webLink.isNullOrBlank()) {
-                IconButton(onClick = { urlOpener.openUrl(event!!.webLink!!) }) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(SsplColorTokens.surface)
+                        .clickable { urlOpener.openUrl(event!!.webLink!!) },
+                    contentAlignment = Alignment.Center
+                ) {
                     Icon(
                         imageVector = Icons.Default.Launch,
                         contentDescription = "Open Web Link",
-                        tint = SsplColorTokens.primary
+                        tint = SsplColorTokens.heading,
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }
@@ -183,6 +203,17 @@ fun EventDetailScreen(
                 style = SsplTypographyTokens.headlineLarge.copy(fontSize = 24.sp),
                 color = SsplColorTokens.textPrimary
             )
+
+            Spacer(modifier = Modifier.height(SsplSpacingTokens.md))
+
+            // 4-box Specs Grid (Screen 2 pattern)
+            val specs = listOf(
+                Triple(Icons.Default.WorkspacePremium, "12 CME", "Accredited"),
+                Triple(Icons.Default.Groups, if (event.type?.contains("CONFERENCE", ignoreCase = true) == true) "Congress" else "Meeting", "Format"),
+                Triple(Icons.Default.Schedule, if (event.formattedTimeRange.isNotBlank()) event.formattedTimeRange.take(8) else "Full Day", "Time"),
+                Triple(Icons.Default.LocationOn, if (event.effectiveVenue.isNotBlank()) event.effectiveVenue.take(12) else "Main Hall", "Venue")
+            )
+            ModernSpecsGrid(specs = specs)
 
             Spacer(modifier = Modifier.height(SsplSpacingTokens.md))
 

@@ -45,11 +45,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.sspl.Screen
 import com.sspl.core.models.DirectoryMemberRecord
 import com.sspl.core.models.DirectoryStatistics
 import com.sspl.core.repositories.PublicRepository
 import com.sspl.designsystem.components.AvatarImage
 import com.sspl.designsystem.components.BadgeVariant
+import com.sspl.designsystem.components.ModernCapsuleSearchBar
+import com.sspl.designsystem.components.ModernSupportCard
 import com.sspl.designsystem.components.SsplBadge
 import com.sspl.designsystem.components.SsplTextField
 import com.sspl.designsystem.components.StatCard
@@ -175,22 +178,20 @@ fun MembersDirectoryScreen(
             }
         }
 
-        // Search Input
+        // Modern Capsule Search Bar
         item {
-            SsplTextField(
-                value = searchQuery,
-                onValueChange = {
+            ModernCapsuleSearchBar(
+                query = searchQuery,
+                onQueryChange = {
                     searchQuery = it
                     currentPage = 1
                 },
-                label = "Search Directory",
                 placeholder = "Search doctor name or PMDC number...",
-                leadingIcon = Icons.Default.Search,
                 modifier = Modifier.fillMaxWidth()
             )
         }
 
-        // Role Filter Tabs
+        // Role Filter Tabs (Modern Capsule Pills)
         item {
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -200,18 +201,18 @@ fun MembersDirectoryScreen(
                     val isSelected = selectedRole == opt.value
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(if (isSelected) AppTheme.colors.primary else AppTheme.colors.surface)
+                            .clip(RoundedCornerShape(50.dp))
+                            .background(if (isSelected) AppTheme.colors.primaryDark else AppTheme.colors.boxColor)
                             .clickable {
                                 selectedRole = opt.value
                                 currentPage = 1
                             }
-                            .padding(horizontal = 14.dp, vertical = 8.dp)
+                            .padding(horizontal = 16.dp, vertical = 9.dp)
                     ) {
                         Text(
                             text = opt.label,
                             style = AppTheme.typography.labelSmall,
-                            color = if (isSelected) Color.White else AppTheme.colors.onSurface,
+                            color = if (isSelected) Color.White else AppTheme.colors.heading,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                         )
                     }
@@ -296,6 +297,15 @@ fun MembersDirectoryScreen(
                         )
                     }
                 }
+            }
+
+            item {
+                ModernSupportCard(
+                    title = "Not listed in the Directory?",
+                    subtitle = "If your member listing is missing or needs contact updates, reach out to the SSPL registry.",
+                    buttonText = "Contact Registry",
+                    onContactClick = { navController.navigate(Screen.ContactUsScreen.route) }
+                )
             }
         }
     }

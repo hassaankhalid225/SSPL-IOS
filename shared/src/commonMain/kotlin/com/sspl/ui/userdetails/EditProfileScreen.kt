@@ -231,7 +231,7 @@ fun EditProfessionalDetails(
             value = state.designation,
             onValueChange = { onEvent(ProfessionalProfileEvents.OnDesignationTextChange(it)) },
             label = "Designation / Title",
-            placeholder = "e.g. Consultant Plastic Surgeon",
+            placeholder = "e.g. Consultant Surgeon",
             leadingIcon = Icons.Default.Work,
             errorMessage = state.designationError,
             isError = state.designationError != null
@@ -241,7 +241,7 @@ fun EditProfessionalDetails(
             value = state.institution,
             onValueChange = { onEvent(ProfessionalProfileEvents.OnInstitutionTextChange(it)) },
             label = "Institution / Hospital",
-            placeholder = "e.g. Civil Hospital Karachi",
+            placeholder = "e.g. Services Hospital Lahore",
             leadingIcon = Icons.Default.Business,
             errorMessage = state.institutionError,
             isError = state.institutionError != null

@@ -208,7 +208,7 @@ fun UserDetailsScreenContent(
                         value = designation,
                         onValueChange = { onEvent(UserDetailsUiEvents.OnDesignationTextChange(it)) },
                         label = "Designation / Title",
-                        placeholder = "e.g. Consultant Plastic Surgeon",
+                        placeholder = "e.g. Consultant Surgeon",
                         leadingIcon = Icons.Default.Work,
                         errorMessage = designationError,
                         isError = designationError != null
@@ -218,7 +218,7 @@ fun UserDetailsScreenContent(
                         value = institution,
                         onValueChange = { onEvent(UserDetailsUiEvents.OnInstitutionTextChange(it)) },
                         label = "Hospital / Institution",
-                        placeholder = "e.g. Civil Hospital / Dow University",
+                        placeholder = "e.g. Services Hospital / Mayo Hospital Lahore",
                         leadingIcon = Icons.Default.Business,
                         errorMessage = institutionError,
                         isError = institutionError != null

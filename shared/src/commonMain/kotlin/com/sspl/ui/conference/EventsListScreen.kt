@@ -53,6 +53,7 @@ import coil3.compose.AsyncImage
 import com.sspl.Screen
 import com.sspl.core.models.EventItem
 import com.sspl.designsystem.components.BadgeVariant
+import com.sspl.designsystem.components.ModernCapsuleSearchBar
 import com.sspl.designsystem.components.SsplBadge
 import com.sspl.designsystem.components.SsplCard
 import com.sspl.designsystem.components.SsplPrimaryButton
@@ -154,43 +155,12 @@ private fun EventsHeader(
                 .fillMaxWidth()
                 .padding(horizontal = SsplSpacingTokens.md, vertical = SsplSpacingTokens.sm)
         ) {
-            // Search Input
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = onSearchChange,
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = {
-                    Text(
-                        "Search events by title or venue...",
-                        style = SsplTypographyTokens.bodySmall.copy(color = SsplColorTokens.muted)
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Search",
-                        tint = SsplColorTokens.primary
-                    )
-                },
-                trailingIcon = {
-                    if (searchQuery.isNotEmpty()) {
-                        IconButton(onClick = { onSearchChange("") }) {
-                            Icon(
-                                imageVector = Icons.Default.Clear,
-                                contentDescription = "Clear search",
-                                tint = SsplColorTokens.muted
-                            )
-                        }
-                    }
-                },
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = SsplColorTokens.primary,
-                    unfocusedBorderColor = SsplColorTokens.divider,
-                    focusedContainerColor = SsplColorTokens.surface,
-                    unfocusedContainerColor = SsplColorTokens.surface
-                )
+            // Modern Capsule Search Bar
+            ModernCapsuleSearchBar(
+                query = searchQuery,
+                onQueryChange = onSearchChange,
+                placeholder = "Search events by title or venue...",
+                modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(SsplSpacingTokens.sm))
@@ -214,17 +184,17 @@ private fun EventsHeader(
                     val isSelected = selectedCategory == key
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(20.dp))
+                            .clip(RoundedCornerShape(50.dp))
                             .background(
-                                if (isSelected) SsplColorTokens.primary else SsplColorTokens.background
+                                if (isSelected) SsplColorTokens.primaryDark else SsplColorTokens.boxColor
                             )
                             .clickable { onCategoryChange(key) }
-                            .padding(horizontal = 14.dp, vertical = 7.dp)
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
                     ) {
                         Text(
                             text = label,
                             style = SsplTypographyTokens.bodySmall.copy(
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                 color = if (isSelected) Color.White else SsplColorTokens.textPrimary
                             )
                         )
@@ -238,8 +208,8 @@ private fun EventsHeader(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(SsplColorTokens.background)
+                    .clip(RoundedCornerShape(50.dp))
+                    .background(SsplColorTokens.boxColor)
                     .padding(4.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
@@ -279,8 +249,8 @@ private fun StatusTabButton(
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(if (isSelected) SsplColorTokens.primary else Color.Transparent)
+            .clip(RoundedCornerShape(50.dp))
+            .background(if (isSelected) SsplColorTokens.primaryDark else Color.Transparent)
             .clickable(onClick = onClick)
             .padding(vertical = 8.dp),
         contentAlignment = Alignment.Center
@@ -299,7 +269,7 @@ private fun StatusTabButton(
             Spacer(modifier = Modifier.width(6.dp))
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(50.dp))
                     .background(
                         if (isSelected) Color.White.copy(alpha = 0.25f)
                         else SsplColorTokens.muted.copy(alpha = 0.15f)

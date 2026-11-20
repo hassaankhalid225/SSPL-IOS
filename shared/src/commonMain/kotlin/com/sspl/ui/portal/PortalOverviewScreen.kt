@@ -50,6 +50,7 @@ import com.sspl.Screen
 import com.sspl.core.auth.isFellowshipTrainer
 import com.sspl.core.auth.isLifeMember
 import com.sspl.core.auth.isRegularMember
+import com.sspl.designsystem.components.ModernSupportCard
 import com.sspl.designsystem.components.SsplBadge
 import com.sspl.designsystem.components.SsplBadgeVariant
 import com.sspl.designsystem.components.SsplButton
@@ -363,6 +364,15 @@ fun PortalOverviewScreen(
         }
 
         item {
+            ModernSupportCard(
+                title = "Need Help with Your Portal?",
+                subtitle = "Contact the SSPL office for membership verification, payment proofs, or abstract inquiries.",
+                buttonText = "Contact Support",
+                onContactClick = { navController.navigate(Screen.ContactUsScreen.route) }
+            )
+        }
+
+        item {
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
@@ -388,8 +398,8 @@ private fun PortalQuickActionTile(
         ) {
             Box(
                 modifier = Modifier
-                    .size(44.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .size(46.dp)
+                    .clip(RoundedCornerShape(16.dp))
                     .background(iconBg),
                 contentAlignment = Alignment.Center
             ) {

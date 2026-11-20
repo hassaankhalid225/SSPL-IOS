@@ -154,7 +154,7 @@ fun SplashScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Sindh Society of Plastic Surgeons",
+                text = "Society of Surgeons of Pakistan",
                 style = AppTheme.typography.titleLarge.copy(
                     color = AppTheme.colors.heading,
                     fontWeight = FontWeight.Bold,
@@ -166,7 +166,7 @@ fun SplashScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Excellence in Reconstructive & Aesthetic Surgery",
+                text = "Lahore Chapter · Advancing Surgical Excellence",
                 style = AppTheme.typography.bodyMedium.copy(
                     color = AppTheme.colors.secondary,
                     fontWeight = FontWeight.Medium,

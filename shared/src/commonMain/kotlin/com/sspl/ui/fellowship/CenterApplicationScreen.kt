@@ -54,7 +54,7 @@ fun CenterApplicationScreen(
     var bedCapacity by remember { mutableStateOf("25") }
     var monthlyOpd by remember { mutableStateOf("300") }
     var annualSurgeries by remember { mutableStateOf("500") }
-    var facilities by remember { mutableStateOf("Dedicated Plastic Surgery OT, Burn ICU, Microsurgery microscope") }
+    var facilities by remember { mutableStateOf("Dedicated Surgical OT, Surgical ICU, HDU, Laparoscopic Tower") }
 
     var isSubmitting by remember { mutableStateOf(false) }
     var statusMessage by remember { mutableStateOf<String?>(null) }
@@ -166,7 +166,7 @@ fun CenterApplicationScreen(
                         value = centerName,
                         onValueChange = { centerName = it },
                         label = "Hospital & Department Name *",
-                        placeholder = "e.g. Dept of Plastic Surgery, Dow University Hospital",
+                        placeholder = "e.g. Dept of Surgery, Mayo Hospital Lahore",
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -176,7 +176,7 @@ fun CenterApplicationScreen(
                         value = city,
                         onValueChange = { city = it },
                         label = "City *",
-                        placeholder = "e.g. Karachi",
+                        placeholder = "e.g. Lahore",
                         modifier = Modifier.fillMaxWidth()
                     )
 

@@ -55,6 +55,7 @@ import com.sspl.Screen
 import com.sspl.core.models.MyRegistrationsData
 import com.sspl.core.models.Registration
 import com.sspl.core.repositories.EventRepository
+import com.sspl.designsystem.components.ModernSupportCard
 import com.sspl.designsystem.components.SsplBadge
 import com.sspl.designsystem.components.SsplBadgeVariant
 import com.sspl.designsystem.components.SsplButton
@@ -174,22 +175,22 @@ fun MyRegistrationsScreen(
                     val isSelected = selectedTab == key
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
+                            .clip(RoundedCornerShape(50.dp))
                             .background(
-                                if (isSelected) AppTheme.colors.primary else AppTheme.colors.surface
+                                if (isSelected) AppTheme.colors.primaryDark else AppTheme.colors.boxColor
                             )
                             .border(
                                 width = 1.dp,
-                                color = if (isSelected) AppTheme.colors.primary else AppTheme.colors.border,
-                                shape = RoundedCornerShape(8.dp)
+                                color = if (isSelected) Color.Transparent else AppTheme.colors.border,
+                                shape = RoundedCornerShape(50.dp)
                             )
                             .clickable { selectedTab = key }
-                            .padding(horizontal = 14.dp, vertical = 8.dp)
+                            .padding(horizontal = 16.dp, vertical = 9.dp)
                     ) {
                         Text(
                             text = label,
                             style = AppTheme.typography.labelMedium.copy(
-                                color = if (isSelected) AppTheme.colors.onPrimary else AppTheme.colors.body,
+                                color = if (isSelected) Color.White else AppTheme.colors.heading,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                             )
                         )
@@ -335,6 +336,15 @@ fun MyRegistrationsScreen(
                     }
                 }
             }
+        }
+
+        item {
+            ModernSupportCard(
+                title = "Need Help?",
+                subtitle = "Our support team is here to assist you with registration queries, pass issues, or payment status.",
+                buttonText = "Contact Support",
+                onContactClick = { navController.navigate(Screen.ContactUsScreen.route) }
+            )
         }
 
         item {

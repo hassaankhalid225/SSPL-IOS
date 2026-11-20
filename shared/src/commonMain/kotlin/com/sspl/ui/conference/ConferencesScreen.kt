@@ -1,6 +1,7 @@
 package com.sspl.ui.conference
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -70,21 +73,31 @@ fun ConferencesScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(SsplColorTokens.surface)
-                .padding(horizontal = SsplSpacingTokens.sm, vertical = SsplSpacingTokens.xs),
+                .background(SsplColorTokens.background)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = { navController.popBackStack() }) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(SsplColorTokens.surface)
+                    .clickable { navController.popBackStack() },
+                contentAlignment = Alignment.Center
+            ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = SsplColorTokens.textPrimary
+                    tint = SsplColorTokens.heading,
+                    modifier = Modifier.size(20.dp)
                 )
             }
+            Spacer(modifier = Modifier.size(12.dp))
             Text(
                 text = "Annual Conferences",
-                style = SsplTypographyTokens.headlineSmall.copy(fontSize = 18.sp),
-                color = SsplColorTokens.textPrimary
+                style = SsplTypographyTokens.headlineSmall.copy(fontSize = 18.sp, fontWeight = FontWeight.Bold),
+                color = SsplColorTokens.heading,
+                modifier = Modifier.weight(1f)
             )
         }
 

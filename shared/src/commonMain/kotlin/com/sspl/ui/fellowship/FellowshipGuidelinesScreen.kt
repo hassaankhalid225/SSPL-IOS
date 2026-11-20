@@ -84,8 +84,8 @@ fun FellowshipGuidelinesScreen(
 
                     val eligibilityItems = listOf(
                         "Valid, active PMDC / PMC permanent registration.",
-                        "Postgraduate qualification: FCPS, MS, FRCS or equivalent recognized qualification in Plastic Surgery or General Surgery.",
-                        "Regular or Life Member of Sindh Society of Plastic Surgeons in good standing.",
+                        "Postgraduate qualification: FCPS, MS, FRCS or equivalent recognized qualification in General Surgery or subspecialties.",
+                        "Regular or Life Member of Society of Surgeons of Pakistan (Lahore) in good standing.",
                         "No objection certificate (NOC) from parent employing institution if applicable."
                     )
 

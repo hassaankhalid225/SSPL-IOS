@@ -370,7 +370,7 @@ fun FellowDashboardScreen(
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "Verified 85% attendance across rotations in General Plastic, Burns, and Hand Surgery.",
+                                text = "Verified 85% attendance across surgical rotations, OT lists, and emergency duty.",
                                 style = AppTheme.typography.bodySmall.copy(color = AppTheme.colors.muted)
                             )
                         }

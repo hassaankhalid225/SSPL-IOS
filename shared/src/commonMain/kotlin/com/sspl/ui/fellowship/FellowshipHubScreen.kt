@@ -48,6 +48,7 @@ import com.sspl.Screen
 import com.sspl.core.models.FellowshipProgram
 import com.sspl.core.models.FellowshipStats
 import com.sspl.core.repositories.FellowshipRepository
+import com.sspl.designsystem.components.ModernSupportCard
 import com.sspl.designsystem.components.SsplBadge
 import com.sspl.designsystem.components.SsplBadgeVariant
 import com.sspl.designsystem.components.SsplButton
@@ -103,7 +104,7 @@ fun FellowshipHubScreen(
                 )
             )
             Text(
-                text = "Structured postgraduate clinical fellowships certified by Sindh Society of Plastic Surgeons.",
+                text = "Structured postgraduate clinical fellowships certified by Society of Surgeons of Pakistan (Lahore).",
                 style = AppTheme.typography.bodySmall.copy(color = AppTheme.colors.muted)
             )
         }
@@ -306,6 +307,15 @@ fun FellowshipHubScreen(
         }
 
         item {
+            ModernSupportCard(
+                title = "Fellowship Committee Desk",
+                subtitle = "Have questions regarding program eligibility, logbook quotas, or supervisor approval? Connect with the fellowship secretariat.",
+                buttonText = "Contact Secretariat",
+                onContactClick = { navController.navigate(Screen.ContactUsScreen.route) }
+            )
+        }
+
+        item {
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
@@ -348,8 +358,8 @@ private fun FellowshipActionTile(
         ) {
             Box(
                 modifier = Modifier
-                    .size(44.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .size(46.dp)
+                    .clip(RoundedCornerShape(16.dp))
                     .background(iconBg),
                 contentAlignment = Alignment.Center
             ) {

@@ -49,6 +49,7 @@ import com.sspl.core.auth.isRegularMember
 import com.sspl.core.models.MembershipPlan
 import com.sspl.core.models.UserMembershipDetails
 import com.sspl.core.repositories.PortalRepository
+import com.sspl.designsystem.components.ModernSupportCard
 import com.sspl.designsystem.components.SsplBadge
 import com.sspl.designsystem.components.SsplBadgeVariant
 import com.sspl.designsystem.components.SsplButton
@@ -379,7 +380,7 @@ fun MembershipScreen(
                         val benefits = listOf(
                             "Full access to scientific conferences, workshops, and symposiums",
                             "Official voting rights in biennial society elections",
-                            "Free listing in the Verified Plastic Surgeons Directory",
+                            "Free listing in the Verified Surgeons Directory",
                             "Certificate of Practice and society badge",
                             "Eligibility for Society Fellowship & Master Trainer positions"
                         )
@@ -409,6 +410,15 @@ fun MembershipScreen(
                     }
                 }
             }
+        }
+
+        item {
+            ModernSupportCard(
+                title = "Need Help with Your Membership?",
+                subtitle = "Contact the SSPL office for verification, payment proofs, or fee inquiries.",
+                buttonText = "Contact Support",
+                onContactClick = { navController.navigate(Screen.ContactUsScreen.route) }
+            )
         }
 
         item {

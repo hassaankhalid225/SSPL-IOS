@@ -49,10 +49,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.sspl.Screen
 import com.sspl.core.models.ElectionAttachment
 import com.sspl.core.models.ElectionItem
 import com.sspl.core.repositories.PublicRepository
 import com.sspl.designsystem.components.BadgeVariant
+import com.sspl.designsystem.components.ModernCapsuleSearchBar
+import com.sspl.designsystem.components.ModernSupportCard
 import com.sspl.designsystem.components.PrimaryButton
 import com.sspl.designsystem.components.SsplBadge
 import com.sspl.designsystem.components.SsplCard
@@ -126,14 +129,12 @@ fun ElectionsScreen(
             }
         }
 
-        // Search Input
+        // Modern Capsule Search Bar
         item {
-            SsplTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                label = "Search Elections",
+            ModernCapsuleSearchBar(
+                query = searchQuery,
+                onQueryChange = { searchQuery = it },
                 placeholder = "Filter by title or keywords...",
-                leadingIcon = Icons.Default.Search,
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -193,6 +194,15 @@ fun ElectionsScreen(
                 ElectionCard(
                     election = election,
                     onClick = { selectedElection = election }
+                )
+            }
+
+            item {
+                ModernSupportCard(
+                    title = "Election Commission Desk",
+                    subtitle = "Questions regarding voting eligibility, voter lists, or nomination submissions? Contact the election commissioner.",
+                    buttonText = "Contact Commission",
+                    onContactClick = { navController.navigate(Screen.ContactUsScreen.route) }
                 )
             }
         }

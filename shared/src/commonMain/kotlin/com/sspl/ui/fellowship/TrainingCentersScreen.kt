@@ -39,12 +39,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.sspl.Screen
 import com.sspl.core.models.TrainingCenter
 import com.sspl.core.repositories.FellowshipRepository
+import com.sspl.designsystem.components.ModernSupportCard
 import com.sspl.designsystem.components.SsplBadge
 import com.sspl.designsystem.components.SsplBadgeVariant
 import com.sspl.designsystem.components.SsplCard
@@ -65,7 +68,7 @@ fun TrainingCentersScreen(
     var isLoading by remember { mutableStateOf(true) }
     var selectedCity by remember { mutableStateOf("ALL") }
 
-    val cities = listOf("ALL", "Karachi", "Hyderabad", "Sukkur", "Larkana")
+    val cities = listOf("ALL", "Lahore", "Faisalabad", "Multan", "Rawalpindi", "Islamabad", "Karachi")
 
     val loadCenters = {
         scope.launch {
@@ -129,27 +132,27 @@ fun TrainingCentersScreen(
             )
         }
 
-        // City Filters
+        // City Filters (Capsule Pills)
         item {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(cities) { city ->
                     val isSelected = selectedCity == city
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(if (isSelected) AppTheme.colors.primary else AppTheme.colors.surface)
+                            .clip(RoundedCornerShape(50.dp))
+                            .background(if (isSelected) AppTheme.colors.primaryDark else AppTheme.colors.boxColor)
                             .border(
                                 1.dp,
-                                if (isSelected) AppTheme.colors.primary else AppTheme.colors.border,
-                                RoundedCornerShape(8.dp)
+                                if (isSelected) Color.Transparent else AppTheme.colors.border,
+                                RoundedCornerShape(50.dp)
                             )
                             .clickable { selectedCity = city }
-                            .padding(horizontal = 14.dp, vertical = 8.dp)
+                            .padding(horizontal = 16.dp, vertical = 9.dp)
                     ) {
                         Text(
                             text = if (city == "ALL") "All Cities" else city,
                             style = AppTheme.typography.labelMedium.copy(
-                                color = if (isSelected) AppTheme.colors.onPrimary else AppTheme.colors.body,
+                                color = if (isSelected) Color.White else AppTheme.colors.heading,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                             )
                         )
@@ -265,6 +268,15 @@ fun TrainingCentersScreen(
                     }
                 }
             }
+        }
+
+        item {
+            ModernSupportCard(
+                title = "Accreditation Support",
+                subtitle = "Hospital departments seeking recognition as a teaching center can apply online or contact the fellowship board.",
+                buttonText = "Apply as Center",
+                onContactClick = { navController.navigate(Screen.ApplyAsTrainingCentreScreen.route) }
+            )
         }
 
         item {

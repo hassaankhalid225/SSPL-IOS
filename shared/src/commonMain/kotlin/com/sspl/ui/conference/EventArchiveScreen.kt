@@ -50,6 +50,7 @@ import androidx.navigation.NavController
 import com.sspl.core.models.ArchiveMaterial
 import com.sspl.core.models.EventArchiveRecord
 import com.sspl.designsystem.components.BadgeVariant
+import com.sspl.designsystem.components.ModernCapsuleSearchBar
 import com.sspl.designsystem.components.SsplBadge
 import com.sspl.designsystem.components.SsplCard
 import com.sspl.designsystem.tokens.SsplColorTokens
@@ -73,72 +74,49 @@ fun EventArchiveScreen(
             .fillMaxSize()
             .background(SsplColorTokens.background)
     ) {
-        // App bar
+        // Modern App bar
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(SsplColorTokens.surface)
-                .padding(horizontal = SsplSpacingTokens.sm, vertical = SsplSpacingTokens.xs),
+                .background(SsplColorTokens.background)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = { navController.popBackStack() }) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(SsplColorTokens.surface)
+                    .clickable { navController.popBackStack() },
+                contentAlignment = Alignment.Center
+            ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = SsplColorTokens.textPrimary
+                    tint = SsplColorTokens.heading,
+                    modifier = Modifier.size(20.dp)
                 )
             }
+            Spacer(modifier = Modifier.size(12.dp))
             Text(
                 text = "Event Archive",
-                style = SsplTypographyTokens.headlineSmall.copy(fontSize = 18.sp),
-                color = SsplColorTokens.textPrimary
+                style = SsplTypographyTokens.headlineSmall.copy(fontSize = 18.sp, fontWeight = FontWeight.Bold),
+                color = SsplColorTokens.heading,
+                modifier = Modifier.weight(1f)
             )
         }
 
-        // Search Bar
-        Surface(
-            color = SsplColorTokens.surface,
-            shadowElevation = 2.dp,
-            modifier = Modifier.fillMaxWidth()
+        // Modern Capsule Search Bar
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            OutlinedTextField(
-                value = uiState.searchQuery,
-                onValueChange = viewModel::setSearchQuery,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(SsplSpacingTokens.md),
-                placeholder = {
-                    Text(
-                        "Search archives, presentations, documents...",
-                        style = SsplTypographyTokens.bodySmall.copy(color = SsplColorTokens.muted)
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Search",
-                        tint = SsplColorTokens.primary
-                    )
-                },
-                trailingIcon = {
-                    if (uiState.searchQuery.isNotEmpty()) {
-                        IconButton(onClick = { viewModel.setSearchQuery("") }) {
-                            Icon(
-                                imageVector = Icons.Default.Clear,
-                                contentDescription = "Clear",
-                                tint = SsplColorTokens.muted
-                            )
-                        }
-                    }
-                },
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = SsplColorTokens.primary,
-                    unfocusedBorderColor = SsplColorTokens.divider,
-                    focusedContainerColor = SsplColorTokens.surface,
-                    unfocusedContainerColor = SsplColorTokens.surface
-                )
+            ModernCapsuleSearchBar(
+                query = uiState.searchQuery,
+                onQueryChange = viewModel::setSearchQuery,
+                placeholder = "Search archives, presentations, documents...",
+                modifier = Modifier.fillMaxWidth()
             )
         }
 

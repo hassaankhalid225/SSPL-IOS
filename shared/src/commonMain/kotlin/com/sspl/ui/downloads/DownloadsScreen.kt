@@ -44,9 +44,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.sspl.Screen
 import com.sspl.core.models.DownloadItem
 import com.sspl.core.repositories.PublicRepository
 import com.sspl.designsystem.components.BadgeVariant
+import com.sspl.designsystem.components.ModernCapsuleSearchBar
+import com.sspl.designsystem.components.ModernSupportCard
 import com.sspl.designsystem.components.SecondaryButton
 import com.sspl.designsystem.components.SsplBadge
 import com.sspl.designsystem.components.SsplTextField
@@ -132,19 +135,17 @@ fun DownloadsScreen(
             }
         }
 
-        // Search Input
+        // Modern Capsule Search Bar
         item {
-            SsplTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                label = "Search Downloads",
+            ModernCapsuleSearchBar(
+                query = searchQuery,
+                onQueryChange = { searchQuery = it },
                 placeholder = "Search templates, forms, logbooks...",
-                leadingIcon = Icons.Default.Search,
                 modifier = Modifier.fillMaxWidth()
             )
         }
 
-        // Category Horizontal Chips
+        // Category Horizontal Chips (Modern Capsule Pills)
         item {
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -154,15 +155,15 @@ fun DownloadsScreen(
                     val isSelected = selectedCategory == cat.value
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(if (isSelected) AppTheme.colors.primary else AppTheme.colors.surface)
+                            .clip(RoundedCornerShape(50.dp))
+                            .background(if (isSelected) AppTheme.colors.primaryDark else AppTheme.colors.boxColor)
                             .clickable { selectedCategory = cat.value }
-                            .padding(horizontal = 14.dp, vertical = 8.dp)
+                            .padding(horizontal = 16.dp, vertical = 9.dp)
                     ) {
                         Text(
                             text = cat.label,
                             style = AppTheme.typography.labelSmall,
-                            color = if (isSelected) Color.White else AppTheme.colors.onSurface,
+                            color = if (isSelected) Color.White else AppTheme.colors.heading,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                         )
                     }
@@ -228,6 +229,15 @@ fun DownloadsScreen(
                         val downloadUrl = "$BASE_URL/downloads/${file.id}/file?download=1"
                         urlOpener.openUrl(downloadUrl)
                     }
+                )
+            }
+
+            item {
+                ModernSupportCard(
+                    title = "Need Custom Templates?",
+                    subtitle = "Official abstract, poster, and presentation slide templates can also be requested from academic committee.",
+                    buttonText = "Contact Committee",
+                    onContactClick = { navController.navigate(Screen.ContactUsScreen.route) }
                 )
             }
         }

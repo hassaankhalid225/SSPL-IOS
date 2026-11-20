@@ -268,7 +268,7 @@ fun SettingsScreen(
 
                 // App Version info
                 Text(
-                    text = "Sindh Society of Plastic Surgeons\nVersion 1.0.0 (Build 2026.11)",
+                    text = "Society of Surgeons Pakistan (Lahore)\nVersion 1.0.0 (Build 2026.11)",
                     style = AppTheme.typography.labelSmall.copy(
                         color = AppTheme.colors.muted.copy(alpha = 0.6f),
                         textAlign = TextAlign.Center

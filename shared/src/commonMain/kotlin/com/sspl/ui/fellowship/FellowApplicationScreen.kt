@@ -65,7 +65,7 @@ fun FellowApplicationScreen(
     var email by remember { mutableStateOf(user?.account?.email ?: user?.email ?: "") }
     var phone by remember { mutableStateOf(user?.phone ?: "") }
     var pmdc by remember { mutableStateOf(user?.pmdc ?: "") }
-    var qualifications by remember { mutableStateOf(user?.institution ?: "FCPS Plastic Surgery") }
+    var qualifications by remember { mutableStateOf(user?.institution ?: "FCPS Surgery") }
     var currentInstitution by remember { mutableStateOf(user?.institution ?: "") }
     var statement by remember { mutableStateOf("") }
 
@@ -229,7 +229,7 @@ fun FellowApplicationScreen(
                         value = qualifications,
                         onValueChange = { qualifications = it },
                         label = "Postgraduate Qualifications",
-                        placeholder = "e.g. FCPS Plastic Surgery, MRCS",
+                        placeholder = "e.g. FCPS Surgery, FRCS, MRCS",
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -239,7 +239,7 @@ fun FellowApplicationScreen(
                         value = currentInstitution,
                         onValueChange = { currentInstitution = it },
                         label = "Current Hospital / Affiliation",
-                        placeholder = "e.g. JPMC Karachi",
+                        placeholder = "e.g. Services Hospital Lahore",
                         modifier = Modifier.fillMaxWidth()
                     )
 

@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
@@ -33,20 +35,22 @@ fun PrimaryButton(
     enabled: Boolean = true,
     loading: Boolean = false,
     isLoading: Boolean = false,
-    icon: ImageVector? = null
+    icon: ImageVector? = null,
+    trailingIcon: ImageVector? = null,
+    backgroundColor: Color? = null
 ) {
     val isSpinning = loading || isLoading
-    val bg = if (enabled) AppTheme.colors.primary else AppTheme.colors.border
+    val bg = backgroundColor ?: if (enabled) AppTheme.colors.primaryDark else AppTheme.colors.border
     val contentColor = if (enabled) Color.White else AppTheme.colors.muted
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .defaultMinSize(minHeight = 48.dp)
+            .defaultMinSize(minHeight = 50.dp)
             .clip(AppTheme.shapes.button)
             .background(bg)
             .clickable(enabled = enabled && !isSpinning, onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 18.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center
     ) {
         if (isSpinning) {
@@ -75,6 +79,14 @@ fun PrimaryButton(
                         fontWeight = FontWeight.SemiBold
                     )
                 )
+                if (trailingIcon != null) {
+                    Icon(
+                        imageVector = trailingIcon,
+                        contentDescription = null,
+                        tint = contentColor,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
             }
         }
     }
@@ -213,6 +225,7 @@ fun StickyCtaBar(
                 onClick = onPrimaryClick,
                 loading = loading,
                 enabled = enabled,
+                trailingIcon = Icons.AutoMirrored.Filled.ArrowForward,
                 modifier = if (priceText != null || secondaryText != null) Modifier.weight(1.2f) else Modifier.fillMaxWidth()
             )
         }
@@ -229,17 +242,17 @@ fun SsplPrimaryButton(
     leadingIcon: (@Composable () -> Unit)? = null,
     trailingIcon: (@Composable () -> Unit)? = null
 ) {
-    val bg = if (enabled) AppTheme.colors.primary else AppTheme.colors.border
+    val bg = if (enabled) AppTheme.colors.primaryDark else AppTheme.colors.border
     val contentColor = if (enabled) Color.White else AppTheme.colors.muted
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .defaultMinSize(minHeight = 48.dp)
+            .defaultMinSize(minHeight = 50.dp)
             .clip(AppTheme.shapes.button)
             .background(bg)
             .clickable(enabled = enabled && !loading, onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 18.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center
     ) {
         if (loading) {
@@ -389,12 +402,12 @@ fun SsplSecondaryButton(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .defaultMinSize(minHeight = 48.dp)
+            .defaultMinSize(minHeight = 50.dp)
             .clip(AppTheme.shapes.button)
             .border(1.dp, strokeColor, AppTheme.shapes.button)
             .background(AppTheme.colors.surface)
             .clickable(enabled = enabled && !loading, onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 18.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center
     ) {
         if (loading) {

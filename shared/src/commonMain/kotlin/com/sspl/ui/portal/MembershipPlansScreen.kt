@@ -36,8 +36,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.sspl.Screen
 import com.sspl.core.models.MembershipPlan
 import com.sspl.core.repositories.PortalRepository
+import com.sspl.designsystem.components.ModernSupportCard
 import com.sspl.designsystem.components.SsplBadge
 import com.sspl.designsystem.components.SsplBadgeVariant
 import com.sspl.designsystem.components.SsplButton
@@ -251,6 +253,15 @@ fun MembershipPlansScreen(
                     }
                 }
             }
+        }
+
+        item {
+            ModernSupportCard(
+                title = "Membership Office",
+                subtitle = "Need assistance with membership verification, annual dues payment, or certificate delivery? Contact the secretary.",
+                buttonText = "Contact Secretary",
+                onContactClick = { navController.navigate(Screen.ContactUsScreen.route) }
+            )
         }
 
         item {
