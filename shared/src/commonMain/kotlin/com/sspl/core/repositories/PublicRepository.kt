@@ -24,7 +24,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -87,6 +89,48 @@ class PublicRepository(private val httpClient: HttpClient) {
         }
     }
 
+    private fun normalizeElectionJson(element: JsonElement): JsonElement {
+        if (element !is JsonObject) return element
+        val map = element.toMutableMap()
+        val filesList = mutableListOf<JsonObject>()
+
+        element["files"]?.let { f ->
+            if (f is JsonArray) {
+                f.forEach { item ->
+                    when (item) {
+                        is JsonObject -> filesList.add(item)
+                        is JsonPrimitive -> filesList.add(JsonObject(mapOf("url" to item)))
+                        else -> {}
+                    }
+                }
+            }
+        }
+        element["attachments"]?.let { a ->
+            if (a is JsonArray) {
+                a.forEach { item ->
+                    when (item) {
+                        is JsonObject -> filesList.add(item)
+                        is JsonPrimitive -> filesList.add(JsonObject(mapOf("url" to item)))
+                        else -> {}
+                    }
+                }
+            }
+        }
+        element["file_url"]?.let { u ->
+            if (u is JsonPrimitive && u.content.isNotBlank()) {
+                filesList.add(JsonObject(mapOf(
+                    "url" to u,
+                    "name" to (element["file_name"] ?: element["title"] ?: JsonPrimitive("Attachment")),
+                    "type" to (element["file_type"] ?: JsonPrimitive("application/pdf"))
+                )))
+            }
+        }
+        if (filesList.isNotEmpty()) {
+            map["files"] = JsonArray(filesList)
+        }
+        return JsonObject(map)
+    }
+
     /**
      * Fetch active elections from GET /elections/
      */
@@ -94,12 +138,15 @@ class PublicRepository(private val httpClient: HttpClient) {
         try {
             val responseText = httpClient.get("$BASE_URL/elections/").body<String>()
             val parsed = json.parseToJsonElement(responseText)
-            val list: List<ElectionItem> = when {
-                parsed is JsonArray -> json.decodeFromJsonElement(parsed)
-                parsed is JsonObject && parsed["records"] is JsonArray -> json.decodeFromJsonElement(parsed["records"]!!.jsonArray)
-                parsed is JsonObject && parsed["elections"] is JsonArray -> json.decodeFromJsonElement(parsed["elections"]!!.jsonArray)
-                parsed is JsonObject && parsed["data"] is JsonArray -> json.decodeFromJsonElement(parsed["data"]!!.jsonArray)
+            val rawList: List<JsonElement> = when {
+                parsed is JsonArray -> parsed
+                parsed is JsonObject && parsed["records"] is JsonArray -> parsed["records"]!!.jsonArray
+                parsed is JsonObject && parsed["elections"] is JsonArray -> parsed["elections"]!!.jsonArray
+                parsed is JsonObject && parsed["data"] is JsonArray -> parsed["data"]!!.jsonArray
                 else -> emptyList()
+            }
+            val list: List<ElectionItem> = rawList.map { el ->
+                json.decodeFromJsonElement<ElectionItem>(normalizeElectionJson(el))
             }
             emit(list)
         } catch (e: Exception) {
@@ -115,11 +162,14 @@ class PublicRepository(private val httpClient: HttpClient) {
         try {
             val responseText = httpClient.get("$BASE_URL/elections/$id").body<String>()
             val parsed = json.parseToJsonElement(responseText)
-            val item: ElectionItem? = when {
-                parsed is JsonObject && parsed["data"] is JsonObject -> json.decodeFromJsonElement(parsed["data"]!!)
-                parsed is JsonObject && parsed["election"] is JsonObject -> json.decodeFromJsonElement(parsed["election"]!!)
-                parsed is JsonObject -> json.decodeFromJsonElement(parsed)
+            val rawElement: JsonElement? = when {
+                parsed is JsonObject && parsed["data"] is JsonObject -> parsed["data"]
+                parsed is JsonObject && parsed["election"] is JsonObject -> parsed["election"]
+                parsed is JsonObject -> parsed
                 else -> null
+            }
+            val item: ElectionItem? = rawElement?.let { el ->
+                json.decodeFromJsonElement<ElectionItem>(normalizeElectionJson(el))
             }
             emit(item)
         } catch (e: Exception) {

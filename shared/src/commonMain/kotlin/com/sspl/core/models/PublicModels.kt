@@ -59,8 +59,23 @@ data class ElectionItem(
     @SerialName("start_date") val startDate: String? = null,
     @SerialName("end_date") val endDate: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
-    val files: List<ElectionAttachment> = emptyList()
-)
+    @SerialName("file_url") val fileUrl: String? = null,
+    @SerialName("file_name") val fileName: String? = null,
+    @SerialName("file_type") val fileType: String? = null,
+    val files: List<ElectionAttachment> = emptyList(),
+    val attachments: List<ElectionAttachment> = emptyList()
+) {
+    val allFiles: List<ElectionAttachment>
+        get() {
+            val list = mutableListOf<ElectionAttachment>()
+            list.addAll(files)
+            list.addAll(attachments)
+            if (!fileUrl.isNullOrBlank()) {
+                list.add(ElectionAttachment(url = fileUrl, name = fileName ?: title, type = fileType))
+            }
+            return list.filter { it.url.isNotBlank() }.distinctBy { it.url }
+        }
+}
 
 @Serializable
 data class DownloadItem(

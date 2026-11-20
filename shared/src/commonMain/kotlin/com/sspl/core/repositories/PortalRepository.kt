@@ -230,6 +230,25 @@ class PortalRepository(private val httpClient: HttpClient) {
     }
 
     /**
+     * D8: Upload presentation for accepted abstract
+     */
+    suspend fun uploadPresentation(abstractSubmissionId: Long, title: String): Result<String> {
+        return try {
+            val map = mapOf(
+                "abstract_submission_id" to abstractSubmissionId.toString(),
+                "title" to title
+            )
+            val responseText = httpClient.post("$BASE_URL/presentations/upload") {
+                contentType(ContentType.Application.Json)
+                setBody(map)
+            }.body<String>()
+            Result.success(responseText)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
      * D9: Generate session certificate
      */
     suspend fun generateCertificate(sessionId: Long?, personId: Long?, conferenceId: Long?): Result<GenerateCertificateResponse> {

@@ -81,9 +81,16 @@ fun EventPortalScreen(
         }
     }
 
-    val confirmedRegistrations = registrationsData?.all?.filter {
-        it.paymentStatus == "SUCCESS"
-    } ?: emptyList()
+    val allRegistrations = if (!registrationsData?.all.isNullOrEmpty()) {
+        registrationsData!!.all
+    } else {
+        ((registrationsData?.conferences ?: emptyList()) +
+         (registrationsData?.workshops ?: emptyList()) +
+         (registrationsData?.monthlyMeetings ?: emptyList()) +
+         (registrationsData?.conferenceEvents ?: emptyList())).distinctBy { it.id }
+    }
+
+    val confirmedRegistrations = allRegistrations.filter { it.isConfirmed }
 
     LazyColumn(
         modifier = Modifier

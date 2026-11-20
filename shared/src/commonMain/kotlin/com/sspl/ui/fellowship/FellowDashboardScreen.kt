@@ -20,8 +20,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,15 +42,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
+import com.sspl.Screen
 import com.sspl.core.models.CreateCaseRequest
 import com.sspl.core.models.FellowCase
 import com.sspl.core.models.FellowDashboardResponse
 import com.sspl.core.repositories.FellowshipRepository
+import com.sspl.designsystem.components.ModernSupportCard
 import com.sspl.designsystem.components.SsplBadge
 import com.sspl.designsystem.components.SsplBadgeVariant
 import com.sspl.designsystem.components.SsplButton
@@ -148,6 +154,94 @@ fun FellowDashboardScreen(
             )
         }
 
+        // Certificate Announcement Card (1:1 with Web FellowshipDashboardView.jsx)
+        val cert = dashboardData?.certificates?.firstOrNull()
+        if (cert != null) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = AppTheme.colors.primaryDark
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                tint = Color(0xFF34D399),
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = "CERTIFICATE ISSUED & VERIFIED",
+                                style = AppTheme.typography.labelSmall.copy(
+                                    color = Color(0xFF6EE7B7),
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 1.sp
+                                )
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Congratulations, Fellow!",
+                            style = AppTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Your fellowship training for ${cert.title ?: "Mini Fellowship in Laparoscopic Surgery"} has been completed and officially certified by Society of Surgeons of Pakistan (Lahore Chapter).",
+                            style = AppTheme.typography.bodySmall.copy(
+                                color = Color.White.copy(alpha = 0.85f),
+                                lineHeight = 18.sp
+                            )
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(Color.White.copy(alpha = 0.12f))
+                                .padding(horizontal = 10.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Serial: ${cert.serialNumber ?: "N/A"}",
+                                style = AppTheme.typography.labelSmall.copy(
+                                    color = Color(0xFF34D399),
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                            cert.issueDate?.let { dt ->
+                                Text(
+                                    text = "  ·  Issued: ${dt.split("T").firstOrNull() ?: dt}",
+                                    style = AppTheme.typography.labelSmall.copy(
+                                        color = Color.White.copy(alpha = 0.7f)
+                                    )
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+                        SsplButton(
+                            text = "Verify Online",
+                            onClick = {
+                                navController.navigate(Screen.VerifyCertificateScreen.route)
+                            },
+                            variant = SsplButtonVariant.Primary,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+            }
+        }
+
         // Progress & Stats Card
         item {
             SsplCard(modifier = Modifier.fillMaxWidth()) {
@@ -175,7 +269,7 @@ fun FellowDashboardScreen(
                         }
 
                         SsplBadge(
-                            text = "IN TRAINING",
+                            text = if (cert != null) "CERTIFIED" else "IN TRAINING",
                             variant = SsplBadgeVariant.Success
                         )
                     }
@@ -232,20 +326,22 @@ fun FellowDashboardScreen(
                     val isSelected = selectedTab == key
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(if (isSelected) AppTheme.colors.primary else AppTheme.colors.surface)
+                            .clip(RoundedCornerShape(50.dp))
+                            .background(
+                                if (isSelected) AppTheme.colors.primaryDark else AppTheme.colors.boxColor
+                            )
                             .border(
-                                1.dp,
-                                if (isSelected) AppTheme.colors.primary else AppTheme.colors.border,
-                                RoundedCornerShape(8.dp)
+                                width = 1.dp,
+                                color = if (isSelected) Color.Transparent else AppTheme.colors.border,
+                                shape = RoundedCornerShape(50.dp)
                             )
                             .clickable { selectedTab = key }
-                            .padding(horizontal = 14.dp, vertical = 8.dp)
+                            .padding(horizontal = 16.dp, vertical = 9.dp)
                     ) {
                         Text(
                             text = label,
                             style = AppTheme.typography.labelMedium.copy(
-                                color = if (isSelected) AppTheme.colors.onPrimary else AppTheme.colors.body,
+                                color = if (isSelected) Color.White else AppTheme.colors.heading,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                             )
                         )
@@ -413,6 +509,15 @@ fun FellowDashboardScreen(
                     }
                 }
             }
+        }
+
+        item {
+            ModernSupportCard(
+                title = "Fellowship Inquiries?",
+                subtitle = "For quota verification, center placement questions, or completion certificate queries, contact the fellowship coordinator.",
+                buttonText = "Contact Secretariat",
+                onContactClick = { navController.navigate(Screen.ContactUsScreen.route) }
+            )
         }
 
         item {

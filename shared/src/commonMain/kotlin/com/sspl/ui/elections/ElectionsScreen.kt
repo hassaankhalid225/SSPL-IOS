@@ -257,17 +257,18 @@ fun ElectionsScreen(
                             lineHeight = 22.sp
                         )
                     }
-                    if (election.files.isNotEmpty()) {
+                    val allFiles = election.allFiles
+                    if (allFiles.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "ATTACHMENTS (${election.files.size})",
+                            text = "ATTACHMENTS (${allFiles.size})",
                             style = AppTheme.typography.labelSmall,
                             color = AppTheme.colors.primary,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.1.sp
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        election.files.forEachIndexed { index, file ->
+                        allFiles.forEachIndexed { index, file ->
                             ElectionAttachmentRow(
                                 file = file,
                                 index = index,
@@ -337,10 +338,11 @@ private fun ElectionCard(
                     color = AppTheme.colors.onSurface,
                     fontWeight = FontWeight.Bold
                 )
-                if (election.files.isNotEmpty()) {
+                val allFiles = election.allFiles
+                if (allFiles.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "${election.files.size} document${if (election.files.size > 1) "s" else ""} attached",
+                        text = "${allFiles.size} document${if (allFiles.size > 1) "s" else ""} attached",
                         style = AppTheme.typography.bodySmall,
                         color = AppTheme.colors.textMuted
                     )

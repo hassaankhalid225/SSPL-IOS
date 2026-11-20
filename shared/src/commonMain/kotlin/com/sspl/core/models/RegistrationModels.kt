@@ -25,9 +25,26 @@ data class Registration(
     @SerialName("transaction_id") val transactionId: String? = null,
     @SerialName("payment_date") val paymentDate: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
+    @SerialName("approval_status") val approvalStatus: String? = null, // PENDING | APPROVED | REJECTED
+    val status: String? = null, // CONFIRMED | CANCELLED | null
+    @SerialName("is_locked") val isLocked: Boolean = false,
+    @SerialName("registration_number") val registrationNumber: String? = null,
     val role: Role? = null,
     val conference: Conference? = null // For "My Registrations" list
-)
+) {
+    val isConfirmed: Boolean
+        get() = approvalStatus.equals("APPROVED", ignoreCase = true) ||
+                status.equals("CONFIRMED", ignoreCase = true) ||
+                ((paymentStatus.equals("SUCCESS", ignoreCase = true) || paymentStatus.equals("COMPLETED", ignoreCase = true)) &&
+                        !approvalStatus.equals("REJECTED", ignoreCase = true))
+
+    val isPendingApproval: Boolean
+        get() = approvalStatus.equals("PENDING", ignoreCase = true) ||
+                (paymentStatus.equals("PENDING", ignoreCase = true) && feeAmount == 0.0 && !isConfirmed)
+
+    val needsPayment: Boolean
+        get() = (paymentStatus.equals("PENDING", ignoreCase = true) || paymentStatus.equals("FAILED", ignoreCase = true)) && feeAmount > 0.0
+}
 
 @Serializable
 data class CheckRegistrationResponse(

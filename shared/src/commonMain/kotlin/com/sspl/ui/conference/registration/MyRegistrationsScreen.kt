@@ -1,5 +1,6 @@
 package com.sspl.ui.conference.registration
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -27,6 +28,8 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -99,19 +102,24 @@ fun MyRegistrationsScreen(
         loadRegistrations()
     }
 
+    val allList = if (!registrationsData?.all.isNullOrEmpty()) {
+        registrationsData!!.all
+    } else {
+        ((registrationsData?.conferences ?: emptyList()) +
+         (registrationsData?.workshops ?: emptyList()) +
+         (registrationsData?.monthlyMeetings ?: emptyList()) +
+         (registrationsData?.conferenceEvents ?: emptyList())).distinctBy { it.id }
+    }
+
     val activeList = when (selectedTab) {
         "CONFERENCES" -> registrationsData?.conferences ?: emptyList()
         "WORKSHOPS" -> registrationsData?.workshops ?: emptyList()
         "MEETINGS" -> registrationsData?.monthlyMeetings ?: emptyList()
-        else -> registrationsData?.all ?: (
-            (registrationsData?.conferences ?: emptyList()) +
-            (registrationsData?.workshops ?: emptyList()) +
-            (registrationsData?.monthlyMeetings ?: emptyList())
-        ).distinctBy { it.id }
+        else -> allList
     }
 
     val tabs = listOf(
-        "ALL" to "All (${registrationsData?.all?.size ?: activeList.size})",
+        "ALL" to "All (${allList.size})",
         "CONFERENCES" to "Conferences (${registrationsData?.conferences?.size ?: 0})",
         "WORKSHOPS" to "Workshops (${registrationsData?.workshops?.size ?: 0})",
         "MEETINGS" to "Monthly Meetings (${registrationsData?.monthlyMeetings?.size ?: 0})"
@@ -164,6 +172,47 @@ fun MyRegistrationsScreen(
                 text = "Check payment status, view attendee pass & QR badge for entry.",
                 style = AppTheme.typography.bodySmall.copy(color = AppTheme.colors.muted)
             )
+        }
+
+        // Conference Conflict Warning Banner (from web MyRegistrationsView.jsx)
+        if (!isLoading && registrationsData?.canRegisterConference == false && registrationsData?.activeConferenceRegistration != null) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF3C7)),
+                    border = BorderStroke(1.dp, Color(0xFFF59E0B).copy(alpha = 0.5f))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(14.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = "Warning",
+                            tint = Color(0xFFB45309),
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Column {
+                            Text(
+                                text = "Conference Registration Limit",
+                                style = AppTheme.typography.titleSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF78350F)
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "You are currently registered for ${registrationsData?.activeConferenceRegistration?.conference?.title ?: "a conference"}. You can only register for one conference at a time. Complete or cancel this registration to register for another conference.",
+                                style = AppTheme.typography.bodySmall.copy(
+                                    color = Color(0xFF92400E)
+                                )
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         // Filter Tabs
@@ -234,9 +283,20 @@ fun MyRegistrationsScreen(
             }
         } else {
             items(activeList) { reg ->
-                val isSuccess = reg.paymentStatus == "SUCCESS"
-                val isPending = reg.paymentStatus == "PENDING"
-                val isFailed = reg.paymentStatus == "FAILED"
+                val badgeText = when {
+                    reg.isLocked -> "LOCKED"
+                    reg.isConfirmed -> "APPROVED"
+                    reg.approvalStatus.equals("REJECTED", ignoreCase = true) || reg.paymentStatus == "FAILED" -> "REJECTED"
+                    reg.feeAmount == 0.0 -> "PENDING APPROVAL"
+                    else -> "PENDING PAYMENT"
+                }
+
+                val badgeVariant = when {
+                    reg.isLocked -> SsplBadgeVariant.Neutral
+                    reg.isConfirmed -> SsplBadgeVariant.Success
+                    badgeText == "REJECTED" -> SsplBadgeVariant.Error
+                    else -> SsplBadgeVariant.Warning
+                }
 
                 SsplCard(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -254,14 +314,8 @@ fun MyRegistrationsScreen(
                                 modifier = Modifier.weight(1f)
                             )
 
-                            val badgeVariant = when {
-                                isSuccess -> SsplBadgeVariant.Success
-                                isPending -> SsplBadgeVariant.Warning
-                                else -> SsplBadgeVariant.Error
-                            }
-
                             SsplBadge(
-                                text = reg.paymentStatus,
+                                text = badgeText,
                                 variant = badgeVariant
                             )
                         }
@@ -285,7 +339,7 @@ fun MyRegistrationsScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = "Fee: PKR ${reg.feeAmount.toLong()}",
+                                text = if (reg.feeAmount == 0.0) "Fee: Free" else "Fee: PKR ${reg.feeAmount.toLong()}",
                                 style = AppTheme.typography.bodySmall.copy(
                                     fontWeight = FontWeight.Bold,
                                     color = AppTheme.colors.body
@@ -299,22 +353,51 @@ fun MyRegistrationsScreen(
                             }
                         }
 
+                        // Approval & Status Information Notice (1:1 with Web MyRegistrationsView)
+                        if (reg.isPendingApproval && !reg.isConfirmed) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Registration submitted. Awaiting administrator review and approval.",
+                                style = AppTheme.typography.bodySmall.copy(
+                                    color = Color(0xFFB45309),
+                                    fontWeight = FontWeight.Medium
+                                ),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(Color(0xFFFEF3C7))
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        } else if (reg.isConfirmed) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Registration approved. You can access Event Portal features.",
+                                style = AppTheme.typography.bodySmall.copy(
+                                    color = Color(0xFF047857),
+                                    fontWeight = FontWeight.Medium
+                                ),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(Color(0xFFD1FAE5))
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+
                         Spacer(modifier = Modifier.height(14.dp))
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            if (isSuccess) {
+                            if (reg.isConfirmed) {
                                 SsplButton(
                                     text = "View Entry Badge",
                                     onClick = { selectedBadgeRegistration = reg },
                                     variant = SsplButtonVariant.Primary,
                                     modifier = Modifier.fillMaxWidth()
                                 )
-                            } else if (isPending || isFailed) {
+                            } else if (reg.needsPayment) {
                                 SsplButton(
-                                    text = if (retryingId == reg.id) "Retrying..." else "Retry Payment",
+                                    text = if (retryingId == reg.id) "Retrying..." else "Pay Now",
                                     onClick = {
                                         scope.launch {
                                             retryingId = reg.id
@@ -328,7 +411,7 @@ fun MyRegistrationsScreen(
                                         }
                                     },
                                     enabled = retryingId == null,
-                                    variant = SsplButtonVariant.Outline,
+                                    variant = SsplButtonVariant.Primary,
                                     modifier = Modifier.fillMaxWidth()
                                 )
                             }

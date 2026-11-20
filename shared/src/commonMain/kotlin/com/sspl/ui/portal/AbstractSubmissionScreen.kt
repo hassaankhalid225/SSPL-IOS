@@ -73,9 +73,16 @@ fun AbstractSubmissionScreen(
     var isError by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        eventRepository.getEvents(active = true).collect { eventList ->
-            events = eventList
-            selectedEvent = eventList.firstOrNull()
+        eventRepository.getAbstractEligibleEvents().collect { eligibleList ->
+            if (eligibleList.isNotEmpty()) {
+                events = eligibleList
+                selectedEvent = eligibleList.firstOrNull()
+            } else {
+                eventRepository.getEvents(active = true).collect { fallbackList ->
+                    events = fallbackList
+                    selectedEvent = fallbackList.firstOrNull()
+                }
+            }
         }
     }
 

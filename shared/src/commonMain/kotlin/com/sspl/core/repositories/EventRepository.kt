@@ -76,6 +76,32 @@ class EventRepository(private val httpClient: HttpClient) {
     }
 
     /**
+     * Events open for abstract submission (monthly meetings, conferences, programmes).
+     * GET /external/events?abstract_eligible=true&active=true
+     */
+    fun getAbstractEligibleEvents(): Flow<List<EventItem>> = flow {
+        try {
+            val responseText = httpClient.get("$BASE_URL/external/events") {
+                parameter("abstract_eligible", "true")
+                parameter("active", "true")
+            }.body<String>()
+
+            val parsed = json.parseToJsonElement(responseText)
+            val eventsList: List<EventItem> = when {
+                parsed is JsonArray -> json.decodeFromJsonElement(parsed)
+                parsed is JsonObject && parsed["data"] is JsonArray -> json.decodeFromJsonElement(parsed["data"]!!.jsonArray)
+                parsed is JsonObject && parsed["data"] is JsonObject && parsed["data"]!!.jsonObject["events"] is JsonArray -> json.decodeFromJsonElement(parsed["data"]!!.jsonObject["events"]!!.jsonArray)
+                parsed is JsonObject && parsed["events"] is JsonArray -> json.decodeFromJsonElement(parsed["events"]!!.jsonArray)
+                else -> emptyList()
+            }
+            emit(eventsList)
+        } catch (e: Exception) {
+            println("EventRepository.getAbstractEligibleEvents error: ${e.message}")
+            emit(emptyList())
+        }
+    }
+
+    /**
      * Fetch single event details from GET /external/events/{id}
      */
     fun getEventById(id: Long): Flow<EventItem?> = flow {
