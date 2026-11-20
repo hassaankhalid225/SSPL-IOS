@@ -1,5 +1,7 @@
 package com.sspl.ui.settings
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -129,7 +131,7 @@ fun SettingsScreen(
 
         SettingsGroup("Appearance") {
             Row(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconTile(Icons.Default.Palette, size = 38.dp, iconSize = 18.dp, corner = 12.dp)
+                IconTile(SsplIcons.Palette, size = 38.dp, iconSize = 18.dp, corner = 12.dp)
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
                     Text("Theme", style = AppTheme.typography.titleSmall)
@@ -145,7 +147,7 @@ fun SettingsScreen(
 
         SettingsGroup("Updates") {
             SettingsRow(
-                icon = Icons.Default.Campaign,
+                icon = SsplIcons.Campaign,
                 title = "Announcements",
                 subtitle = "News, notices and event updates",
                 onClick = { navController.navigate(Screen.NotificationsScreen.route) }
@@ -156,7 +158,7 @@ fun SettingsScreen(
             SettingsGroup("Account") {
                 if (onResetPassword != null) {
                     SettingsRow(
-                        icon = Icons.Default.LockReset,
+                        icon = SsplIcons.LockReset,
                         title = "Reset password",
                         subtitle = "Get a code by email and set a new password",
                         onClick = onResetPassword
@@ -164,7 +166,7 @@ fun SettingsScreen(
                     RowDivider()
                 }
                 SettingsRow(
-                    icon = Icons.Default.DeleteForever,
+                    icon = SsplIcons.DeleteForever,
                     title = "Delete account",
                     subtitle = "Permanently remove your account and data",
                     destructive = true,
@@ -174,19 +176,19 @@ fun SettingsScreen(
         }
 
         SettingsGroup("About & help") {
-            SettingsRow(Icons.Default.Info, "About SSPL", "Mission, leadership and history") {
+            SettingsRow(SsplIcons.Info, "About SSPL", "Mission, leadership and history") {
                 navController.navigate(Screen.AboutScreen.route)
             }
             RowDivider()
-            SettingsRow(Icons.AutoMirrored.Filled.HelpOutline, "FAQs", "Answers to common questions") {
+            SettingsRow(SsplIcons.HelpOutline, "FAQs", "Answers to common questions") {
                 navController.navigate(Screen.FaqsScreen.route)
             }
             RowDivider()
-            SettingsRow(Icons.Default.SupportAgent, "Contact us", "Reach the SSPL secretariat") {
+            SettingsRow(SsplIcons.SupportAgent, "Contact us", "Reach the SSPL secretariat") {
                 navController.navigate(Screen.ContactUsScreen.route)
             }
             RowDivider()
-            SettingsRow(Icons.Default.Description, "Terms & conditions", "Society policies and membership terms") {
+            SettingsRow(SsplIcons.Description, "Terms & conditions", "Society policies and membership terms") {
                 navController.navigate(Screen.TermsScreen.route)
             }
         }
@@ -194,14 +196,14 @@ fun SettingsScreen(
         SettingsGroup(null) {
             if (isGuest) {
                 SettingsRow(
-                    icon = Icons.AutoMirrored.Filled.Login,
+                    icon = SsplIcons.Login,
                     title = "Sign in",
                     subtitle = "Access your member portal",
                     onClick = leaveToSignIn
                 )
             } else {
                 SettingsRow(
-                    icon = Icons.AutoMirrored.Filled.Logout,
+                    icon = SsplIcons.Logout,
                     title = "Sign out",
                     subtitle = "Sign out of this device",
                     destructive = true,
@@ -255,7 +257,7 @@ private fun AccountSummary(
             )
         }
         Icon(
-            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            SsplIcons.KeyboardArrowRight,
             contentDescription = null,
             tint = Color.White.copy(alpha = 0.8f)
         )
@@ -323,7 +325,7 @@ private fun SettingsRow(
         }
         if (showChevron) {
             Icon(
-                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                SsplIcons.KeyboardArrowRight,
                 contentDescription = null,
                 tint = colors.muted,
                 modifier = Modifier.size(20.dp)

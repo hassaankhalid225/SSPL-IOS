@@ -1,5 +1,7 @@
 package com.sspl.designsystem.components
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -52,7 +54,7 @@ fun EmptyState(
     title: String,
     message: String,
     modifier: Modifier = Modifier,
-    icon: ImageVector = Icons.Default.Info,
+    icon: ImageVector = SsplIcons.Info,
     actionText: String? = null,
     onActionClick: (() -> Unit)? = null
 ) {
@@ -78,13 +80,13 @@ fun ErrorState(
 ) {
     StateLayout(
         modifier = modifier,
-        icon = Icons.Default.CloudOff,
+        icon = SsplIcons.CloudOff,
         iconTint = AppTheme.colors.error,
         iconBg = AppTheme.colors.errorContainer,
         title = title,
         message = message,
         actionText = if (onRetry != null) "Try again" else null,
-        actionIcon = Icons.Default.Refresh,
+        actionIcon = SsplIcons.Refresh,
         onAction = onRetry
     )
 }
@@ -123,7 +125,7 @@ private fun StateLayout(
                     .background(iconBg),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(28.dp))
+                com.sspl.designsystem.icons.AnimatedIcon(icon, contentDescription = null, tint = iconTint, size = 28.dp, durationMillis = 700, delayMillis = 120)
             }
         }
         Spacer(modifier = Modifier.height(18.dp))
@@ -253,7 +255,7 @@ fun GuestLockSheet(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.Lock,
+                    imageVector = SsplIcons.Lock,
                     contentDescription = null,
                     tint = AppTheme.colors.primary,
                     modifier = Modifier.size(28.dp)
@@ -303,7 +305,7 @@ fun FeedbackBanner(
     val bgColor = if (isError) AppTheme.colors.errorContainer else AppTheme.colors.surfaceTint
     val textColor = if (isError) AppTheme.colors.error else AppTheme.colors.primary
     val borderColor = if (isError) AppTheme.colors.error.copy(alpha = 0.3f) else AppTheme.colors.primary.copy(alpha = 0.3f)
-    val icon = if (isError) Icons.Default.Warning else Icons.Default.Info
+    val icon = if (isError) SsplIcons.Warning else SsplIcons.Info
 
     Box(
         modifier = modifier

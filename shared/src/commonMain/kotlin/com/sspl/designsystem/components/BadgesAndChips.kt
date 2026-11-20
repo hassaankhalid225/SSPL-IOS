@@ -242,9 +242,9 @@ fun FilterChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val bg = if (selected) AppTheme.colors.primary else AppTheme.colors.surface
+    val bg = if (selected) AppTheme.colors.buttonStart else AppTheme.colors.surface
     val contentColor = if (selected) Color.White else AppTheme.colors.body
-    val strokeColor = if (selected) AppTheme.colors.primary else AppTheme.colors.border
+    val strokeColor = if (selected) AppTheme.colors.buttonStart else AppTheme.colors.border
 
     Box(
         modifier = modifier

@@ -1,5 +1,7 @@
 package com.sspl.ui.portal
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -95,14 +97,14 @@ fun PortalOverviewScreen(
     val isFellow = RoleUtils.hasUserRole(user, "FELLOWSHIP_FELLOW")
 
     val actions = listOf(
-        PortalAction(Icons.Default.Event, "Browse events", Screen.EventsListScreen.route),
-        PortalAction(Icons.AutoMirrored.Filled.Assignment, "My registrations", Screen.MyRegistrationsScreen.route),
-        PortalAction(Icons.Default.EventAvailable, "Event portal", Screen.EventPortalScreen.route),
-        PortalAction(Icons.Default.Send, "Submit abstract", Screen.AbstractSubmissionScreen.route),
-        PortalAction(Icons.Default.Description, "My submissions", Screen.MySubmissionsScreen.route),
-        PortalAction(Icons.Default.Slideshow, "Presentations", Screen.PresentationsScreen.route),
-        PortalAction(Icons.Default.WorkspacePremium, "Certificates", Screen.MyCertificatesScreen.route),
-        PortalAction(Icons.Default.CardMembership, "Membership", Screen.MembershipScreen.route)
+        PortalAction(SsplIcons.Event, "Browse events", Screen.EventsListScreen.route),
+        PortalAction(SsplIcons.Assignment, "My registrations", Screen.MyRegistrationsScreen.route),
+        PortalAction(SsplIcons.EventAvailable, "Event portal", Screen.EventPortalScreen.route),
+        PortalAction(SsplIcons.Send, "Submit abstract", Screen.AbstractSubmissionScreen.route),
+        PortalAction(SsplIcons.Description, "My submissions", Screen.MySubmissionsScreen.route),
+        PortalAction(SsplIcons.Slideshow, "Presentations", Screen.PresentationsScreen.route),
+        PortalAction(SsplIcons.WorkspacePremium, "Certificates", Screen.MyCertificatesScreen.route),
+        PortalAction(SsplIcons.CardMembership, "Membership", Screen.MembershipScreen.route)
     )
 
     SsplRefreshBox(
@@ -149,15 +151,15 @@ fun PortalOverviewScreen(
                     val c = AppTheme.colors
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         CountTile(state, PortalOverviewViewModel.KEY_REGS, state.registrations, "Registrations",
-                            Icons.AutoMirrored.Filled.Assignment, c.primary, Modifier.weight(1f)) { go(Screen.MyRegistrationsScreen.route) }
+                            SsplIcons.Assignment, c.primary, Modifier.weight(1f)) { go(Screen.MyRegistrationsScreen.route) }
                         CountTile(state, PortalOverviewViewModel.KEY_CERTS, state.certificates, "Certificates",
-                            Icons.Default.WorkspacePremium, c.success, Modifier.weight(1f)) { go(Screen.MyCertificatesScreen.route) }
+                            SsplIcons.WorkspacePremium, c.success, Modifier.weight(1f)) { go(Screen.MyCertificatesScreen.route) }
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         CountTile(state, PortalOverviewViewModel.KEY_SUBS, state.submissions, "Abstracts submitted",
-                            Icons.Default.Description, c.accent, Modifier.weight(1f)) { go(Screen.MySubmissionsScreen.route) }
+                            SsplIcons.Description, c.accent, Modifier.weight(1f)) { go(Screen.MySubmissionsScreen.route) }
                         CountTile(state, PortalOverviewViewModel.KEY_PRES, state.presentations, "Presentations",
-                            Icons.Default.Slideshow, c.warning, Modifier.weight(1f)) { go(Screen.PresentationsScreen.route) }
+                            SsplIcons.Slideshow, c.warning, Modifier.weight(1f)) { go(Screen.PresentationsScreen.route) }
                     }
                 }
             }
@@ -189,7 +191,7 @@ fun PortalOverviewScreen(
                         title = "Training centre / master trainer desk",
                         body = "Manage assigned trainees, case approvals, attendance verification, assessments and research.",
                         cta = "Open trainer desk",
-                        icon = Icons.Default.School,
+                        icon = SsplIcons.School,
                         onClick = { go(Screen.TrainerDashboardScreen.route) }
                     )
                 }
@@ -197,7 +199,7 @@ fun PortalOverviewScreen(
 
             item(key = "fellowship") {
                 NavTile(
-                    icon = Icons.Default.School,
+                    icon = SsplIcons.School,
                     title = if (isFellow) "My fellowship workspace" else "Fellowship",
                     subtitle = if (isFellow) "Logbook, cases, attendance and feedback" else "Open the mini-fellowship workspace if you are enrolled",
                     onClick = { go(if (isFellow) Screen.FellowDashboardScreen.route else Screen.FellowshipHubScreen.route) },
@@ -219,9 +221,9 @@ fun PortalOverviewScreen(
                     ListRowCard(
                         title = "No upcoming events yet",
                         subtitle = "Register for a conference, workshop or monthly meeting to see it here.",
-                        leading = { IconTile(Icons.Default.CalendarMonth) },
+                        leading = { IconTile(SsplIcons.CalendarMonth) },
                         trailing = {
-                            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = AppTheme.colors.primary)
+                            Icon(SsplIcons.ArrowForward, contentDescription = null, tint = AppTheme.colors.primary)
                         },
                         onClick = { go(Screen.EventsListScreen.route) }
                     )
@@ -233,7 +235,7 @@ fun PortalOverviewScreen(
 
             item(key = "help") {
                 NavTile(
-                    icon = Icons.Default.SupportAgent,
+                    icon = SsplIcons.SupportAgent,
                     title = "Need help with your portal?",
                     subtitle = "Membership verification, payment proofs or abstract queries",
                     onClick = { go(Screen.ContactUsScreen.route) },
@@ -292,7 +294,7 @@ private fun MembershipCard(
         DecorativeRings(Modifier.matchParentSize())
         Column(Modifier.padding(18.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                GlassPill("SSPL MEMBERSHIP", icon = Icons.Default.Verified)
+                GlassPill("SSPL MEMBERSHIP", icon = SsplIcons.Verified)
                 Spacer(Modifier.weight(1f))
                 if (status != null) StatusOnGradient(status)
             }
@@ -321,14 +323,14 @@ private fun MembershipCard(
                         .padding(horizontal = 12.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Default.Person, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                    Icon(SsplIcons.Person, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
                     Spacer(Modifier.width(6.dp))
                     Text("Update profile", style = AppTheme.typography.labelMedium.copy(color = Color.White, fontWeight = FontWeight.SemiBold))
                 }
                 Spacer(Modifier.weight(1f))
                 Text("Membership details", style = AppTheme.typography.labelMedium.copy(color = Color.White.copy(alpha = 0.85f)))
                 Spacer(Modifier.width(4.dp))
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                Icon(SsplIcons.ArrowForward, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
             }
         }
     }
@@ -399,7 +401,7 @@ private fun RoleDeskCard(
             Spacer(Modifier.height(6.dp))
             Text(cta, style = AppTheme.typography.labelMedium.copy(color = c.primary, fontWeight = FontWeight.SemiBold))
         }
-        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = c.primary, modifier = Modifier.size(18.dp))
+        Icon(SsplIcons.ArrowForward, contentDescription = null, tint = c.primary, modifier = Modifier.size(18.dp))
     }
 }
 

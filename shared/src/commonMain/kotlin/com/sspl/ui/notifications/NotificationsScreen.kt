@@ -1,5 +1,7 @@
 package com.sspl.ui.notifications
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -90,7 +92,7 @@ fun NotificationsScreen(
             item(key = "hero") {
                 PageIntroHero(
                     eyebrow = "News & updates",
-                    eyebrowIcon = Icons.Default.Campaign,
+                    eyebrowIcon = SsplIcons.Campaign,
                     title = "Society announcements",
                     summary = "Official updates, notices, and announcements from SSP Lahore.",
                     stats = listOfNotNull(
@@ -125,7 +127,7 @@ fun NotificationsScreen(
                             EmptyState(
                                 title = "No announcements yet",
                                 message = "Check back soon for society updates.",
-                                icon = Icons.Default.Campaign
+                                icon = SsplIcons.Campaign
                             )
                         }
                     } else {
@@ -145,7 +147,7 @@ fun NotificationsScreen(
                                     .padding(horizontal = 12.dp, vertical = 12.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(Icons.Default.DoneAll, contentDescription = null, tint = AppTheme.colors.primary, modifier = Modifier.size(16.dp))
+                                Icon(SsplIcons.DoneAll, contentDescription = null, tint = AppTheme.colors.primary, modifier = Modifier.size(16.dp))
                                 Spacer(Modifier.width(6.dp))
                                 Text("Mark all as read", style = AppTheme.typography.labelMedium.copy(color = AppTheme.colors.primary, fontWeight = FontWeight.SemiBold))
                             }
@@ -157,7 +159,7 @@ fun NotificationsScreen(
                         EmptyState(
                             title = "You're all caught up",
                             message = "Push updates and live session notices will show here.",
-                            icon = Icons.Default.NotificationsNone
+                            icon = SsplIcons.NotificationsNone
                         )
                     }
                 } else {
@@ -194,18 +196,18 @@ private fun NewsCard(item: SocietyNewsItem) {
                 source = item.effectiveImage,
                 contentDescription = item.title,
                 modifier = Modifier.fillMaxWidth().aspectRatio(2f),
-                fallbackIcon = Icons.Default.Campaign
+                fallbackIcon = SsplIcons.Campaign
             )
         }
         Column(Modifier.padding(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconTile(Icons.Default.Campaign, size = 34.dp, iconSize = 17.dp, corner = 11.dp)
+                IconTile(SsplIcons.Campaign, size = 34.dp, iconSize = 17.dp, corner = 11.dp)
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
                     Text(item.title ?: "Society announcement", style = AppTheme.typography.titleSmall)
                     if (dateText.isNotBlank()) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Schedule, contentDescription = null, tint = colors.muted, modifier = Modifier.size(12.dp))
+                            Icon(SsplIcons.Schedule, contentDescription = null, tint = colors.muted, modifier = Modifier.size(12.dp))
                             Spacer(Modifier.width(4.dp))
                             Text(dateText, style = AppTheme.typography.labelSmall)
                         }
@@ -259,7 +261,7 @@ private fun AlertCard(item: NotificationItem, onOpen: () -> Unit, onDelete: () -
     ) {
         Box {
             IconTile(
-                if (live) Icons.Default.Videocam else Icons.Default.Notifications,
+                if (live) SsplIcons.Videocam else SsplIcons.Notifications,
                 tint = if (live) colors.accent else colors.primary,
                 background = if (live) colors.infoContainer else colors.primaryContainer
             )
@@ -288,7 +290,7 @@ private fun AlertCard(item: NotificationItem, onOpen: () -> Unit, onDelete: () -
             }
         }
         IconButton(onClick = onDelete) {
-            Icon(Icons.Default.DeleteOutline, contentDescription = "Delete alert", tint = colors.muted, modifier = Modifier.size(20.dp))
+            Icon(SsplIcons.DeleteOutline, contentDescription = "Delete alert", tint = colors.muted, modifier = Modifier.size(20.dp))
         }
     }
 }

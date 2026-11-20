@@ -1,5 +1,7 @@
 package com.sspl.ui.contact
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -90,7 +92,7 @@ fun ContactUsScreen(
             item(key = "hero") {
                 PageIntroHero(
                     eyebrow = "Contact SSP Lahore",
-                    eyebrowIcon = Icons.Default.SupportAgent,
+                    eyebrowIcon = SsplIcons.SupportAgent,
                     title = "Get in touch",
                     summary = "Reach the secretariat for membership, events, collaborations, and general inquiries."
                 )
@@ -98,10 +100,10 @@ fun ContactUsScreen(
 
             item(key = "actions") {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    QuickActionTile(Icons.Default.Phone, "Call", { open(contact.telUri) }, Modifier.weight(1f))
-                    QuickActionTile(Icons.Default.Chat, "WhatsApp", { open(contact.whatsappUri) }, Modifier.weight(1f))
-                    QuickActionTile(Icons.Default.Email, "Email", { open(contact.mailUri) }, Modifier.weight(1f))
-                    QuickActionTile(Icons.Default.Directions, "Directions", { open(contact.mapUrl) }, Modifier.weight(1f))
+                    QuickActionTile(SsplIcons.Phone, "Call", { open(contact.telUri) }, Modifier.weight(1f))
+                    QuickActionTile(SsplIcons.Chat, "WhatsApp", { open(contact.whatsappUri) }, Modifier.weight(1f))
+                    QuickActionTile(SsplIcons.Email, "Email", { open(contact.mailUri) }, Modifier.weight(1f))
+                    QuickActionTile(SsplIcons.Directions, "Directions", { open(contact.mapUrl) }, Modifier.weight(1f))
                 }
             }
 
@@ -118,14 +120,14 @@ fun ContactUsScreen(
                                 Spacer(Modifier.height(14.dp))
                             }
                         } else {
-                            DetailRow(Icons.Default.Place, "Office address · ${contact.location}", contact.address) { open(contact.mapUrl) }
-                            DetailRow(Icons.Default.Phone, "Phone and WhatsApp", contact.phone) { open(contact.telUri) }
-                            DetailRow(Icons.Default.Email, "Email", contact.email) { open(contact.mailUri) }
+                            DetailRow(SsplIcons.Place, "Office address · ${contact.location}", contact.address) { open(contact.mapUrl) }
+                            DetailRow(SsplIcons.Phone, "Phone and WhatsApp", contact.phone) { open(contact.telUri) }
+                            DetailRow(SsplIcons.Email, "Email", contact.email) { open(contact.mailUri) }
                             Spacer(Modifier.height(8.dp))
                             OutlineButton(
                                 text = "Open in Google Maps",
                                 onClick = { open(contact.mapUrl) },
-                                icon = Icons.Default.Directions,
+                                icon = SsplIcons.Directions,
                                 modifier = Modifier.fillMaxWidth()
                             )
                         }
@@ -161,7 +163,7 @@ fun ContactUsScreen(
                             onValueChange = viewModel::onName,
                             label = "Full name *",
                             placeholder = "Your name",
-                            leadingIcon = Icons.Default.Person,
+                            leadingIcon = SsplIcons.Person,
                             error = state.form.nameError,
                             enabled = !state.submitting,
                             keyboardActions = KeyboardActions(
@@ -175,7 +177,7 @@ fun ContactUsScreen(
                             onValueChange = viewModel::onEmail,
                             label = "Email address *",
                             placeholder = "you@example.com",
-                            leadingIcon = Icons.Default.Email,
+                            leadingIcon = SsplIcons.Email,
                             error = state.form.emailError,
                             enabled = !state.submitting,
                             keyboardType = KeyboardType.Email,
@@ -210,7 +212,7 @@ fun ContactUsScreen(
                                         val body = (state.form.message.trim() + "\n\n— " + state.form.name.trim() + " (" + state.form.email.trim() + ")").encodeURLParameter()
                                         open("${contact.mailUri}?subject=$subject&body=$body")
                                     },
-                                    icon = Icons.Default.Email,
+                                    icon = SsplIcons.Email,
                                     modifier = Modifier.fillMaxWidth()
                                 )
                             }
@@ -224,7 +226,7 @@ fun ContactUsScreen(
                             },
                             loading = state.submitting,
                             enabled = !state.submitting,
-                            trailingIcon = Icons.AutoMirrored.Filled.Send,
+                            trailingIcon = SsplIcons.Send,
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -246,7 +248,7 @@ fun ContactUsScreen(
                                     .padding(horizontal = 14.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(Icons.Default.Public, contentDescription = null, tint = AppTheme.colors.onPrimaryContainer, modifier = Modifier.size(16.dp))
+                                Icon(SsplIcons.Public, contentDescription = null, tint = AppTheme.colors.onPrimaryContainer, modifier = Modifier.size(16.dp))
                                 Spacer(Modifier.width(6.dp))
                                 Text(s.label, style = AppTheme.typography.labelMedium.copy(color = AppTheme.colors.onPrimaryContainer, fontWeight = FontWeight.SemiBold))
                             }

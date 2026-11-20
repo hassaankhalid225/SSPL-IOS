@@ -1,5 +1,7 @@
 package com.sspl.ui.fellowship
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -101,7 +103,7 @@ fun FellowApplicationScreen(
                     EmptyState(
                         title = "Applications are not open right now",
                         message = "No fellowship programme is currently accepting applications. Check the guidelines to prepare for the next intake.",
-                        icon = Icons.Default.School,
+                        icon = SsplIcons.School,
                         actionText = "Read guidelines",
                         onActionClick = { navController.navigate(Screen.FellowshipGuidelinesScreen.route) }
                     )
@@ -118,14 +120,14 @@ fun FellowApplicationScreen(
 @Composable
 internal fun ProgramChooser(programs: List<Program>, onPick: (Program) -> Unit, title: String, subtitle: String) {
     LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item { FellowshipHero(eyebrow = "Fellowship", title = title, summary = subtitle, icon = Icons.Default.School) }
+        item { FellowshipHero(eyebrow = "Fellowship", title = title, summary = subtitle, icon = SsplIcons.School) }
         items(programs, key = { it.id ?: it.name.hashCode().toLong() }) { p ->
             ListRowCard(
                 title = p.name,
                 subtitle = p.shortName.ifBlank { null },
                 meta = p.description.ifBlank { null },
-                leading = { IconTile(Icons.Default.School) },
-                trailing = { Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = AppTheme.colors.primary) },
+                leading = { IconTile(SsplIcons.School) },
+                trailing = { Icon(SsplIcons.ArrowForward, contentDescription = null, tint = AppTheme.colors.primary) },
                 onClick = { onPick(p) }
             )
         }
@@ -304,7 +306,7 @@ private fun DocumentsStep(
             val err = errors[d.id]?.takeIf { f?.error == null }
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconTile(Icons.Default.Description, size = 38.dp, iconSize = 18.dp)
+                    IconTile(SsplIcons.Description, size = 38.dp, iconSize = 18.dp)
                     Spacer(Modifier.width(10.dp))
                     Column(Modifier.weight(1f)) {
                         Text(labelOf(d.name, d.required), style = AppTheme.typography.titleSmall.copy(color = colors.heading))
@@ -312,15 +314,15 @@ private fun DocumentsStep(
                     }
                 }
                 when {
-                    f == null -> SecondaryButton(text = "Choose file", onClick = { onAttach(d) }, icon = Icons.Default.AttachFile)
+                    f == null -> SecondaryButton(text = "Choose file", onClick = { onAttach(d) }, icon = SsplIcons.AttachFile)
                     else -> Row(
                         Modifier.fillMaxWidth().background(colors.boxColor, AppTheme.shapes.small).padding(start = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         when {
                             f.uploading -> LoadingDots()
-                            f.error != null -> Icon(Icons.Default.ErrorOutline, contentDescription = "Upload failed", tint = colors.error, modifier = Modifier.size(18.dp))
-                            else -> Icon(Icons.Default.CheckCircle, contentDescription = "Uploaded", tint = colors.success, modifier = Modifier.size(18.dp))
+                            f.error != null -> Icon(SsplIcons.ErrorOutline, contentDescription = "Upload failed", tint = colors.error, modifier = Modifier.size(18.dp))
+                            else -> Icon(SsplIcons.CheckCircle, contentDescription = "Uploaded", tint = colors.success, modifier = Modifier.size(18.dp))
                         }
                         Spacer(Modifier.width(10.dp))
                         Column(Modifier.weight(1f).padding(vertical = 10.dp)) {
@@ -339,7 +341,7 @@ private fun DocumentsStep(
                         }
                         if (!f.uploading) {
                             IconButton(onClick = { onRemove(d.id); if (f.error != null) onAttach(d) }) {
-                                Icon(Icons.Default.Close, contentDescription = "Remove ${d.name}", tint = colors.muted)
+                                Icon(SsplIcons.Close, contentDescription = "Remove ${d.name}", tint = colors.muted)
                             }
                         }
                     }

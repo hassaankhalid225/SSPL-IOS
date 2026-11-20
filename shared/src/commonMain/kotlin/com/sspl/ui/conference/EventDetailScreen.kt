@@ -1,5 +1,7 @@
 package com.sspl.ui.conference
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -191,7 +193,7 @@ fun EventDetailScreen(
                                 title = "You're registered",
                                 subtitle = "Sessions, attendance, feedback and certificates are in the Event Portal once confirmed.",
                                 leading = {
-                                    IconTile(Icons.Default.CheckCircle, tint = AppTheme.colors.success, background = AppTheme.colors.successContainer)
+                                    IconTile(SsplIcons.CheckCircle, tint = AppTheme.colors.success, background = AppTheme.colors.successContainer)
                                 },
                                 trailing = { StatusBadge(status) },
                                 onClick = { navController.navigate(Screen.EventPortalScreen.route) { launchSingleTop = true } },
@@ -204,7 +206,7 @@ fun EventDetailScreen(
                                 title = "Registration unavailable",
                                 subtitle = reg.reason?.takeIf { it.isNotBlank() }
                                     ?: "You can't register for this event right now. Check My registrations for an active booking.",
-                                leading = { IconTile(Icons.Default.HourglassTop, tint = AppTheme.colors.warning, background = AppTheme.colors.warningContainer) },
+                                leading = { IconTile(SsplIcons.HourglassTop, tint = AppTheme.colors.warning, background = AppTheme.colors.warningContainer) },
                                 onClick = { navController.navigate(Screen.MyRegistrationsScreen.route) { launchSingleTop = true } },
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                             )
@@ -227,7 +229,7 @@ fun EventDetailScreen(
                                 Text("KEY DATES", style = AppTheme.typography.overline)
                                 Spacer(Modifier.height(8.dp))
                                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                    dates.forEach { (label, value) -> FactRow(Icons.Default.EventAvailable, label, value) }
+                                    dates.forEach { (label, value) -> FactRow(SsplIcons.EventAvailable, label, value) }
                                 }
                             }
                         }
@@ -237,7 +239,7 @@ fun EventDetailScreen(
                             ListRowCard(
                                 title = "Abstract submissions open",
                                 subtitle = if (shell.isGuest) "Sign in to submit your abstract for this event." else "Submit your abstract from the member portal.",
-                                leading = { IconTile(Icons.Default.Description, tint = AppTheme.colors.accent, background = AppTheme.colors.infoContainer) },
+                                leading = { IconTile(SsplIcons.Description, tint = AppTheme.colors.accent, background = AppTheme.colors.infoContainer) },
                                 onClick = {
                                     if (shell.isGuest) shell.onAvatar()
                                     else navController.navigate(Screen.AbstractSubmissionScreen.route) { launchSingleTop = true }
@@ -247,8 +249,8 @@ fun EventDetailScreen(
                         }
                     }
                     val contacts = listOfNotNull(
-                        event.contactEmail?.takeIf { it.isNotBlank() }?.let { Triple(Icons.Default.Email, "Email", it) },
-                        event.contactPhone?.takeIf { it.isNotBlank() }?.let { Triple(Icons.Default.Phone, "Phone", it) }
+                        event.contactEmail?.takeIf { it.isNotBlank() }?.let { Triple(SsplIcons.Email, "Email", it) },
+                        event.contactPhone?.takeIf { it.isNotBlank() }?.let { Triple(SsplIcons.Phone, "Phone", it) }
                     )
                     if (contacts.isNotEmpty()) {
                         item(key = "contact") {
@@ -284,7 +286,7 @@ fun EventDetailScreen(
                             OutlineButton(
                                 text = "Open event website",
                                 onClick = { urlOpener.openUrl(link) },
-                                icon = Icons.AutoMirrored.Filled.OpenInNew,
+                                icon = SsplIcons.OpenInNew,
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
                             )
                         }
@@ -302,7 +304,7 @@ fun EventDetailScreen(
                             ListRowCard(
                                 title = w.title,
                                 subtitle = listOf(w.dateRange, w.venue).filter { it.isNotBlank() }.joinToString(" · "),
-                                leading = { IconTile(Icons.Default.School) },
+                                leading = { IconTile(SsplIcons.School) },
                                 trailing = { if (w.registrationOpen) StatusBadge("Open", variant = BadgeVariant.SUCCESS) },
                                 onClick = { navController.openEventDetail(w.id) },
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp)
@@ -398,7 +400,7 @@ private fun DetailHero(card: EventCardUi) {
             source = card.image,
             contentDescription = card.title,
             modifier = Modifier.fillMaxSize(),
-            fallbackIcon = Icons.Default.Event,
+            fallbackIcon = SsplIcons.Event,
             fallbackIconSize = 52.dp
         )
         Box(
@@ -419,7 +421,7 @@ private fun DetailHero(card: EventCardUi) {
                         "past" -> "COMPLETED"
                         else -> card.relative.ifBlank { "UPCOMING" }.uppercase()
                     },
-                    icon = Icons.Default.Schedule
+                    icon = SsplIcons.Schedule
                 )
             }
             Spacer(Modifier.height(8.dp))
@@ -437,11 +439,11 @@ private fun DetailHero(card: EventCardUi) {
 private fun FactsCard(card: EventCardUi, minFee: Double?, registrationDeadline: String, modifier: Modifier = Modifier) {
     SsplCard(modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            FactRow(Icons.Default.CalendarMonth, "Date", card.dateRange)
-            if (card.timeRange.isNotBlank()) FactRow(Icons.Default.Schedule, "Time", card.timeRange)
-            FactRow(Icons.Default.Place, "Venue", card.venue)
-            if (registrationDeadline.isNotBlank() && card.registrationOpen) FactRow(Icons.Default.EventAvailable, "Register by", registrationDeadline)
-            if (minFee != null) FactRow(Icons.Default.Sell, "Registration", if (minFee <= 0.0) "Free" else "From ${formatPkr(minFee)}")
+            FactRow(SsplIcons.CalendarMonth, "Date", card.dateRange)
+            if (card.timeRange.isNotBlank()) FactRow(SsplIcons.Schedule, "Time", card.timeRange)
+            FactRow(SsplIcons.Place, "Venue", card.venue)
+            if (registrationDeadline.isNotBlank() && card.registrationOpen) FactRow(SsplIcons.EventAvailable, "Register by", registrationDeadline)
+            if (minFee != null) FactRow(SsplIcons.Sell, "Registration", if (minFee <= 0.0) "Free" else "From ${formatPkr(minFee)}")
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.sspl.ui.fellowship
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -83,13 +85,13 @@ fun TrainerDashboardScreen(
             is TrainerDeskContent.Loading -> SkeletonDetail()
             is TrainerDeskContent.Error -> ErrorState(title = "Trainer desk didn't load", message = c.message, onRetry = vm::retry)
             is TrainerDeskContent.NotTrainer -> LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                item { FellowshipHero("Trainer desk", "For master trainers", "Fellowship dashboard is available after admin enrolls you as a trainer or fellow.", icon = Icons.Default.SupervisorAccount) }
+                item { FellowshipHero("Trainer desk", "For master trainers", "Fellowship dashboard is available after admin enrolls you as a trainer or fellow.", icon = SsplIcons.SupervisorAccount) }
                 item {
                     SsplCard {
                         EmptyState(
                             title = "Trainer access only",
                             message = "Accredited centres receive trainer credentials after approval. Register your centre to get started.",
-                            icon = Icons.Default.SupervisorAccount,
+                            icon = SsplIcons.SupervisorAccount,
                             actionText = "Register a training centre",
                             onActionClick = { navController.navigate(Screen.ApplyAsTrainingCentreScreen.route) }
                         )
@@ -137,7 +139,7 @@ private fun TrainerContent(
     ) {
         item(key = "hero") {
             GradientHeroCard {
-                GlassPill("TRAINER DESK", icon = Icons.Default.SupervisorAccount)
+                GlassPill("TRAINER DESK", icon = SsplIcons.SupervisorAccount)
                 Spacer(Modifier.height(10.dp))
                 Text(c.centerName ?: "Fellowship training", style = AppTheme.typography.headlineSmall.copy(color = Color.White, fontWeight = FontWeight.Bold))
                 Text(
@@ -156,8 +158,8 @@ private fun TrainerContent(
         state.flash?.let { f -> item(key = "flash") { InlineNote(f.text, tone = if (f.isError) NoteTone.Error else NoteTone.Success) } }
         item(key = "portal") {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                SecondaryButton(text = "Trainer portal", onClick = onPortal, icon = Icons.AutoMirrored.Filled.OpenInNew, modifier = Modifier.weight(1f))
-                OutlineButton(text = "Guidelines", onClick = onGuidelines, icon = Icons.Default.Description, modifier = Modifier.weight(1f))
+                SecondaryButton(text = "Trainer portal", onClick = onPortal, icon = SsplIcons.OpenInNew, modifier = Modifier.weight(1f))
+                OutlineButton(text = "Guidelines", onClick = onGuidelines, icon = SsplIcons.Description, modifier = Modifier.weight(1f))
             }
         }
         item(key = "tabs") {
@@ -181,15 +183,15 @@ private fun TrainerContent(
                 if (d.attendance.isEmpty()) item(key = "na") { SectionEmpty("No attendance records yet.") }
                 items(d.attendance, key = { "a${it.id}" }) { a ->
                     AttendanceRow(a, showFellow = true, footer = if (a.status == "PENDING") ({
-                        PrimaryButton(text = "Verify", onClick = { vm.verifyAttendance(a.id) }, icon = Icons.Default.Check)
+                        PrimaryButton(text = "Verify", onClick = { vm.verifyAttendance(a.id) }, icon = SsplIcons.Check)
                     }) else null)
                 }
             }
             2 -> {
                 item(key = "addAs") {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        PrimaryButton(text = "New assessment", onClick = { sheet = "assess" }, icon = Icons.Default.Add, modifier = Modifier.weight(1f), enabled = fellows.isNotEmpty())
-                        SecondaryButton(text = "Final evaluation", onClick = { sheet = "final" }, icon = Icons.AutoMirrored.Filled.Send, modifier = Modifier.weight(1f), enabled = fellows.isNotEmpty())
+                        PrimaryButton(text = "New assessment", onClick = { sheet = "assess" }, icon = SsplIcons.Add, modifier = Modifier.weight(1f), enabled = fellows.isNotEmpty())
+                        SecondaryButton(text = "Final evaluation", onClick = { sheet = "final" }, icon = SsplIcons.Send, modifier = Modifier.weight(1f), enabled = fellows.isNotEmpty())
                     }
                 }
                 if (d.assessments.isEmpty()) item(key = "nas") { SectionEmpty("No assessments recorded yet.") }
@@ -209,7 +211,7 @@ private fun TrainerContent(
                     ListRowCard(
                         title = f.name,
                         subtitle = listOfNotNull(f.pmdc?.let { "PMDC $it" }, f.category).joinToString(" · ").ifBlank { null },
-                        leading = { IconTile(Icons.Default.Person) },
+                        leading = { IconTile(SsplIcons.Person) },
                         trailing = { StatusBadge("Fellow") }
                     )
                 }
@@ -235,7 +237,7 @@ private fun TrainerContent(
 private fun ReviewActions(onAccept: () -> Unit, onReject: () -> Unit) {
     Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         DestructiveButton(text = "Reject", onClick = onReject, modifier = Modifier.weight(1f))
-        PrimaryButton(text = "Accept", onClick = onAccept, icon = Icons.Default.Check, modifier = Modifier.weight(1f))
+        PrimaryButton(text = "Accept", onClick = onAccept, icon = SsplIcons.Check, modifier = Modifier.weight(1f))
     }
 }
 

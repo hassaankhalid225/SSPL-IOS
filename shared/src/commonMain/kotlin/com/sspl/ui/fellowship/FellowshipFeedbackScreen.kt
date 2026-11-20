@@ -1,5 +1,7 @@
 package com.sspl.ui.fellowship
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -78,10 +80,10 @@ fun FellowshipFeedbackScreen(
             is FeedbackLoad.Loading -> SkeletonDetail()
             is FeedbackLoad.Error -> ErrorState(title = "Feedback form didn't load", message = l.message, onRetry = vm::load)
             is FeedbackLoad.NotEligible -> Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                FellowshipHero("Fellowship feedback", FeedbackSchema.TITLE, null, icon = Icons.Default.Feedback)
+                FellowshipHero("Fellowship feedback", FeedbackSchema.TITLE, null, icon = SsplIcons.Feedback)
                 SsplCard {
                     EmptyState(
-                        title = "Not available yet", message = l.message, icon = Icons.Default.Lock,
+                        title = "Not available yet", message = l.message, icon = SsplIcons.Lock,
                         actionText = "Explore fellowships", onActionClick = { navController.navigate(Screen.FellowshipHubScreen.route) }
                     )
                 }
@@ -93,7 +95,7 @@ fun FellowshipFeedbackScreen(
             AlertDialog(
                 onDismissRequest = vm::dismissSuccess,
                 containerColor = AppTheme.colors.surfaceElevated,
-                icon = { IconTile(Icons.Default.EmojiEvents, tint = AppTheme.colors.success, background = AppTheme.colors.successContainer) },
+                icon = { IconTile(SsplIcons.EmojiEvents, tint = AppTheme.colors.success, background = AppTheme.colors.successContainer) },
                 title = { Text(s.title, style = AppTheme.typography.titleLarge.copy(color = AppTheme.colors.heading)) },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -158,7 +160,7 @@ private fun FeedbackForm(vm: FellowshipFeedbackViewModel, state: FellowshipFeedb
 private fun Header(state: FellowshipFeedbackUiState) {
     var showInstructions by rememberSaveable { mutableStateOf(!state.status.part1Completed) }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        FellowshipHero(FeedbackSchema.ORG, FeedbackSchema.TITLE, state.programName, icon = Icons.Default.Feedback)
+        FellowshipHero(FeedbackSchema.ORG, FeedbackSchema.TITLE, state.programName, icon = SsplIcons.Feedback)
         InlineNote(
             if (state.status.bothCompleted) "Questionnaire completed — eligible for certificate." else "Required for certificate issuance.",
             tone = if (state.status.bothCompleted) NoteTone.Success else NoteTone.Warning
@@ -169,7 +171,7 @@ private fun Header(state: FellowshipFeedbackUiState) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("Purpose & instructions", style = AppTheme.typography.titleSmall.copy(color = AppTheme.colors.heading), modifier = Modifier.weight(1f))
-                Icon(if (showInstructions) Icons.Default.ExpandLess else Icons.Default.ExpandMore, contentDescription = null, tint = AppTheme.colors.muted)
+                Icon(if (showInstructions) SsplIcons.ExpandLess else SsplIcons.ExpandMore, contentDescription = null, tint = AppTheme.colors.muted)
             }
             AnimatedVisibility(showInstructions) {
                 Column(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -365,7 +367,7 @@ private fun MutableList<FbItem>.part2Items(vm: FellowshipFeedbackViewModel, stat
                     message = if (!st.part1Completed) "Please submit Part 1 (Sections A–D) before the 6-month post-fellowship impact questionnaire."
                     else "Part 2 evaluates the real-world impact of your fellowship 6 months after completion" +
                         (st.part2UnlockDate?.let { " (scheduled unlock: ${prettyDate(it)})" } ?: "") + ".",
-                    icon = Icons.Default.Lock,
+                    icon = SsplIcons.Lock,
                     actionText = "Go to Part 1",
                     onActionClick = { vm.setPart(1) }
                 )

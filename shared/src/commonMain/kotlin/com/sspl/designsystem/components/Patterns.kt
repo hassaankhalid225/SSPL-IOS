@@ -1,5 +1,7 @@
 package com.sspl.designsystem.components
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -10,6 +12,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -64,14 +67,57 @@ fun IconTile(
     background: Color = AppTheme.colors.primaryContainer,
     size: Dp = 42.dp,
     iconSize: Dp = 20.dp,
-    corner: Dp = 13.dp
+    corner: Dp = 13.dp,
+    /** Draw-on stroke animation on first appearance (tiles, empty states — not long lists). */
+    animate: Boolean = false,
+    animationDelayMillis: Int = 0
 ) {
+    val shape = RoundedCornerShape(corner)
     Box(
-        modifier = modifier.size(size).clip(RoundedCornerShape(corner)).background(background),
+        modifier = modifier
+            .size(size)
+            .clip(shape)
+            .background(background)
+            // Soft light-to-clear wash + hairline in the icon's own hue: reads crafted, not flat.
+            .background(
+                androidx.compose.ui.graphics.Brush.linearGradient(
+                    listOf(tint.copy(alpha = 0.10f), Color.Transparent)
+                )
+            )
+            .border(1.dp, tint.copy(alpha = 0.14f), shape),
         contentAlignment = Alignment.Center
     ) {
-        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(iconSize))
+        if (animate) {
+            com.sspl.designsystem.icons.AnimatedIcon(
+                imageVector = icon, contentDescription = null, tint = tint,
+                size = iconSize, delayMillis = animationDelayMillis
+            )
+        } else {
+            Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(iconSize))
+        }
     }
+}
+
+/**
+ * clickable + gentle press-scale (0.96) with spring release.
+ * The ripple is clipped to [shape] so the press highlight never spills past rounded corners.
+ */
+@Composable
+fun Modifier.pressClick(
+    shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(18.dp),
+    onClick: () -> Unit
+): Modifier {
+    val interaction = androidx.compose.runtime.remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val scale by androidx.compose.animation.core.animateFloatAsState(
+        if (pressed) 0.96f else 1f,
+        androidx.compose.animation.core.spring(dampingRatio = 0.55f, stiffness = 500f),
+        label = "pressScale"
+    )
+    return this
+        .graphicsLayer { scaleX = scale; scaleY = scale }
+        .clip(shape)
+        .clickable(interactionSource = interaction, indication = androidx.compose.material3.ripple(), onClick = onClick)
 }
 
 /**
@@ -100,7 +146,7 @@ fun GradientHeroCard(
 
 /** Faint concentric rings anchored top-right. Pure decoration for gradient surfaces. */
 @Composable
-fun DecorativeRings(modifier: Modifier = Modifier, alpha: Float = 1f) {
+fun DecorativeRings(modifier: Modifier = Modifier, alpha: Float = AppTheme.colors.decorAlpha) {
     Canvas(modifier = modifier) {
         val c = Offset(size.width * 0.92f, size.height * 0.05f)
         for (i in 1..3) {
@@ -149,23 +195,27 @@ fun QuickActionTile(
     caption: String? = null,
     tint: Color = AppTheme.colors.primary,
     tileBackground: Color = AppTheme.colors.primaryContainer,
-    locked: Boolean = false
+    locked: Boolean = false,
+    animationDelayMillis: Int = 0
 ) {
     val colors = AppTheme.colors
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(18.dp))
+            .pressClick(RoundedCornerShape(18.dp), onClick)
             .background(colors.surface)
             .border(1.dp, colors.border.copy(alpha = 0.7f), RoundedCornerShape(18.dp))
-            .clickable(onClick = onClick)
             .padding(horizontal = 8.dp, vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box {
-            IconTile(icon, tint = if (locked) colors.muted else tint, background = if (locked) colors.boxColor else tileBackground, size = 44.dp)
+            IconTile(
+                icon, tint = if (locked) colors.muted else tint,
+                background = if (locked) colors.boxColor else tileBackground, size = 44.dp,
+                animate = true, animationDelayMillis = animationDelayMillis
+            )
             if (locked) {
                 Icon(
-                    Icons.Default.Lock, contentDescription = "Sign in required",
+                    SsplIcons.Lock, contentDescription = "Sign in required",
                     tint = colors.muted,
                     modifier = Modifier.align(Alignment.TopEnd).size(14.dp)
                         .clip(CircleShape).background(colors.surface).padding(2.dp)
@@ -200,19 +250,22 @@ fun NavTile(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     tint: Color = AppTheme.colors.primary,
-    tileBackground: Color = AppTheme.colors.primaryContainer
+    tileBackground: Color = AppTheme.colors.primaryContainer,
+    animationDelayMillis: Int = 0
 ) {
     val colors = AppTheme.colors
     Row(
         modifier = modifier
-            .clip(RoundedCornerShape(18.dp))
+            .pressClick(RoundedCornerShape(18.dp), onClick)
             .background(colors.surface)
             .border(1.dp, colors.border.copy(alpha = 0.7f), RoundedCornerShape(18.dp))
-            .clickable(onClick = onClick)
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconTile(icon, tint = tint, background = tileBackground, size = 40.dp, iconSize = 19.dp)
+        IconTile(
+            icon, tint = tint, background = tileBackground, size = 40.dp, iconSize = 19.dp,
+            animate = true, animationDelayMillis = animationDelayMillis
+        )
         Spacer(Modifier.width(10.dp))
         Column(Modifier.weight(1f)) {
             Text(
@@ -226,7 +279,7 @@ fun NavTile(
             }
         }
         Icon(
-            Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null,
+            SsplIcons.KeyboardArrowRight, contentDescription = null,
             tint = colors.muted, modifier = Modifier.size(18.dp)
         )
     }
@@ -252,7 +305,7 @@ fun StatTile(
             .padding(14.dp)
     ) {
         if (icon != null) {
-            IconTile(icon, tint = tint, background = tint.copy(alpha = 0.12f), size = 34.dp, iconSize = 17.dp, corner = 10.dp)
+            IconTile(icon, tint = tint, background = tint.copy(alpha = 0.12f), size = 34.dp, iconSize = 17.dp, corner = 10.dp, animate = true)
             Spacer(Modifier.height(10.dp))
         }
         Text(value, style = AppTheme.typography.number, maxLines = 1)
@@ -401,13 +454,13 @@ fun ChipRow(
             Text(
                 text = o,
                 style = AppTheme.typography.labelMedium.copy(
-                    color = if (sel) colors.onPrimary else colors.body,
+                    color = if (sel) Color.White else colors.body,
                     fontWeight = if (sel) FontWeight.SemiBold else FontWeight.Medium
                 ),
                 modifier = Modifier
                     .clip(RoundedCornerShape(50))
-                    .background(if (sel) colors.primary else colors.surface)
-                    .border(1.dp, if (sel) colors.primary else colors.border, RoundedCornerShape(50))
+                    .background(if (sel) colors.buttonStart else colors.surface)
+                    .border(1.dp, if (sel) colors.buttonStart else colors.border, RoundedCornerShape(50))
                     .clickable { onSelect(o) }
                     .padding(horizontal = 14.dp, vertical = 8.dp)
             )

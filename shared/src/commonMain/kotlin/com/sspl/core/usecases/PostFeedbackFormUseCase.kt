@@ -47,6 +47,7 @@ class PostFeedbackFormUseCase(private val conferenceRepository: ConferenceReposi
                 emit(ApiStates.Failure(error = errorResponse))
             }
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e // keep flow cancellation transparent
             e.printStackTrace()
             emit(ApiStates.Failure(ApiError(message = e.message.orEmpty())))
         }

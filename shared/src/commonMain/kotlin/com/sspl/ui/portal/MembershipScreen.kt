@@ -1,5 +1,7 @@
 package com.sspl.ui.portal
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -87,18 +89,12 @@ fun MembershipScreen(
     }
 
     state.paymentUrl?.let { url ->
-        Dialog(
-            onDismissRequest = { viewModel.onPaymentFinished(false) },
-            properties = DialogProperties(usePlatformDefaultWidth = false)
-        ) {
-            PaymentWebView(
-                url = url,
-                onPaymentSuccess = { viewModel.onPaymentFinished(true) },
-                onPaymentFailed = { viewModel.onPaymentFinished(false) },
-                onClose = { viewModel.onPaymentFinished(false) },
-                modifier = Modifier.fillMaxSize()
-            )
-        }
+        PaymentWebView(
+            url = url,
+            onPaymentSuccess = { viewModel.onPaymentFinished(true) },
+            onPaymentFailed = { viewModel.onPaymentFinished(false) },
+            onClose = { viewModel.onPaymentFinished(false) }
+        )
     }
     if (state.isUpgrading) BlockingLoader("Starting your life membership upgrade…")
 
@@ -179,7 +175,7 @@ private fun MembershipContent(
                 PortalSection(
                     title = "Apply for membership",
                     subtitle = "Join the society for events, networking and resources",
-                    icon = Icons.Default.CardMembership
+                    icon = SsplIcons.CardMembership
                 ) {
                     Text("Life, Ordinary, Associate or Student plans.", style = AppTheme.typography.bodySmall)
                     Spacer(Modifier.height(12.dp))
@@ -188,7 +184,7 @@ private fun MembershipContent(
             }
             item(key = "already") {
                 NavTile(
-                    icon = Icons.Default.HowToReg,
+                    icon = SsplIcons.HowToReg,
                     title = "Already a member?",
                     subtitle = "Contact the SSPL office to link your existing membership",
                     onClick = { go(Screen.ContactUsScreen.route) },
@@ -202,14 +198,14 @@ private fun MembershipContent(
         }
 
         item(key = "benefits") {
-            PortalSection(title = "Membership benefits", icon = Icons.Default.WorkspacePremium) {
+            PortalSection(title = "Membership benefits", icon = SsplIcons.WorkspacePremium) {
                 MEMBER_BENEFITS.forEach { b -> BenefitRow(b) }
             }
         }
 
         item(key = "help") {
             NavTile(
-                icon = Icons.Default.SupportAgent,
+                icon = SsplIcons.SupportAgent,
                 title = "Questions about membership?",
                 subtitle = "Verification, payment proofs or fees",
                 onClick = { go(Screen.ContactUsScreen.route) },
@@ -231,7 +227,7 @@ private fun StatusHero(state: MembershipUiState, snap: MemberSnapshot) {
     val details = state.details
     GradientHeroCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            GlassPill("MEMBERSHIP", icon = Icons.Default.Verified)
+            GlassPill("MEMBERSHIP", icon = SsplIcons.Verified)
             Spacer(Modifier.weight(1f))
             snap.membershipStatus?.let { StatusOnGradient(it.replace('_', ' ')) }
         }
@@ -270,7 +266,7 @@ private fun HeroFact(label: String, value: String, modifier: Modifier = Modifier
 @Composable
 private fun BenefitRow(text: String) {
     Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.Top) {
-        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = AppTheme.colors.success, modifier = Modifier.size(16.dp).padding(top = 2.dp))
+        Icon(SsplIcons.CheckCircle, contentDescription = null, tint = AppTheme.colors.success, modifier = Modifier.size(16.dp).padding(top = 2.dp))
         Spacer(Modifier.width(10.dp))
         Text(text, style = AppTheme.typography.bodyMedium)
     }
@@ -284,7 +280,7 @@ private fun UpgradeCard(state: MembershipUiState, snap: MemberSnapshot, vm: Memb
     PortalSection(
         title = "Upgrade to life membership",
         subtitle = "You are an active regular member. Apply for life membership and pay the upgrade fee.",
-        icon = Icons.Default.WorkspacePremium
+        icon = SsplIcons.WorkspacePremium
     ) {
         when {
             state.lifePlans.isNotEmpty() -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -301,7 +297,7 @@ private fun UpgradeCard(state: MembershipUiState, snap: MemberSnapshot, vm: Memb
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            if (sel) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
+                            if (sel) SsplIcons.CheckCircle else SsplIcons.RadioButtonUnchecked,
                             contentDescription = if (sel) "Selected" else null,
                             tint = if (sel) c.primary else c.muted,
                             modifier = Modifier.size(20.dp)
@@ -327,7 +323,7 @@ private fun UpgradeCard(state: MembershipUiState, snap: MemberSnapshot, vm: Memb
             Modifier.fillMaxWidth().clip(AppTheme.shapes.small).background(c.boxColor).padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconTile(Icons.Default.Email, size = 32.dp, iconSize = 16.dp, corner = 10.dp, background = c.surface)
+            IconTile(SsplIcons.Email, size = 32.dp, iconSize = 16.dp, corner = 10.dp, background = c.surface)
             Spacer(Modifier.width(10.dp))
             Column {
                 Text("Email", style = AppTheme.typography.labelSmall)
@@ -340,7 +336,7 @@ private fun UpgradeCard(state: MembershipUiState, snap: MemberSnapshot, vm: Memb
             onValueChange = { vm.onFieldChange(UpgradeField.PHONE, it) },
             label = "Mobile number (for payment) *",
             placeholder = "03001234567",
-            leadingIcon = Icons.Default.Phone,
+            leadingIcon = SsplIcons.Phone,
             keyboardType = KeyboardType.Phone,
             error = err[UpgradeField.PHONE]
         )
@@ -350,7 +346,7 @@ private fun UpgradeCard(state: MembershipUiState, snap: MemberSnapshot, vm: Memb
             onValueChange = { vm.onFieldChange(UpgradeField.WHATSAPP, it) },
             label = "WhatsApp number",
             placeholder = "03001234567",
-            leadingIcon = Icons.Default.Phone,
+            leadingIcon = SsplIcons.Phone,
             keyboardType = KeyboardType.Phone,
             error = err[UpgradeField.WHATSAPP]
         )
@@ -359,7 +355,7 @@ private fun UpgradeCard(state: MembershipUiState, snap: MemberSnapshot, vm: Memb
             Modifier.fillMaxWidth().clip(AppTheme.shapes.small).background(c.surfaceTint).padding(12.dp),
             verticalAlignment = Alignment.Top
         ) {
-            Icon(Icons.Default.School, contentDescription = null, tint = c.primary, modifier = Modifier.size(18.dp))
+            Icon(SsplIcons.School, contentDescription = null, tint = c.primary, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(10.dp))
             Text(
                 "$POSTGRAD_MEMBERSHIP_NOTICE MBBS is mandatory. Any one of FCPS, FRCS, or MS is required.",
@@ -402,7 +398,7 @@ private fun UpgradeCard(state: MembershipUiState, snap: MemberSnapshot, vm: Memb
             onClick = vm::upgrade,
             loading = state.isUpgrading,
             enabled = !state.isUpgrading && state.selectedLifePlan != null,
-            icon = Icons.Default.WorkspacePremium
+            icon = SsplIcons.WorkspacePremium
         )
         state.selectedLifePlan?.let {
             Spacer(Modifier.height(6.dp))

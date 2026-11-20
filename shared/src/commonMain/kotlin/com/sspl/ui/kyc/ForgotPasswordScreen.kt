@@ -1,5 +1,7 @@
 package com.sspl.ui.kyc
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -116,7 +118,7 @@ fun ForgotPasswordScreen(
                         onValueChange = { viewModel.onEvent(ForgotPasswordUiEvents.EmailChanged(it)) },
                         label = "Registered email address",
                         placeholder = "doctor@example.com",
-                        leadingIcon = Icons.Default.AlternateEmail,
+                        leadingIcon = SsplIcons.AlternateEmail,
                         errorMessage = uiState.emailError,
                         keyboardType = KeyboardType.Email,
                         enabled = !uiState.isLoadingInitPassword,
@@ -133,7 +135,7 @@ fun ForgotPasswordScreen(
                         },
                         loading = uiState.isLoadingInitPassword,
                         enabled = uiState.isEnabledInitPassword,
-                        trailingIcon = Icons.AutoMirrored.Filled.Send
+                        trailingIcon = SsplIcons.Send
                     )
                 }
             } else {
@@ -188,7 +190,7 @@ fun ForgotPasswordScreen(
                         },
                         loading = uiState.isLoadingUpdatePassword,
                         enabled = uiState.isEnabledUpdatePassword,
-                        icon = Icons.Default.LockReset
+                        icon = SsplIcons.LockReset
                     )
                 }
             }

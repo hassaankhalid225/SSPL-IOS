@@ -1,5 +1,7 @@
 package com.sspl.ui.portal
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -68,7 +70,7 @@ fun AbstractSubmissionScreen(
                 eyebrow = "Scholarship",
                 title = "Submit an abstract",
                 summary = "Send your scientific abstract for an eligible conference or monthly meeting.",
-                icon = Icons.Default.Send
+                icon = SsplIcons.Send
             )
 
             StepIndicator(
@@ -83,7 +85,7 @@ fun AbstractSubmissionScreen(
             }
             state.errorMessage?.let { PortalNotice(it, NoticeTone.Error) }
 
-            PortalSection(title = "Event", subtitle = "Where should this abstract be presented?", icon = Icons.Default.Event) {
+            PortalSection(title = "Event", subtitle = "Where should this abstract be presented?", icon = SsplIcons.Event) {
                 when (val ev = state.events) {
                     is LoadState.Loading -> SkeletonBox(Modifier.fillMaxWidth().height(52.dp), AppTheme.shapes.button)
                     is LoadState.Error -> {
@@ -110,7 +112,7 @@ fun AbstractSubmissionScreen(
                 }
             }
 
-            PortalSection(title = "Abstract details", icon = Icons.AutoMirrored.Filled.Article) {
+            PortalSection(title = "Abstract details", icon = SsplIcons.Article) {
                 SsplTextField(
                     value = f.title,
                     onValueChange = viewModel::setTitle,
@@ -141,7 +143,7 @@ fun AbstractSubmissionScreen(
                 )
             }
 
-            PortalSection(title = "Attachment", subtitle = "Any media file up to 100 MB", icon = Icons.Default.AttachFile) {
+            PortalSection(title = "Attachment", subtitle = "Any media file up to 100 MB", icon = SsplIcons.AttachFile) {
                 FilePickerField(
                     label = "Attachment (any media file) *",
                     hint = "Larger files: upload via Google Drive or WeTransfer and add societyofsurgeons1@gmail.com",
@@ -155,7 +157,7 @@ fun AbstractSubmissionScreen(
             }
 
             NavTile(
-                icon = Icons.Default.Description,
+                icon = SsplIcons.Description,
                 title = "My submissions",
                 subtitle = "Track review status of your abstracts",
                 onClick = { navController.openPortal(Screen.MySubmissionsScreen.route) },

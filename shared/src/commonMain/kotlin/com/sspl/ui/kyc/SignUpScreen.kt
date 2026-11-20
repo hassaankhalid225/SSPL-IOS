@@ -1,5 +1,7 @@
 package com.sspl.ui.kyc
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -177,7 +179,7 @@ fun SignUpScreenContent(
                 onValueChange = { onEvent(UserEvents.SetEmail(it)) },
                 label = "Email address",
                 placeholder = "doctor@example.com",
-                leadingIcon = Icons.Default.AlternateEmail,
+                leadingIcon = SsplIcons.AlternateEmail,
                 errorMessage = emailErrorMsg,
                 keyboardType = KeyboardType.Email,
                 enabled = !isLoading,
@@ -232,7 +234,7 @@ fun SignUpScreenContent(
                 onEvent(UserEvents.Submit)
             },
             loading = isLoading,
-            trailingIcon = Icons.AutoMirrored.Filled.ArrowForward
+            trailingIcon = SsplIcons.ArrowForward
         )
         Spacer(Modifier.height(6.dp))
         Text(

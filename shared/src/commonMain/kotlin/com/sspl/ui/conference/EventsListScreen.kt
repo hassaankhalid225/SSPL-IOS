@@ -1,5 +1,7 @@
 package com.sspl.ui.conference
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -178,7 +180,7 @@ internal fun EventsBrowser(
                         },
                         message = if (filtered) "Try a different search or category."
                         else "New CME events, workshops and meetings are announced here first.",
-                        icon = if (filtered) Icons.Default.SearchOff else Icons.Default.CalendarMonth,
+                        icon = if (filtered) SsplIcons.SearchOff else SsplIcons.CalendarMonth,
                         actionText = if (filtered) "Clear filters" else if (state.tab != EventStatusTab.PAST) "See past events" else null,
                         onActionClick = {
                             if (filtered) viewModel.clearFilters() else viewModel.setStatusTab(EventStatusTab.PAST)
@@ -195,7 +197,7 @@ internal fun EventsBrowser(
                                 subtitle = "We couldn't refresh just now. Pull down to try again.",
                                 leading = {
                                     IconTile(
-                                        Icons.Default.WifiOff,
+                                        SsplIcons.WifiOff,
                                         tint = AppTheme.colors.warning,
                                         background = AppTheme.colors.warningContainer
                                     )
@@ -237,7 +239,7 @@ internal fun EventsBrowser(
                 ListRowCard(
                     title = "Event archive",
                     subtitle = "Slides, posters and abstract books from past meetings",
-                    leading = { IconTile(Icons.Default.History) },
+                    leading = { IconTile(SsplIcons.History) },
                     onClick = { navController.navigate(Screen.EventArchiveScreen.route) { launchSingleTop = true } },
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 18.dp)
                 )
@@ -269,12 +271,12 @@ internal val ConferencesIntro = EventsIntro(
     eyebrow = "ANNUAL EVENTS",
     title = "Conferences & scientific programmes",
     summary = "Register here, then use the Event Portal for sessions, attendance, feedback and certificates.",
-    icon = Icons.Default.Event
+    icon = SsplIcons.Event
 )
 
 internal val WorkshopsIntro = EventsIntro(
     eyebrow = "PRE-EVENT WORKSHOPS",
     title = "Hands-on workshops",
     summary = "Workshops have their own registration. Attendance and certificates follow the member portal flow.",
-    icon = Icons.Default.Event
+    icon = SsplIcons.Event
 )

@@ -1,3 +1,5 @@
+@file:OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+
 package com.sspl.core.models
 
 import kotlinx.serialization.SerialName
@@ -51,13 +53,13 @@ data class UserMembershipDetails(
 @Serializable
 data class MembershipRegisterRequest(
     @SerialName("plan_id") val planId: Long,
-    @SerialName("org_id") val orgId: Long = 1
+    @kotlinx.serialization.EncodeDefault @SerialName("org_id") val orgId: Long = 1
 )
 
 @Serializable
 data class UpgradeLifeMembershipRequest(
     @SerialName("plan_id") val planId: Long,
-    @SerialName("org_id") val orgId: Long = 1,
+    @kotlinx.serialization.EncodeDefault @SerialName("org_id") val orgId: Long = 1,
     @SerialName("account_phone") val accountPhone: String? = null,
     val profile: Map<String, String>? = null
 )

@@ -1,5 +1,7 @@
 package com.sspl.ui.portal
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -76,7 +78,7 @@ fun MySubmissionsScreen(
                     eyebrow = "Scholarship",
                     title = "My submissions",
                     summary = "Review the status of abstracts you have sent for scientific programmes.",
-                    icon = Icons.Default.Description,
+                    icon = SsplIcons.Description,
                     stats = ready?.let { listOf("${it.totalRecords}" to "Total submissions") }.orEmpty()
                 )
             }
@@ -98,7 +100,7 @@ fun MySubmissionsScreen(
                             title = if (state.filter.isBlank()) "No submissions yet" else "Nothing ${SUBMISSION_FILTERS.first { it.first == state.filter }.second.lowercase()}",
                             message = if (state.filter.isBlank()) "You haven't submitted any abstracts yet. Submit one to get started."
                             else "No abstracts match this status.",
-                            icon = Icons.Default.Description,
+                            icon = SsplIcons.Description,
                             actionText = "Submit an abstract",
                             onActionClick = { navController.openPortal(Screen.AbstractSubmissionScreen.route) }
                         )
@@ -145,7 +147,7 @@ private fun SubmissionCard(sub: PortalSubmission, onUpload: () -> Unit, onDownlo
             "ID #${sub.displayId}",
             DisplayDates.medium(item.createdAt).takeIf { it.isNotBlank() }?.let { "Submitted $it" }
         ).joinToString(" · "),
-        leading = { IconTile(Icons.Default.Description) },
+        leading = { IconTile(SsplIcons.Description) },
         trailing = { StatusBadge(item.status.ifBlank { "PENDING" }) },
         footer = if (accepted || hasFile || !item.reviewerComments.isNullOrBlank() || (item.eventTitle != null && item.authors != null)) {
             {
@@ -162,8 +164,8 @@ private fun SubmissionCard(sub: PortalSubmission, onUpload: () -> Unit, onDownlo
                 }
                 if (accepted || hasFile) {
                     Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        if (accepted) PrimaryButton("Upload presentation", onClick = onUpload, icon = Icons.Default.Upload, modifier = Modifier.weight(1.3f))
-                        if (hasFile) SecondaryButton("Download", onClick = onDownload, icon = Icons.Default.Download, modifier = Modifier.weight(1f))
+                        if (accepted) PrimaryButton("Upload presentation", onClick = onUpload, icon = SsplIcons.Upload, modifier = Modifier.weight(1.3f))
+                        if (hasFile) SecondaryButton("Download", onClick = onDownload, icon = SsplIcons.Download, modifier = Modifier.weight(1f))
                     }
                 }
             }

@@ -1,5 +1,7 @@
 package com.sspl.ui.conference.workshops
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EventBusy
@@ -41,7 +43,7 @@ fun WorkshopDetailScreen(
         EmptyState(
             title = "Workshop unavailable",
             message = "Open the workshop again from the workshops list.",
-            icon = Icons.Default.EventBusy,
+            icon = SsplIcons.EventBusy,
             modifier = Modifier.fillMaxSize()
         )
         return

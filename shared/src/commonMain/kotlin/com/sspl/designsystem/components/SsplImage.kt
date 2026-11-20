@@ -1,5 +1,7 @@
 package com.sspl.designsystem.components
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -79,7 +81,7 @@ fun SsplImage(
     contentDescription: String?,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
-    fallbackIcon: ImageVector = Icons.Default.Image,
+    fallbackIcon: ImageVector = SsplIcons.Image,
     fallbackIconSize: Dp = 28.dp,
     fallbackBackground: Color? = null
 ) {

@@ -1,5 +1,7 @@
 package com.sspl.ui.history
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -80,7 +82,7 @@ fun HistoryScreen(navController: NavController) {
         item(key = "hero") {
             PageIntroHero(
                 eyebrow = "Our story",
-                eyebrowIcon = Icons.Default.History,
+                eyebrowIcon = SsplIcons.History,
                 title = "History of SSP Lahore",
                 summary = "From the 1950s Association of Surgeons of Lahore to a registered chapter with democratic leadership.",
                 stats = listOf("1950s" to "First association", "1985" to "First election", "2 yrs" to "Office term")
@@ -96,7 +98,7 @@ fun HistoryScreen(navController: NavController) {
         item(key = "council") {
             Spacer(Modifier.height(10.dp))
             NavTile(
-                icon = Icons.Default.Groups,
+                icon = SsplIcons.Groups,
                 title = "Today's leadership",
                 subtitle = "Meet the cabinet and executive council",
                 onClick = { navController.navigate(Screen.ExecutiveCouncilScreen.route) { launchSingleTop = true } }
@@ -107,7 +109,7 @@ fun HistoryScreen(navController: NavController) {
 
 @Composable
 private fun TimelineEntry(index: Int, chapter: Chapter, isLast: Boolean) {
-    var expanded by remember { mutableStateOf(index == 0) }
+    var expanded by remember { mutableStateOf(false) }
     val colors = AppTheme.colors
     Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
         // Rail: numbered dot + connecting line.

@@ -23,6 +23,7 @@ class UpdateManualPaymentUseCase(private val repository: ConferenceRepository) {
                 emit(ApiStates.Failure(com.sspl.core.models.ApiError("Failed to update payment: ${response.status.description}")))
             }
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e // keep flow cancellation transparent
             emit(ApiStates.Failure(com.sspl.core.models.ApiError(e.message ?: "Unknown error occurred")))
         }
     }

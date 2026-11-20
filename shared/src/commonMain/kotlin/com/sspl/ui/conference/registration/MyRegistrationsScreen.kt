@@ -1,5 +1,7 @@
 package com.sspl.ui.conference.registration
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -126,7 +128,7 @@ fun MyRegistrationsScreen(
                     ListRowCard(
                         title = "One conference at a time",
                         subtitle = "You're registered for ${data.activeConferenceRegistration?.conference?.title ?: "a conference"}. Complete or cancel it to register for another.",
-                        leading = { IconTile(Icons.Default.Warning, tint = AppTheme.colors.warning, background = AppTheme.colors.warningContainer) },
+                        leading = { IconTile(SsplIcons.Warning, tint = AppTheme.colors.warning, background = AppTheme.colors.warningContainer) },
                         modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp)
                     )
                 }
@@ -146,10 +148,10 @@ fun MyRegistrationsScreen(
                     ListRowCard(
                         title = "Payment couldn't start",
                         subtitle = err,
-                        leading = { IconTile(Icons.Default.ErrorOutline, tint = AppTheme.colors.error, background = AppTheme.colors.errorContainer) },
+                        leading = { IconTile(SsplIcons.ErrorOutline, tint = AppTheme.colors.error, background = AppTheme.colors.errorContainer) },
                         trailing = {
                             IconButton(onClick = viewModel::clearActionError) {
-                                Icon(Icons.Default.Close, contentDescription = "Dismiss", tint = AppTheme.colors.muted)
+                                Icon(SsplIcons.Close, contentDescription = "Dismiss", tint = AppTheme.colors.muted)
                             }
                         },
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
@@ -165,7 +167,7 @@ fun MyRegistrationsScreen(
                     EmptyState(
                         title = if (state.filter == RegistrationFilter.ALL) "No registrations yet" else "Nothing in ${state.filter.label.lowercase()}",
                         message = "When you register for an event it shows up here with its payment status and entry badge.",
-                        icon = Icons.AutoMirrored.Filled.Assignment,
+                        icon = SsplIcons.Assignment,
                         actionText = "Browse events",
                         onActionClick = { navController.navigate(Screen.ScientificProgramsScreen.route) { launchSingleTop = true } },
                         modifier = Modifier.padding(top = 24.dp)
@@ -186,7 +188,7 @@ fun MyRegistrationsScreen(
                 ListRowCard(
                     title = "Need help with a registration?",
                     subtitle = "Payment, badge or approval questions — the secretariat can help.",
-                    leading = { IconTile(Icons.Default.SupportAgent) },
+                    leading = { IconTile(SsplIcons.SupportAgent) },
                     onClick = { navController.navigate(Screen.ContactUsScreen.route) { launchSingleTop = true } },
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 18.dp)
                 )
@@ -225,7 +227,7 @@ private fun RegistrationCard(
             reg.registrationNumber?.let { "Reg. $it" } ?: "Reg. #${reg.id}",
             DisplayDates.medium(reg.conference?.startDate).takeIf { it.isNotBlank() }
         ).joinToString(" · "),
-        leading = { IconTile(if (isWorkshop) Icons.Default.School else Icons.Default.Event) },
+        leading = { IconTile(if (isWorkshop) SsplIcons.School else SsplIcons.Event) },
         trailing = { StatusBadge(st.label, variant = st.variant) },
         modifier = modifier,
         footer = if (st.note != null || reg.isConfirmed || reg.needsPayment) {
@@ -274,10 +276,10 @@ private fun AttendeeBadgeDialog(
                 DecorativeRings(Modifier.matchParentSize())
                 Column(Modifier.padding(18.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        GlassPill("ENTRY PASS", icon = Icons.Default.Badge)
+                        GlassPill("ENTRY PASS", icon = SsplIcons.Badge)
                         Spacer(Modifier.weight(1f))
                         IconButton(onClick = onDismiss) {
-                            Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+                            Icon(SsplIcons.Close, contentDescription = "Close", tint = Color.White)
                         }
                     }
                     Spacer(Modifier.height(6.dp))

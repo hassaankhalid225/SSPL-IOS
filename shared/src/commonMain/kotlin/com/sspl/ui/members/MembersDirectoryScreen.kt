@@ -1,5 +1,7 @@
 package com.sspl.ui.members
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -88,7 +90,7 @@ fun MembersDirectoryScreen(
                 val total = stats?.let { it.lifeMembers + it.regularMembers + it.deceasedMembers }
                 PageIntroHero(
                     eyebrow = "Members directory",
-                    eyebrowIcon = Icons.Default.Groups,
+                    eyebrowIcon = SsplIcons.Groups,
                     title = "Our surgical community",
                     summary = "Search SSP Lahore members by name, membership number, or PMDC.",
                     stats = if (stats != null) listOf(
@@ -104,13 +106,13 @@ fun MembersDirectoryScreen(
                         StatTile(
                             value = formatCount(stats.numberOfSpeakers),
                             label = "Speakers",
-                            icon = Icons.Default.WorkspacePremium,
+                            icon = SsplIcons.WorkspacePremium,
                             modifier = Modifier.weight(1f)
                         )
                         StatTile(
                             value = formatCount(stats.deceasedMembers),
                             label = "Deceased",
-                            icon = Icons.Default.Badge,
+                            icon = SsplIcons.Badge,
                             tint = AppTheme.colors.muted,
                             modifier = Modifier.weight(1f)
                         )
@@ -153,7 +155,7 @@ fun MembersDirectoryScreen(
                             EmptyState(
                                 title = "No members found",
                                 message = "Adjust your search or filters to see more members.",
-                                icon = if (state.query.isNotBlank()) Icons.Default.SearchOff else Icons.Default.PersonSearch,
+                                icon = if (state.query.isNotBlank()) SsplIcons.SearchOff else SsplIcons.PersonSearch,
                                 actionText = if (state.query.isNotBlank() || state.filter != MemberFilter.ALL) "Clear filters" else null,
                                 onActionClick = { viewModel.onQuery(""); viewModel.onFilter(MemberFilter.ALL) }
                             )

@@ -138,6 +138,8 @@ class ProfileViewModel(
                     _messages.emit("Photo uploaded. Pull to refresh to see it.")
                 }
             } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                println("ProfileViewModel.updateProfileImage failed: ${e::class.simpleName}: ${e.message}")
                 _messages.emit("Couldn't upload your photo. Check your connection and try again.")
             } finally {
                 _isUploadingPhoto.value = false

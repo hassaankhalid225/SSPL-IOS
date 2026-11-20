@@ -1,5 +1,7 @@
 package com.sspl.ui.guide
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -145,13 +147,13 @@ private val MEMBER_GUIDE_TOPICS = listOf(
 )
 
 private fun topicIcon(number: String): ImageVector = when (number) {
-    "01" -> Icons.Default.PersonAdd
-    "02" -> Icons.AutoMirrored.Filled.Login
-    "03" -> Icons.Default.CalendarMonth
-    "04" -> Icons.AutoMirrored.Filled.MenuBook
-    "05" -> Icons.Default.Assignment
-    "06" -> Icons.Default.CheckCircle
-    else -> Icons.Default.WorkspacePremium
+    "01" -> SsplIcons.PersonAdd
+    "02" -> SsplIcons.Login
+    "03" -> SsplIcons.CalendarMonth
+    "04" -> SsplIcons.MenuBook
+    "05" -> SsplIcons.Assignment
+    "06" -> SsplIcons.CheckCircle
+    else -> SsplIcons.WorkspacePremium
 }
 
 private data class QuickLink(val label: String, val route: String, val needsLogin: Boolean = false)
@@ -171,7 +173,7 @@ private val QUICK_LINKS = listOf(
 fun MemberGuideScreen(navController: NavController) {
     val shell = LocalShellActions.current
     var query by rememberSaveable { mutableStateOf("") }
-    var openTopic by rememberSaveable { mutableStateOf<String?>("01") }
+    var openTopic by rememberSaveable { mutableStateOf<String?>(null) }
     val filtered = remember(query) {
         val q = query.trim()
         if (q.isEmpty()) MEMBER_GUIDE_TOPICS
@@ -194,7 +196,7 @@ fun MemberGuideScreen(navController: NavController) {
         item(key = "hero") {
             PageIntroHero(
                 eyebrow = "Member guide",
-                eyebrowIcon = Icons.AutoMirrored.Filled.MenuBook,
+                eyebrowIcon = SsplIcons.MenuBook,
                 title = "Complete guide for new members",
                 summary = "Membership, event registration, attendance, feedback and certificates — in one place.",
                 stats = listOf("${MEMBER_GUIDE_TOPICS.size}" to "Topics", "${MEMBER_GUIDE_TOPICS.sumOf { it.steps.size }}" to "Steps"),
@@ -210,7 +212,7 @@ fun MemberGuideScreen(navController: NavController) {
                     .background(AppTheme.colors.infoContainer)
                     .padding(14.dp)
             ) {
-                IconTile(Icons.Default.Lightbulb, tint = AppTheme.colors.info, background = AppTheme.colors.surface, size = 36.dp, iconSize = 18.dp)
+                IconTile(SsplIcons.Lightbulb, tint = AppTheme.colors.info, background = AppTheme.colors.surface, size = 36.dp, iconSize = 18.dp)
                 Spacer(Modifier.width(12.dp))
                 Column {
                     Text("The usual path", style = AppTheme.typography.titleSmall)
@@ -256,7 +258,7 @@ fun MemberGuideScreen(navController: NavController) {
                 EmptyState(
                     title = "Nothing in the guide matches",
                     message = "Try another word, or browse the FAQs.",
-                    icon = Icons.Default.SearchOff,
+                    icon = SsplIcons.SearchOff,
                     actionText = "Clear search",
                     onActionClick = { query = "" }
                 )
@@ -266,7 +268,7 @@ fun MemberGuideScreen(navController: NavController) {
             AccordionCard(
                 title = topic.title,
                 subtitle = "Step ${topic.number} · ${topic.steps.size} parts",
-                expanded = openTopic == topic.number || (query.isNotBlank() && filtered.size <= 2),
+                expanded = openTopic == topic.number,
                 onToggle = { openTopic = if (openTopic == topic.number) null else topic.number },
                 leading = { IconTile(topicIcon(topic.number)) },
                 modifier = Modifier.padding(horizontal = 16.dp)
@@ -306,14 +308,14 @@ fun MemberGuideScreen(navController: NavController) {
                 verticalAlignment = Alignment.Top
             ) {
                 NavTile(
-                    icon = Icons.Default.SupportAgent,
+                    icon = SsplIcons.SupportAgent,
                     title = "Contact the office",
                     subtitle = "Membership, registration, certificates",
                     onClick = { go(Screen.ContactUsScreen.route, false) },
                     modifier = Modifier.weight(1f)
                 )
                 NavTile(
-                    icon = Icons.AutoMirrored.Filled.MenuBook,
+                    icon = SsplIcons.MenuBook,
                     title = "Read FAQs",
                     subtitle = "Quick answers",
                     onClick = { go(Screen.FaqsScreen.route, false) },

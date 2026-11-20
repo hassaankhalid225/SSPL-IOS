@@ -4,7 +4,6 @@ import com.sspl.core.models.AbstractSubmission
 import com.sspl.core.models.GenerateCertificateRequest
 import com.sspl.core.models.GenerateCertificateResponse
 import com.sspl.core.models.MembershipPlan
-import com.sspl.core.models.MembershipRegisterRequest
 import com.sspl.core.models.Presentation
 import com.sspl.core.models.User
 import com.sspl.core.models.UserCertificate
@@ -236,7 +235,12 @@ class PortalRepository(private val httpClient: HttpClient) {
     suspend fun registerMembership(planId: Long): Result<String?> = runCatching {
         val text = httpClient.post("$BASE_URL/membership/register") {
             contentType(ContentType.Application.Json)
-            setBody(MembershipRegisterRequest(planId = planId))
+            // Built by hand: the DTO's org_id default is dropped by kotlinx (encodeDefaults = false),
+            // which the backend rejects with "plan_id and org_id are required".
+            setBody(buildJsonObject {
+                put("plan_id", planId)
+                put("org_id", 1)
+            })
         }.textOrThrow("Membership registration failed")
         paymentUrlOf(text)
     }

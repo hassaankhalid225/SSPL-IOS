@@ -1,5 +1,7 @@
 package com.sspl.ui.components
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -32,7 +34,7 @@ fun NoItems(
         EmptyState(
             title = "Nothing here yet",
             message = title ?: "",
-            icon = Icons.Default.Inbox
+            icon = SsplIcons.Inbox
         )
         AnimatedVisibility(
             showFloatingActionButton,
@@ -55,6 +57,6 @@ fun AppFloatingActionButton(
             .clickable(onClick = onButtonClick),
         contentAlignment = Alignment.Center
     ) {
-        Icon(Icons.Default.Add, contentDescription = "Add", tint = Color.White, modifier = Modifier.size(26.dp))
+        Icon(SsplIcons.Add, contentDescription = "Add", tint = Color.White, modifier = Modifier.size(26.dp))
     }
 }

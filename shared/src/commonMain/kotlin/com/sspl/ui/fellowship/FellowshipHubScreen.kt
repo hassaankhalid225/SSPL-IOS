@@ -1,5 +1,7 @@
 package com.sspl.ui.fellowship
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
@@ -127,14 +129,14 @@ fun FellowshipHubScreen(
             item(key = "nav") {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        NavTile(Icons.Default.Business, "Training centres", { open(Screen.TrainingCentresScreen.route) }, Modifier.weight(1f),
+                        NavTile(SsplIcons.Business, "Training centres", { open(Screen.TrainingCentresScreen.route) }, Modifier.weight(1f),
                             subtitle = if (state.totalCenters > 0) "${state.totalCenters} accredited" else "Directory")
-                        NavTile(Icons.Default.Description, "Guidelines", { open(Screen.FellowshipGuidelinesScreen.route) }, Modifier.weight(1f),
+                        NavTile(SsplIcons.Description, "Guidelines", { open(Screen.FellowshipGuidelinesScreen.route) }, Modifier.weight(1f),
                             subtitle = "SOPs & requirements")
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        NavTile(Icons.Default.School, "Apply as fellow", { applyFellow(null) }, Modifier.weight(1f), subtitle = "Candidate form")
-                        NavTile(Icons.Default.Apartment, "Register centre", { applyCenter(null) }, Modifier.weight(1f), subtitle = "Accreditation")
+                        NavTile(SsplIcons.School, "Apply as fellow", { applyFellow(null) }, Modifier.weight(1f), subtitle = "Candidate form")
+                        NavTile(SsplIcons.Apartment, "Register centre", { applyCenter(null) }, Modifier.weight(1f), subtitle = "Accreditation")
                     }
                 }
             }
@@ -153,7 +155,7 @@ fun FellowshipHubScreen(
                             EmptyState(
                                 title = "Applications are not open right now",
                                 message = "No fellowship cycle is accepting applications. Review the guidelines to prepare for the next intake.",
-                                icon = Icons.Default.School,
+                                icon = SsplIcons.School,
                                 actionText = "Read guidelines",
                                 onActionClick = { open(Screen.FellowshipGuidelinesScreen.route) }
                             )
@@ -163,7 +165,7 @@ fun FellowshipHubScreen(
                     items(p.data, key = { "prog_" + (it.id ?: it.name.hashCode().toLong()) }) { prog ->
                         ProgramCard(
                             program = prog,
-                            initiallyExpanded = p.data.size == 1,
+                            initiallyExpanded = false,
                             onApply = { applyFellow(prog.id) },
                             onRegisterCenter = { applyCenter(prog.id) }
                         )
@@ -188,7 +190,7 @@ fun FellowshipHubScreen(
                 }
                 is LoadState.Ready -> if (c.data.isEmpty()) {
                     item(key = "centersEmpty") {
-                        EmptyState(title = "No centres listed yet", message = "Accredited training centres will appear here once approved.", icon = Icons.Default.Business)
+                        EmptyState(title = "No centres listed yet", message = "Accredited training centres will appear here once approved.", icon = SsplIcons.Business)
                     }
                 } else {
                     items(c.data, key = { "c_" + it.id }) { center ->
@@ -196,7 +198,7 @@ fun FellowshipHubScreen(
                             title = center.institution,
                             subtitle = listOfNotNull(center.city, center.masterTrainer).joinToString(" · "),
                             meta = "Seats ${center.seatsLabel}",
-                            leading = { IconTile(Icons.Default.Business) },
+                            leading = { IconTile(SsplIcons.Business) },
                             trailing = { AvailabilityBadge(center.availability) },
                             onClick = { open(Screen.TrainingCentresScreen.route) }
                         )
@@ -212,7 +214,7 @@ fun FellowshipHubScreen(
                 ListRowCard(
                     title = "Fellowship secretariat",
                     subtitle = "Questions on eligibility, logbooks or centre placement?",
-                    leading = { IconTile(Icons.Default.SupportAgent) },
+                    leading = { IconTile(SsplIcons.SupportAgent) },
                     trailing = { Text("Contact", style = AppTheme.typography.labelMedium.copy(color = AppTheme.colors.primary, fontWeight = FontWeight.SemiBold)) },
                     onClick = { open(Screen.ContactUsScreen.route) }
                 )
@@ -227,7 +229,7 @@ private fun HubHero(stats: LoadState<FellowshipStats>) {
         eyebrow = "Education & training",
         title = "Mini fellowships",
         summary = "Structured surgical training pathways offered by the Society of Surgeons of Pakistan — Lahore Chapter.",
-        icon = Icons.Default.WorkspacePremium
+        icon = SsplIcons.WorkspacePremium
     ) {
         Spacer(Modifier.height(16.dp))
         when (stats) {
@@ -252,7 +254,7 @@ private fun HubHero(stats: LoadState<FellowshipStats>) {
 private fun RoleShortcut(isTrainer: Boolean, onDashboard: () -> Unit, onFeedback: () -> Unit) {
     SsplCard(onClick = onDashboard) {
         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconTile(if (isTrainer) Icons.Default.SupervisorAccount else Icons.AutoMirrored.Filled.MenuBook, size = 46.dp)
+            IconTile(if (isTrainer) SsplIcons.SupervisorAccount else SsplIcons.MenuBook, size = 46.dp)
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(if (isTrainer) "Trainer desk" else "Your fellowship", style = AppTheme.typography.overline)
@@ -263,7 +265,7 @@ private fun RoleShortcut(isTrainer: Boolean, onDashboard: () -> Unit, onFeedback
             }
             if (!isTrainer) {
                 IconTile(
-                    Icons.Default.Feedback,
+                    SsplIcons.Feedback,
                     modifier = Modifier.clip(AppTheme.shapes.small).clickable(onClickLabel = "Open feedback", onClick = onFeedback),
                     size = 44.dp
                 )
@@ -296,10 +298,10 @@ private fun ProgramCard(program: Program, initiallyExpanded: Boolean, onApply: (
             }
             if (program.description.isNotBlank()) Text(program.description, style = AppTheme.typography.bodyMedium)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                program.specialty?.let { MetaChip(it, icon = Icons.Default.Badge) }
-                program.duration?.let { MetaChip(it, icon = Icons.Default.Schedule) }
-                program.location?.let { MetaChip(it, icon = Icons.Default.LocationOn) }
-                program.programType?.let { MetaChip(it, icon = Icons.Default.School) }
+                program.specialty?.let { MetaChip(it, icon = SsplIcons.Badge) }
+                program.duration?.let { MetaChip(it, icon = SsplIcons.Schedule) }
+                program.location?.let { MetaChip(it, icon = SsplIcons.LocationOn) }
+                program.programType?.let { MetaChip(it, icon = SsplIcons.School) }
             }
 
             Row(
@@ -311,7 +313,7 @@ private fun ProgramCard(program: Program, initiallyExpanded: Boolean, onApply: (
                     style = AppTheme.typography.labelMedium.copy(color = colors.primary, fontWeight = FontWeight.SemiBold),
                     modifier = Modifier.weight(1f)
                 )
-                Icon(if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, contentDescription = null, tint = colors.primary)
+                Icon(if (expanded) SsplIcons.ExpandLess else SsplIcons.ExpandMore, contentDescription = null, tint = colors.primary)
             }
             AnimatedVisibility(expanded) { ProgramOutline(program) }
 
@@ -444,7 +446,7 @@ private fun GuidelinesPromo(onOpen: () -> Unit, modifier: Modifier = Modifier) {
                 "SSPL life membership, SAGES online learning, digital logbook codes (A, B, C) and SURGICON 2027 certification.",
                 style = AppTheme.typography.bodyMedium
             )
-            OutlineButton(text = "View full guidelines", onClick = onOpen, icon = Icons.Default.Description)
+            OutlineButton(text = "View full guidelines", onClick = onOpen, icon = SsplIcons.Description)
         }
     }
 }

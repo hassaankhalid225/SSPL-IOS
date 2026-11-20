@@ -1,5 +1,7 @@
 package com.sspl.ui.elections
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -108,7 +110,7 @@ fun ElectionsScreen(
             item(key = "hero") {
                 PageIntroHero(
                     eyebrow = "Governance",
-                    eyebrowIcon = Icons.Default.HowToVote,
+                    eyebrowIcon = SsplIcons.HowToVote,
                     title = "Society elections",
                     summary = "Ongoing and upcoming elections, notices, and official attachments.",
                     stats = if (state.elections is LoadState.Ready) listOf(
@@ -154,7 +156,7 @@ fun ElectionsScreen(
                         EmptyState(
                             title = if (searching) "No elections match your search" else "No active elections at the moment",
                             message = "Check back later for updates.",
-                            icon = if (searching) Icons.Default.SearchOff else Icons.Default.HowToVote,
+                            icon = if (searching) SsplIcons.SearchOff else SsplIcons.HowToVote,
                             actionText = if (searching) "Clear filters" else null,
                             onActionClick = if (searching) ({ viewModel.onQuery(""); viewModel.onPhase(null) }) else null
                         )
@@ -211,7 +213,7 @@ private fun ElectionCard(e: ElectionUi, onClick: () -> Unit, modifier: Modifier 
         Box(Modifier.width(4.dp).heightIn(min = 96.dp).background(tint))
         Column(Modifier.weight(1f).padding(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconTile(Icons.Default.HowToVote, tint = tint, background = bg)
+                IconTile(SsplIcons.HowToVote, tint = tint, background = bg)
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
                     StatusBadge(e.phase.label, variant = phaseVariant(e.phase))
@@ -223,7 +225,7 @@ private fun ElectionCard(e: ElectionUi, onClick: () -> Unit, modifier: Modifier 
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = colors.muted)
+                Icon(SsplIcons.KeyboardArrowRight, contentDescription = null, tint = colors.muted)
             }
             if (!e.item.description.isNullOrBlank()) {
                 Spacer(Modifier.height(8.dp))
@@ -236,8 +238,8 @@ private fun ElectionCard(e: ElectionUi, onClick: () -> Unit, modifier: Modifier 
             }
             Spacer(Modifier.height(10.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                if (dates.isNotBlank()) MetaChip(Icons.Default.CalendarMonth, dates)
-                MetaChip(Icons.Default.AttachFile, if (files.isEmpty()) "No attachments" else "${files.size} attachment${if (files.size != 1) "s" else ""}")
+                if (dates.isNotBlank()) MetaChip(SsplIcons.CalendarMonth, dates)
+                MetaChip(SsplIcons.AttachFile, if (files.isEmpty()) "No attachments" else "${files.size} attachment${if (files.size != 1) "s" else ""}")
             }
         }
     }
@@ -253,9 +255,9 @@ private fun MetaChip(icon: androidx.compose.ui.graphics.vector.ImageVector, text
 }
 
 private fun fileIcon(url: String) = when {
-    url.endsWith(".pdf", ignoreCase = true) -> Icons.Default.PictureAsPdf
-    Regex("\\.(jpg|jpeg|png|gif|webp|svg)$", RegexOption.IGNORE_CASE).containsMatchIn(url) -> Icons.Default.Image
-    else -> Icons.Default.InsertDriveFile
+    url.endsWith(".pdf", ignoreCase = true) -> SsplIcons.PictureAsPdf
+    Regex("\\.(jpg|jpeg|png|gif|webp|svg)$", RegexOption.IGNORE_CASE).containsMatchIn(url) -> SsplIcons.Image
+    else -> SsplIcons.InsertDriveFile
 }
 
 private fun fileLabel(f: ElectionAttachment, index: Int): String =
@@ -279,10 +281,10 @@ private fun ElectionDetail(e: ElectionUi, onOpenFile: (String) -> Unit) {
         Spacer(Modifier.height(14.dp))
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             DisplayDates.medium(e.item.startDate).takeIf { it.isNotBlank() }?.let {
-                FactRow(Icons.Default.CalendarMonth, "Starts", it)
+                FactRow(SsplIcons.CalendarMonth, "Starts", it)
             }
             DisplayDates.medium(e.item.endDate).takeIf { it.isNotBlank() }?.let {
-                FactRow(Icons.Default.EventAvailable, "Ends", it)
+                FactRow(SsplIcons.EventAvailable, "Ends", it)
             }
         }
         if (!e.item.description.isNullOrBlank()) {
@@ -297,7 +299,7 @@ private fun ElectionDetail(e: ElectionUi, onOpenFile: (String) -> Unit) {
                 Modifier.fillMaxWidth().clip(AppTheme.shapes.small).background(colors.boxColor).padding(14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Default.Description, contentDescription = null, tint = colors.muted, modifier = Modifier.size(18.dp))
+                Icon(SsplIcons.Description, contentDescription = null, tint = colors.muted, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
                 Text("No attachments available.", style = AppTheme.typography.bodySmall)
             }
@@ -325,7 +327,7 @@ private fun ElectionDetail(e: ElectionUi, onOpenFile: (String) -> Unit) {
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.weight(1f)
                         )
-                        Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = "Open attachment", tint = colors.primary, modifier = Modifier.size(18.dp))
+                        Icon(SsplIcons.OpenInNew, contentDescription = "Open attachment", tint = colors.primary, modifier = Modifier.size(18.dp))
                     }
                 }
             }

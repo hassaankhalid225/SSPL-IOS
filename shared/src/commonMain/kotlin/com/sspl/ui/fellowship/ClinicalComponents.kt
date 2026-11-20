@@ -1,5 +1,7 @@
 package com.sspl.ui.fellowship
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -48,7 +50,7 @@ internal fun CaseRow(c: CaseItem, showFellow: Boolean, footer: (@Composable Colu
         subtitle = listOfNotNull(prettyDate(c.date), role?.let { "Role: $it" }, if (showFellow) c.fellowName else null).joinToString(" · "),
         meta = listOfNotNull(c.diagnosis?.let { "Dx: $it" }, c.patientRef?.let { "Ref: $it" }, c.feedback?.let { "Feedback: $it" })
             .joinToString("\n").ifBlank { null },
-        leading = { IconTile(Icons.Default.MedicalServices) },
+        leading = { IconTile(SsplIcons.MedicalServices) },
         trailing = { ClinicalStatus(c.status) },
         footer = footer
     )
@@ -60,7 +62,7 @@ internal fun AttendanceRow(a: AttendanceItem, showFellow: Boolean, footer: (@Com
     ListRowCard(
         title = "$type — ${a.hours ?: "0"}h",
         subtitle = listOfNotNull(prettyDate(a.date), if (showFellow) a.fellowName else null).joinToString(" · "),
-        leading = { IconTile(Icons.Default.EventAvailable) },
+        leading = { IconTile(SsplIcons.EventAvailable) },
         trailing = { ClinicalStatus(a.status) },
         footer = footer
     )
@@ -72,7 +74,7 @@ internal fun AssessmentRow(a: AssessmentItem) {
         title = a.title,
         subtitle = listOfNotNull(a.type?.humanize(), "Score: ${a.score?.let { (kotlin.math.round(it * 10) / 10).toString() } ?: "—"}", prettyDate(a.date)).joinToString(" · "),
         meta = a.strengths,
-        leading = { IconTile(Icons.Default.Assessment) }
+        leading = { IconTile(SsplIcons.Assessment) }
     )
 }
 
@@ -83,7 +85,7 @@ internal fun ResearchRow(r: ResearchItem, onOpenFile: ((String) -> Unit)?, foote
         title = r.title,
         subtitle = listOfNotNull(r.authors?.let { "By $it" }, type, r.venue, r.year?.let { "($it)" }).joinToString(" · "),
         meta = listOfNotNull(r.abstract, "Submitted: ${prettyDate(r.createdAt)}", r.feedback?.let { "Feedback: \"$it\"" }).joinToString("\n"),
-        leading = { IconTile(Icons.AutoMirrored.Filled.Article) },
+        leading = { IconTile(SsplIcons.Article) },
         trailing = { ClinicalStatus(r.status) },
         onClick = r.fileUrl?.let { url -> onOpenFile?.let { { it(url) } } },
         footer = footer

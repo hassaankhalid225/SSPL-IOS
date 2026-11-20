@@ -24,11 +24,13 @@ class CheckRegistrationUseCase(private val conferenceRepository: ConferenceRepos
                     val errorResponse = kotlinx.serialization.json.Json.decodeFromString<ApiError>(errorBody)
                     emit(ApiStates.Failure(errorResponse))
                 } catch (e: Exception) {
+                    if (e is kotlinx.coroutines.CancellationException) throw e // keep flow cancellation transparent
                     // Fallback for non-JSON errors (HTML, plain text, etc)
                     emit(ApiStates.Failure(ApiError(message = "Error: ${response.status}", error = errorBody)))
                 }
             }
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e // keep flow cancellation transparent
             e.printStackTrace()
             emit(ApiStates.Failure(ApiError(message = e.message.orEmpty())))
         }

@@ -1,5 +1,7 @@
 package com.sspl.ui.fellowship
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
@@ -98,7 +100,7 @@ fun FellowshipGuidelinesScreen(
                     eyebrow = "Official programme guidelines",
                     title = "Instructions & mandatory requirements",
                     summary = "SSPL Mini Fellowship in Laparoscopic Surgery — Society of Surgeons of Pakistan, Lahore Chapter.",
-                    icon = Icons.Default.Shield
+                    icon = SsplIcons.Shield
                 )
             }
             item(key = "intro") {
@@ -110,17 +112,17 @@ fun FellowshipGuidelinesScreen(
             item(key = "snapshot") {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        StatTile("4–6 weeks", "Duration", Modifier.weight(1f), icon = Icons.Default.Schedule)
-                        StatTile("4–5 hours", "SAGES online (free)", Modifier.weight(1f), icon = Icons.AutoMirrored.Filled.MenuBook)
+                        StatTile("4–6 weeks", "Duration", Modifier.weight(1f), icon = SsplIcons.Schedule)
+                        StatTile("4–5 hours", "SAGES online (free)", Modifier.weight(1f), icon = SsplIcons.MenuBook)
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        StatTile("Web portal", "Digital logbook", Modifier.weight(1f), icon = Icons.AutoMirrored.Filled.FactCheck)
-                        StatTile("SURGICON 2027", "Award ceremony", Modifier.weight(1f), icon = Icons.Default.EmojiEvents)
+                        StatTile("Web portal", "Digital logbook", Modifier.weight(1f), icon = SsplIcons.FactCheck)
+                        StatTile("SURGICON 2027", "Award ceremony", Modifier.weight(1f), icon = SsplIcons.EmojiEvents)
                     }
                 }
             }
             itemsIndexed(SECTIONS, key = { i, _ -> "s$i" }) { i, s ->
-                GuidelineCard(index = i + 1, section = s, actions = actions, initiallyExpanded = i == 0)
+                GuidelineCard(index = i + 1, section = s, actions = actions, initiallyExpanded = false)
             }
             item(key = "contact") { SecretariatCard(actions) }
             item(key = "footer") {
@@ -159,7 +161,7 @@ private fun GuidelineCard(index: Int, section: GuidelineSection, actions: Action
                 if (!expanded) Text(section.summary, style = AppTheme.typography.bodySmall, maxLines = 1)
             }
             Icon(
-                if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                if (expanded) SsplIcons.ExpandLess else SsplIcons.ExpandMore,
                 contentDescription = if (expanded) "Collapse" else "Expand",
                 tint = colors.muted
             )
@@ -178,7 +180,7 @@ private fun GuidelineCard(index: Int, section: GuidelineSection, actions: Action
 @Composable
 private fun Bullet(text: String, check: Boolean = false) {
     Row(verticalAlignment = Alignment.Top) {
-        if (check) Icon(Icons.Default.CheckCircle, null, tint = AppTheme.colors.success, modifier = Modifier.size(16.dp).padding(top = 2.dp))
+        if (check) Icon(SsplIcons.CheckCircle, null, tint = AppTheme.colors.success, modifier = Modifier.size(16.dp).padding(top = 2.dp))
         else Text("•", style = AppTheme.typography.bodyMedium.copy(color = AppTheme.colors.primary, fontWeight = FontWeight.Bold))
         Spacer(Modifier.width(8.dp))
         Text(text, style = AppTheme.typography.bodyMedium.copy(color = AppTheme.colors.heading))
@@ -270,7 +272,7 @@ private val SECTIONS = listOf(
             "Trainer verification" to "Logbook and competency sign-off reviewed and approved by the supervising consultant."
         ).forEach { (t, d) ->
             Row(verticalAlignment = Alignment.Top) {
-                Icon(Icons.Default.CheckCircle, null, tint = AppTheme.colors.success, modifier = Modifier.size(18.dp))
+                Icon(SsplIcons.CheckCircle, null, tint = AppTheme.colors.success, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(10.dp))
                 Column {
                     Text(t, style = AppTheme.typography.bodyMedium.copy(color = AppTheme.colors.heading, fontWeight = FontWeight.SemiBold))
@@ -285,8 +287,8 @@ private val SECTIONS = listOf(
         P("After trainer sign-off and administrative verification, download your official completion certificate from your SSPL dashboard. Conference delegate registration is not mandatory to receive the digital certificate.")
         Spacer(Modifier.height(4.dp))
         Text("SURGICON 2027 award ceremony", style = AppTheme.typography.titleSmall.copy(color = AppTheme.colors.heading))
-        FactRow(Icons.AutoMirrored.Filled.EventNote, "Date", "9–10 April 2027")
-        FactRow(Icons.Default.LocationOn, "Venue", "Pearl Continental (PC) Hotel, Lahore")
+        FactRow(SsplIcons.EventNote, "Date", "9–10 April 2027")
+        FactRow(SsplIcons.LocationOn, "Venue", "Pearl Continental (PC) Hotel, Lahore")
         P("Eligible fellows will be recognised and formally presented their certificates during the international surgical conference.")
     }
 )
@@ -298,12 +300,12 @@ private fun SecretariatCard(a: Actions) {
             Text("PROGRAMME INQUIRIES", style = AppTheme.typography.overline)
             Text("SSPL Secretariat", style = AppTheme.typography.titleMedium.copy(color = AppTheme.colors.heading))
             P("For enrolment, portal logbook assistance or SAGES certificate submission:")
-            FactRow(Icons.Default.Shield, "Focal person", "Mr. Ahmad Qasim · Society Secretary, SSP Lahore")
+            FactRow(SsplIcons.Shield, "Focal person", "Mr. Ahmad Qasim · Society Secretary, SSP Lahore")
             Row(Modifier.fillMaxWidth().clip(AppTheme.shapes.small).clickable(onClickLabel = "WhatsApp secretariat") { a.url(SECRETARIAT_WHATSAPP) }) {
-                FactRow(Icons.Default.Call, "Call / WhatsApp", "+92 333 425 4002")
+                FactRow(SsplIcons.Call, "Call / WhatsApp", "+92 333 425 4002")
             }
             Row(Modifier.fillMaxWidth().clip(AppTheme.shapes.small).clickable(onClickLabel = "Email secretariat") { a.url("mailto:$SECRETARIAT_EMAIL") }) {
-                FactRow(Icons.Default.Email, "Official email", SECRETARIAT_EMAIL)
+                FactRow(SsplIcons.Email, "Official email", SECRETARIAT_EMAIL)
             }
         }
     }

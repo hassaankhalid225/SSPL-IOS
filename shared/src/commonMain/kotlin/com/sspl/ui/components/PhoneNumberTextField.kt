@@ -1,5 +1,7 @@
 package com.sspl.ui.components
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -158,7 +160,7 @@ fun PhoneNumberTextField(
                     modifier = Modifier.padding(end = 4.dp)
                 )
                 Icon(
-                    imageVector = Icons.Default.ArrowDropDown,
+                    imageVector = SsplIcons.ArrowDropDown,
                     contentDescription = "Select country code"
                 )
             }
@@ -210,7 +212,7 @@ fun CountryTextField(
         } else null,
         trailingIcon = {
                 Icon(
-                    imageVector = Icons.Default.ArrowDropDown,
+                    imageVector = SsplIcons.ArrowDropDown,
                     contentDescription = "Select country code",modifier = Modifier.clickable(onClick = toggleCountryPicker)
                 )
 

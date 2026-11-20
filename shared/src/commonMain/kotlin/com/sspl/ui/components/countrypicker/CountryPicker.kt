@@ -1,5 +1,7 @@
 package com.sspl.ui.components.countrypicker
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -87,7 +89,7 @@ fun SearchBar(
         onValueChange = onQueryChange,
         modifier = modifier.fillMaxWidth(),
         placeholder = { Text("Search country") },
-        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+        leadingIcon = { Icon(SsplIcons.Search, contentDescription = null) },
         singleLine = true
     )
 }

@@ -1,5 +1,7 @@
 package com.sspl.ui.kyc
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -148,7 +150,7 @@ private fun AuthHero(
             Box(Modifier.fillMaxWidth().height(44.dp)) {
                 if (onBack != null) {
                     GlassIconButton(
-                        icon = Icons.AutoMirrored.Filled.ArrowBack,
+                        icon = SsplIcons.ArrowBack,
                         contentDescription = "Go back",
                         onClick = onBack,
                         modifier = Modifier.align(Alignment.CenterStart)

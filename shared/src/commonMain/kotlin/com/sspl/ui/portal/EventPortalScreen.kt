@@ -1,5 +1,7 @@
 package com.sspl.ui.portal
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -84,7 +86,7 @@ fun EventPortalScreen(
                     eyebrow = "Event portal",
                     title = "Attendance, feedback, certificate",
                     summary = "For every event you're confirmed in: mark attendance at the venue, share session feedback, then download your certificate.",
-                    icon = Icons.Default.EventAvailable,
+                    icon = SsplIcons.EventAvailable,
                     stats = if (data != null) listOf(
                         "${data.upcoming.size}" to "Upcoming",
                         "${data.past.size}" to "Attended / past"
@@ -92,9 +94,9 @@ fun EventPortalScreen(
                     extra = {
                         Spacer(Modifier.height(14.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                            StepChip(1, "Attendance", Icons.Default.HowToReg, Modifier.weight(1f))
-                            StepChip(2, "Feedback", Icons.Default.RateReview, Modifier.weight(1f))
-                            StepChip(3, "Certificate", Icons.Default.WorkspacePremium, Modifier.weight(1f))
+                            StepChip(1, "Attendance", SsplIcons.HowToReg, Modifier.weight(1f))
+                            StepChip(2, "Feedback", SsplIcons.RateReview, Modifier.weight(1f))
+                            StepChip(3, "Certificate", SsplIcons.WorkspacePremium, Modifier.weight(1f))
                         }
                     }
                 )
@@ -123,7 +125,7 @@ fun EventPortalScreen(
                             EmptyState(
                                 title = "No confirmed registrations",
                                 message = "If your registration is pending, open My registrations to complete payment or check approval status.",
-                                icon = Icons.Default.EventBusy,
+                                icon = SsplIcons.EventBusy,
                                 actionText = "Open my registrations",
                                 onActionClick = { go(Screen.MyRegistrationsScreen.route) }
                             )
@@ -143,7 +145,7 @@ fun EventPortalScreen(
                                 EmptyState(
                                     title = if (state.tab == 0) "Nothing upcoming" else "No past events",
                                     message = if (state.tab == 0) "Browse events and register for the next programme." else "Events you attended will appear here with their certificates.",
-                                    icon = Icons.Default.EventAvailable,
+                                    icon = SsplIcons.EventAvailable,
                                     actionText = if (state.tab == 0) "Browse events" else null,
                                     onActionClick = if (state.tab == 0) ({ go(Screen.EventsListScreen.route) }) else null
                                 )
@@ -157,7 +159,7 @@ fun EventPortalScreen(
 
             item(key = "regs") {
                 NavTile(
-                    icon = Icons.AutoMirrored.Filled.Assignment,
+                    icon = SsplIcons.Assignment,
                     title = "My registrations",
                     subtitle = "Payments, approvals and entry passes",
                     onClick = { go(Screen.MyRegistrationsScreen.route) },

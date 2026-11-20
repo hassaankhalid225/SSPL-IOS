@@ -61,7 +61,7 @@ class PaymentStatusViewModel(
             status = "awaiting",
             transactionId = transactionId,
             isLoading = false,
-            message = "Complete the payment on the Swich page that just opened, then come back and check the status here."
+            message = "If you finished paying, check the status here. Confirmation can take a minute."
         )
     }
 
@@ -90,7 +90,7 @@ class PaymentStatusViewModel(
                     _uiState.value = _uiState.value.copy(
                         status = "awaiting",
                         transactionId = txn ?: _uiState.value.transactionId,
-                        message = "Complete the payment on the Swich page that just opened, then come back and check the status here."
+                        message = "If you finished paying, check the status here. Confirmation can take a minute."
                     )
                     onPaymentUrlReceived(pUrl)
                 } else {

@@ -1,5 +1,7 @@
 package com.sspl.ui.components
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -319,7 +321,7 @@ fun MarkAttendanceButton(
         if (isGettingLocation && locationState.latitude.isNullOrEmpty()) {
             LoadingDots(dotSize = 5.dp, spacing = 3.dp)
         } else {
-            Icon(Icons.Default.HowToReg, contentDescription = null, tint = AppTheme.colors.primary, modifier = Modifier.size(16.dp))
+            Icon(SsplIcons.HowToReg, contentDescription = null, tint = AppTheme.colors.primary, modifier = Modifier.size(16.dp))
         }
         Text(
             text = if (isGettingLocation) "Locating…" else "Mark attendance",

@@ -1,5 +1,7 @@
 package com.sspl.ui.about
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -88,17 +90,17 @@ private const val POLICY =
 private data class Pillar(val icon: ImageVector, val title: String, val body: String, val route: String)
 
 private val PILLARS = listOf(
-    Pillar(Icons.Default.Groups, "Membership", "Join a distinguished community of surgeons dedicated to professional growth.", Screen.MembershipPlansScreen.route),
-    Pillar(Icons.Default.WorkspacePremium, "Fellowship", "Structured fellowship with accredited centres and mentorship.", Screen.FellowshipHubScreen.route),
-    Pillar(Icons.Default.CalendarMonth, "Conferences", "National and regional congresses with world-class faculty.", Screen.ConferencesScreen.route),
-    Pillar(Icons.AutoMirrored.Filled.Article, "Publications", "Society notices, guidelines and announcements.", Screen.NotificationsScreen.route)
+    Pillar(SsplIcons.Groups, "Membership", "Join a distinguished community of surgeons dedicated to professional growth.", Screen.MembershipPlansScreen.route),
+    Pillar(SsplIcons.WorkspacePremium, "Fellowship", "Structured fellowship with accredited centres and mentorship.", Screen.FellowshipHubScreen.route),
+    Pillar(SsplIcons.CalendarMonth, "Conferences", "National and regional congresses with world-class faculty.", Screen.ConferencesScreen.route),
+    Pillar(SsplIcons.Article, "Publications", "Society notices, guidelines and announcements.", Screen.NotificationsScreen.route)
 )
 
 private val STATS = listOf(
-    Triple("1,200+", "Members", Icons.Default.Groups),
-    Triple("150+", "CME activities / year", Icons.Default.MenuBook),
-    Triple("45+", "Training programs", Icons.Default.WorkspacePremium),
-    Triple("25+", "Years of service", Icons.Default.Schedule)
+    Triple("1,200+", "Members", SsplIcons.Groups),
+    Triple("150+", "CME activities / year", SsplIcons.MenuBook),
+    Triple("45+", "Training programs", SsplIcons.WorkspacePremium),
+    Triple("25+", "Years of service", SsplIcons.Schedule)
 )
 
 @Composable
@@ -132,8 +134,8 @@ fun AboutScreen(
             item(key = "mv") {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     SectionHeader(title = "Mission and vision")
-                    MissionCard(Icons.Default.Flag, "Mission", MISSION)
-                    MissionCard(Icons.Default.Visibility, "Vision", VISION)
+                    MissionCard(SsplIcons.Flag, "Mission", MISSION)
+                    MissionCard(SsplIcons.Visibility, "Vision", VISION)
                 }
             }
 
@@ -182,7 +184,7 @@ fun AboutScreen(
                     SectionHeader(title = "Objectives and policies")
                     InfoSurface {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconTile(Icons.Default.TrackChanges)
+                            IconTile(SsplIcons.TrackChanges)
                             Spacer(Modifier.width(12.dp))
                             Text("Objective", style = AppTheme.typography.titleSmall)
                         }
@@ -191,7 +193,7 @@ fun AboutScreen(
                     }
                     InfoSurface {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconTile(Icons.Default.Gavel, tint = AppTheme.colors.info, background = AppTheme.colors.infoContainer)
+                            IconTile(SsplIcons.Gavel, tint = AppTheme.colors.info, background = AppTheme.colors.infoContainer)
                             Spacer(Modifier.width(12.dp))
                             Column(Modifier.weight(1f)) {
                                 Text("Returns and cancellation", style = AppTheme.typography.titleSmall)
@@ -252,7 +254,7 @@ fun AboutScreen(
 
             item(key = "history") {
                 NavTile(
-                    icon = Icons.Default.MenuBook,
+                    icon = SsplIcons.MenuBook,
                     title = "Our history",
                     subtitle = "From the 1950s Association of Surgeons of Lahore to today",
                     onClick = { open(Screen.HistoryScreen.route) }
@@ -320,9 +322,9 @@ private fun OfficialContactCard(loading: Boolean, contact: ContactInfo, openUrl:
             }
         } else {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                ContactLine(Icons.Default.Place, "Office address · ${contact.location}", contact.address) { openUrl(contact.mapUrl) }
-                ContactLine(Icons.Default.Phone, "Phone and WhatsApp", contact.phone) { openUrl(contact.telUri) }
-                ContactLine(Icons.Default.Email, "Email", contact.email) { openUrl(contact.mailUri) }
+                ContactLine(SsplIcons.Place, "Office address · ${contact.location}", contact.address) { openUrl(contact.mapUrl) }
+                ContactLine(SsplIcons.Phone, "Phone and WhatsApp", contact.phone) { openUrl(contact.telUri) }
+                ContactLine(SsplIcons.Email, "Email", contact.email) { openUrl(contact.mailUri) }
             }
             Spacer(Modifier.height(10.dp))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -336,7 +338,7 @@ private fun OfficialContactCard(loading: Boolean, contact: ContactInfo, openUrl:
                             .padding(horizontal = 14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.Public, contentDescription = null, tint = AppTheme.colors.onPrimaryContainer, modifier = Modifier.padding(end = 6.dp).width(16.dp))
+                        Icon(SsplIcons.Public, contentDescription = null, tint = AppTheme.colors.onPrimaryContainer, modifier = Modifier.padding(end = 6.dp).width(16.dp))
                         Text(s.label, style = AppTheme.typography.labelMedium.copy(color = AppTheme.colors.onPrimaryContainer, fontWeight = FontWeight.SemiBold))
                     }
                 }
@@ -372,7 +374,7 @@ private fun PaymentInfoCard() {
             .padding(16.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconTile(Icons.Default.CreditCard, background = colors.surface)
+            IconTile(SsplIcons.CreditCard, background = colors.surface)
             Spacer(Modifier.width(12.dp))
             Column {
                 Text("Payment information", style = AppTheme.typography.titleSmall)

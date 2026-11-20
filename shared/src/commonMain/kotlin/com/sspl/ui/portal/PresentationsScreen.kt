@@ -1,5 +1,7 @@
 package com.sspl.ui.portal
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -86,7 +88,7 @@ fun PresentationsScreen(
                     eyebrow = "Scholarship",
                     title = "Upload presentation",
                     summary = "Attach slides or documents (PowerPoint, PDF, Word) for an accepted abstract.",
-                    icon = Icons.Default.Slideshow,
+                    icon = SsplIcons.Slideshow,
                     stats = ready?.let {
                         listOf("${it.accepted.size}" to "Accepted abstracts", "${it.presentations.size}" to "Uploaded")
                     }.orEmpty()
@@ -124,7 +126,7 @@ fun PresentationsScreen(
                             EmptyState(
                                 title = "No presentations yet",
                                 message = "Decks you upload for accepted abstracts appear here with their review status.",
-                                icon = Icons.Default.Slideshow,
+                                icon = SsplIcons.Slideshow,
                                 actionText = if (d.data.accepted.isEmpty()) "View my submissions" else null,
                                 onActionClick = if (d.data.accepted.isEmpty()) ({ navController.openPortal(Screen.MySubmissionsScreen.route) }) else null
                             )
@@ -143,7 +145,7 @@ fun PresentationsScreen(
 @Composable
 private fun UploadForm(state: PresentationsUiState, vm: PresentationsViewModel, pickFile: () -> Unit) {
     val accepted = (state.data as? LoadState.Ready)?.data?.accepted.orEmpty()
-    PortalSection(title = "New upload", subtitle = "All fields are required", icon = Icons.Default.Upload) {
+    PortalSection(title = "New upload", subtitle = "All fields are required", icon = SsplIcons.Upload) {
         state.errorMessage?.let {
             PortalNotice(it, NoticeTone.Error)
             Spacer(Modifier.height(12.dp))
@@ -185,7 +187,7 @@ private fun UploadForm(state: PresentationsUiState, vm: PresentationsViewModel, 
             onClick = vm::upload,
             loading = state.isUploading,
             enabled = !state.isUploading,
-            icon = Icons.Default.Upload
+            icon = SsplIcons.Upload
         )
     }
 }
@@ -201,7 +203,7 @@ private fun PresentationRow(p: PortalPresentation, onDownload: () -> Unit) {
             DisplayDates.medium(item.createdAt).takeIf { it.isNotBlank() }?.let { "Uploaded $it" },
             p.conferenceId?.let { "Conference #$it" }
         ).joinToString(" · ").ifBlank { null },
-        leading = { IconTile(Icons.Default.Slideshow) },
+        leading = { IconTile(SsplIcons.Slideshow) },
         trailing = { StatusBadge(item.status ?: "PENDING") },
         footer = if (!p.adminFeedback.isNullOrBlank() || !item.fileUrl.isNullOrBlank()) {
             {
@@ -213,7 +215,7 @@ private fun PresentationRow(p: PortalPresentation, onDownload: () -> Unit) {
                     Spacer(Modifier.height(10.dp))
                 }
                 if (!item.fileUrl.isNullOrBlank()) {
-                    SecondaryButton("Download file", onClick = onDownload, icon = Icons.Default.Download)
+                    SecondaryButton("Download file", onClick = onDownload, icon = SsplIcons.Download)
                 }
             }
         } else null

@@ -1,5 +1,7 @@
 package com.sspl.ui.userdetails
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -122,7 +124,7 @@ fun EditProfileScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 EditIntro(
-                    icon = if (isPersonalDetails) Icons.Default.Person else Icons.Default.MedicalServices,
+                    icon = if (isPersonalDetails) SsplIcons.Person else SsplIcons.MedicalServices,
                     title = if (isPersonalDetails) "Personal info" else "Professional details",
                     caption = if (isPersonalDetails) "Your name and mobile number as shown to SSPL."
                     else "Credentials used to verify your membership."
@@ -182,7 +184,7 @@ fun EditPersonalDetails(
                 onValueChange = { onEvent(BasicProfileEvents.UpdateFirstName(it)) },
                 label = "First name",
                 placeholder = "First name",
-                leadingIcon = Icons.Default.Person,
+                leadingIcon = SsplIcons.Person,
                 errorMessage = basicProfileUiState.firstNameError,
                 enabled = !busy,
                 keyboardActions = next
@@ -241,7 +243,7 @@ fun EditProfessionalDetails(
                 onValueChange = { onEvent(ProfessionalProfileEvents.OnPmDcNumberTextChange(it)) },
                 label = "PMDC / council number",
                 placeholder = "e.g. 12345-P",
-                leadingIcon = Icons.Default.MedicalServices,
+                leadingIcon = SsplIcons.MedicalServices,
                 errorMessage = state.pmDcNumberError,
                 enabled = !busy,
                 keyboardActions = next
@@ -251,7 +253,7 @@ fun EditProfessionalDetails(
                 onValueChange = { onEvent(ProfessionalProfileEvents.OnRegistrationNumberTextChange(it)) },
                 label = "Society registration number",
                 placeholder = "Registration number",
-                leadingIcon = Icons.Default.Badge,
+                leadingIcon = SsplIcons.Badge,
                 errorMessage = state.registrationNumberError,
                 keyboardType = KeyboardType.Text,
                 enabled = !busy,
@@ -267,7 +269,7 @@ fun EditProfessionalDetails(
                 onValueChange = { onEvent(ProfessionalProfileEvents.OnDesignationTextChange(it)) },
                 label = "Designation",
                 placeholder = "e.g. Consultant Surgeon",
-                leadingIcon = Icons.Default.Work,
+                leadingIcon = SsplIcons.Work,
                 errorMessage = state.designationError,
                 enabled = !busy,
                 keyboardActions = next
@@ -277,7 +279,7 @@ fun EditProfessionalDetails(
                 onValueChange = { onEvent(ProfessionalProfileEvents.OnInstitutionTextChange(it)) },
                 label = "Institution / hospital",
                 placeholder = "e.g. Services Hospital, Lahore",
-                leadingIcon = Icons.Default.Business,
+                leadingIcon = SsplIcons.Business,
                 errorMessage = state.institutionError,
                 enabled = !busy,
                 keyboardActions = KeyboardActions(onDone = {

@@ -26,10 +26,12 @@ class InitiatePaymentUseCase(private val repository: PaymentRepository) {
                     val apiError = kotlinx.serialization.json.Json.decodeFromString<ApiError>(errorBody)
                     emit(ApiStates.Failure(apiError))
                 } catch (e: Exception) {
+                    if (e is kotlinx.coroutines.CancellationException) throw e // keep flow cancellation transparent
                     emit(ApiStates.Failure(ApiError("Failed to initiate payment: ${response.status}\n$errorBody")))
                 }
             }
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e // keep flow cancellation transparent
             emit(ApiStates.Failure(ApiError(e.message ?: "Unknown error")))
         }
     }

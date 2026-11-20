@@ -1,5 +1,7 @@
 package com.sspl.ui.conference.registration
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -81,7 +83,7 @@ fun ConferenceRegistrationScreen(
         EmptyState(
             title = "Conference unavailable",
             message = "Open registration again from the conference page.",
-            icon = Icons.Default.EventBusy,
+            icon = SsplIcons.EventBusy,
             modifier = Modifier.fillMaxSize()
         )
         return
@@ -120,21 +122,15 @@ fun ConferenceRegistrationContent(
 
     // Payment WebView (unchanged behaviour)
     if (state.paymentUrl != null) {
-        androidx.compose.ui.window.Dialog(
-            onDismissRequest = { viewModel.onPaymentUrlOpened() },
-            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
-        ) {
-            com.sspl.ui.components.PaymentWebView(
-                url = state.paymentUrl,
-                onPaymentSuccess = {
-                    viewModel.onPaymentUrlOpened()
-                    viewModel.loadData(state.details.id)
-                },
-                onPaymentFailed = { viewModel.onPaymentUrlOpened() },
-                onClose = { viewModel.onPaymentUrlOpened() },
-                modifier = Modifier.fillMaxSize()
-            )
-        }
+        com.sspl.ui.components.PaymentWebView(
+            url = state.paymentUrl,
+            onPaymentSuccess = {
+                viewModel.onPaymentUrlOpened()
+                viewModel.loadData(state.details.id)
+            },
+            onPaymentFailed = { viewModel.onPaymentUrlOpened() },
+            onClose = { viewModel.onPaymentUrlOpened() }
+        )
     }
 
     LaunchedEffect(state.registration?.paymentStatus) {
@@ -172,7 +168,7 @@ fun ConferenceRegistrationContent(
                     subtitle = if (paid) "Your seat is confirmed." else "Complete payment to confirm your seat.",
                     leading = {
                         IconTile(
-                            if (paid) Icons.Default.CheckCircle else Icons.Default.HourglassTop,
+                            if (paid) SsplIcons.CheckCircle else SsplIcons.HourglassTop,
                             tint = if (paid) colors.success else colors.warning,
                             background = if (paid) colors.successContainer else colors.warningContainer
                         )
@@ -197,11 +193,11 @@ fun ConferenceRegistrationContent(
                     ) {
                         Box(
                             Modifier.size(22.dp).clip(CircleShape)
-                                .background(if (sel) colors.primary else colors.surface)
+                                .background(if (sel) colors.buttonStart else colors.surface)
                                 .border(2.dp, if (sel) colors.primary else colors.border, CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            if (sel) Icon(Icons.Default.Check, null, tint = colors.onPrimary, modifier = Modifier.size(14.dp))
+                            if (sel) Icon(SsplIcons.Check, null, tint = colors.onPrimary, modifier = Modifier.size(14.dp))
                         }
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
@@ -218,7 +214,7 @@ fun ConferenceRegistrationContent(
                     Modifier.fillMaxWidth().clip(AppTheme.shapes.small).background(colors.errorContainer).padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Default.ErrorOutline, null, tint = colors.error, modifier = Modifier.size(18.dp))
+                    Icon(SsplIcons.ErrorOutline, null, tint = colors.error, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
                     Text(msg, style = AppTheme.typography.bodySmall.copy(color = colors.error))
                 }

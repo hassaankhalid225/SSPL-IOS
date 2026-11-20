@@ -1,5 +1,7 @@
 package com.sspl.ui.settings.deleteaccount
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -134,11 +136,11 @@ fun DeleteAccountScreen(
                         Text("What will be erased", style = AppTheme.typography.titleSmall)
                         Spacer(Modifier.size(10.dp))
                         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            EraseItem(Icons.Default.PersonOff, "Personal and professional profile")
-                            EraseItem(Icons.Default.EventBusy, "Event registrations and attendance records")
-                            EraseItem(Icons.AutoMirrored.Filled.Assignment, "Abstract submissions and presentations")
-                            EraseItem(Icons.Default.School, "Fellowship applications and logbook entries")
-                            EraseItem(Icons.Default.WorkspacePremium, "Certificates issued to you")
+                            EraseItem(SsplIcons.PersonOff, "Personal and professional profile")
+                            EraseItem(SsplIcons.EventBusy, "Event registrations and attendance records")
+                            EraseItem(SsplIcons.Assignment, "Abstract submissions and presentations")
+                            EraseItem(SsplIcons.School, "Fellowship applications and logbook entries")
+                            EraseItem(SsplIcons.WorkspacePremium, "Certificates issued to you")
                         }
                     }
 
@@ -175,7 +177,7 @@ private fun WarningCard(title: String, message: String) {
         verticalAlignment = Alignment.Top
     ) {
         Icon(
-            Icons.Default.WarningAmber,
+            SsplIcons.WarningAmber,
             contentDescription = "Warning",
             tint = colors.error,
             modifier = Modifier.size(26.dp)

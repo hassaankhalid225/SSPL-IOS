@@ -1,5 +1,7 @@
 package com.sspl.ui.faqs
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -52,7 +54,7 @@ private val FAQS = listOf(
 fun FaqsScreen(navController: NavController) {
     var query by rememberSaveable { mutableStateOf("") }
     // Web opens the first question by default.
-    var openQuestion by rememberSaveable { mutableStateOf<String?>(FAQS.first().question) }
+    var openQuestion by rememberSaveable { mutableStateOf<String?>(null) }
     val filtered = remember(query) {
         val q = query.trim()
         if (q.isEmpty()) FAQS
@@ -67,7 +69,7 @@ fun FaqsScreen(navController: NavController) {
         item(key = "hero") {
             PageIntroHero(
                 eyebrow = "Customer support",
-                eyebrowIcon = Icons.Default.QuestionAnswer,
+                eyebrowIcon = SsplIcons.QuestionAnswer,
                 title = "Frequently asked questions",
                 summary = "Membership, events, and participation in SSP Lahore.",
                 stats = listOf("${FAQS.size}" to "Answers")
@@ -88,14 +90,14 @@ fun FaqsScreen(navController: NavController) {
                 EmptyState(
                     title = "No matching questions",
                     message = "Try a different word, or contact the secretariat for help.",
-                    icon = Icons.Default.SearchOff,
+                    icon = SsplIcons.SearchOff,
                     actionText = "Clear search",
                     onActionClick = { query = "" }
                 )
             }
         } else {
             items(filtered, key = { it.question }) { faq ->
-                val expanded = openQuestion == faq.question || query.isNotBlank() && filtered.size == 1
+                val expanded = openQuestion == faq.question
                 AccordionCard(
                     title = faq.question,
                     expanded = expanded,
@@ -109,14 +111,14 @@ fun FaqsScreen(navController: NavController) {
             Spacer(Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 NavTile(
-                    icon = Icons.Default.SupportAgent,
+                    icon = SsplIcons.SupportAgent,
                     title = "Contact us",
                     subtitle = "Still need help?",
                     onClick = { navController.navigate(Screen.ContactUsScreen.route) { launchSingleTop = true } },
                     modifier = Modifier.weight(1f)
                 )
                 NavTile(
-                    icon = Icons.AutoMirrored.Filled.MenuBook,
+                    icon = SsplIcons.MenuBook,
                     title = "Member guide",
                     subtitle = "Step-by-step",
                     onClick = { navController.navigate(Screen.MemberGuideScreen.route) { launchSingleTop = true } },

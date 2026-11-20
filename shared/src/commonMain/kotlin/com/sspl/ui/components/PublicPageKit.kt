@@ -1,5 +1,7 @@
 package com.sspl.ui.components
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
@@ -156,7 +158,7 @@ fun AccordionCard(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    Icons.Default.KeyboardArrowDown,
+                    SsplIcons.KeyboardArrowDown,
                     contentDescription = if (expanded) "Collapse" else "Expand",
                     tint = colors.primary,
                     modifier = Modifier.size(20.dp).rotate(rotation)
@@ -250,7 +252,7 @@ fun LoadMoreFooter(
                     .padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Default.Refresh, contentDescription = null, tint = AppTheme.colors.error, modifier = Modifier.size(16.dp))
+                Icon(SsplIcons.Refresh, contentDescription = null, tint = AppTheme.colors.error, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(8.dp))
                 Text(
                     "Couldn't load more. Tap to retry",

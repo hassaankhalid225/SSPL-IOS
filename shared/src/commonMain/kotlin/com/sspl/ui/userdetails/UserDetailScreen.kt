@@ -1,5 +1,7 @@
 package com.sspl.ui.userdetails
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -139,7 +141,7 @@ fun UserDetailsScreenContent(
                 onValueChange = { onEvent(UserDetailsUiEvents.OnPmDcNumberTextChange(it)) },
                 label = "PMDC / medical council number (optional)",
                 placeholder = "e.g. 12345-P",
-                leadingIcon = Icons.Default.MedicalServices,
+                leadingIcon = SsplIcons.MedicalServices,
                 errorMessage = pmdcNumberError,
                 enabled = !isLoading,
                 keyboardActions = next
@@ -149,7 +151,7 @@ fun UserDetailsScreenContent(
                 onValueChange = { onEvent(UserDetailsUiEvents.OnDesignationTextChange(it)) },
                 label = "Designation (optional)",
                 placeholder = "e.g. Consultant Surgeon",
-                leadingIcon = Icons.Default.Work,
+                leadingIcon = SsplIcons.Work,
                 errorMessage = designationError,
                 enabled = !isLoading,
                 keyboardActions = next
@@ -161,7 +163,7 @@ fun UserDetailsScreenContent(
                 onValueChange = { onEvent(UserDetailsUiEvents.OnInstitutionTextChange(it)) },
                 label = "Hospital / institution",
                 placeholder = "e.g. Mayo Hospital, Lahore",
-                leadingIcon = Icons.Default.Business,
+                leadingIcon = SsplIcons.Business,
                 errorMessage = institutionError,
                 enabled = !isLoading,
                 keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }, onNext = { focusManager.clearFocus() })
@@ -187,7 +189,7 @@ fun UserDetailsScreenContent(
             },
             loading = isLoading,
             enabled = isSaveEnabled,
-            icon = Icons.Default.CheckCircle
+            icon = SsplIcons.CheckCircle
         )
         Spacer(Modifier.height(6.dp))
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {

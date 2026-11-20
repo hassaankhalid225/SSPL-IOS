@@ -1,5 +1,7 @@
 package com.sspl.ui.conference.components
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -58,7 +60,7 @@ fun FeaturedEventCard(event: EventCardUi, onClick: () -> Unit, modifier: Modifie
                 source = event.image,
                 contentDescription = event.title,
                 modifier = Modifier.fillMaxSize(),
-                fallbackIcon = Icons.Default.Event,
+                fallbackIcon = SsplIcons.Event,
                 fallbackIconSize = 44.dp
             )
             Box(
@@ -78,16 +80,16 @@ fun FeaturedEventCard(event: EventCardUi, onClick: () -> Unit, modifier: Modifie
                 GlassPill(
                     event.relative,
                     modifier = Modifier.align(Alignment.BottomStart).padding(12.dp),
-                    icon = Icons.Default.Schedule
+                    icon = SsplIcons.Schedule
                 )
             }
         }
         Column(Modifier.padding(16.dp)) {
             Text(event.title, style = AppTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Spacer(Modifier.height(8.dp))
-            EventMetaLine(Icons.Default.CalendarMonth, listOf(event.dateRange, event.timeRange).filter { it.isNotBlank() }.joinToString(" · "))
+            EventMetaLine(SsplIcons.CalendarMonth, listOf(event.dateRange, event.timeRange).filter { it.isNotBlank() }.joinToString(" · "))
             Spacer(Modifier.height(4.dp))
-            EventMetaLine(Icons.Default.Place, event.venue)
+            EventMetaLine(SsplIcons.Place, event.venue)
             Spacer(Modifier.height(14.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -114,7 +116,7 @@ fun FeaturedEventCard(event: EventCardUi, onClick: () -> Unit, modifier: Modifie
                         style = AppTheme.typography.labelMedium.copy(color = Color.White, fontWeight = FontWeight.SemiBold)
                     )
                     Spacer(Modifier.width(4.dp))
-                    Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Color.White, modifier = Modifier.size(14.dp))
+                    Icon(SsplIcons.ArrowForward, null, tint = Color.White, modifier = Modifier.size(14.dp))
                 }
             }
         }
@@ -136,7 +138,7 @@ fun EventMediaRow(event: EventCardUi, onClick: () -> Unit, modifier: Modifier = 
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(Modifier.size(width = 96.dp, height = 96.dp).clip(RoundedCornerShape(14.dp))) {
-            SsplImage(event.image, event.title, Modifier.fillMaxSize(), fallbackIcon = Icons.Default.Event)
+            SsplImage(event.image, event.title, Modifier.fillMaxSize(), fallbackIcon = SsplIcons.Event)
             EventDateBlock(event, Modifier.align(Alignment.TopStart).padding(6.dp), compact = true)
         }
         Spacer(Modifier.width(12.dp))
@@ -157,9 +159,9 @@ fun EventMediaRow(event: EventCardUi, onClick: () -> Unit, modifier: Modifier = 
             Spacer(Modifier.height(2.dp))
             Text(event.title, style = AppTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Spacer(Modifier.height(6.dp))
-            EventMetaLine(Icons.Default.CalendarMonth, event.dateRange)
+            EventMetaLine(SsplIcons.CalendarMonth, event.dateRange)
             Spacer(Modifier.height(2.dp))
-            EventMetaLine(Icons.Default.Place, event.venue)
+            EventMetaLine(SsplIcons.Place, event.venue)
             if (event.registrationOpen) {
                 Spacer(Modifier.height(6.dp))
                 StatusBadge("Registration open", variant = BadgeVariant.SUCCESS)

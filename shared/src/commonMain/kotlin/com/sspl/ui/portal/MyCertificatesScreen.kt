@@ -1,5 +1,7 @@
 package com.sspl.ui.portal
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -98,7 +100,7 @@ fun MyCertificatesScreen(
                     eyebrow = "Credentials",
                     title = "My certificates",
                     summary = "Official CME, conference participation and fellowship certificates issued by SSPL.",
-                    icon = Icons.Default.WorkspacePremium,
+                    icon = SsplIcons.WorkspacePremium,
                     stats = all?.let { listOf("${it.size}" to "Issued to you") }.orEmpty(),
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
@@ -118,7 +120,7 @@ fun MyCertificatesScreen(
                         EmptyState(
                             title = "No certificates yet",
                             message = "Certificates unlock after your attendance is accepted and you submit session feedback in the Event portal.",
-                            icon = Icons.Default.WorkspacePremium,
+                            icon = SsplIcons.WorkspacePremium,
                             actionText = "Open event portal",
                             onActionClick = { navController.openPortal(Screen.EventPortalScreen.route) }
                         )
@@ -148,7 +150,7 @@ fun MyCertificatesScreen(
             }
             item(key = "portal") {
                 NavTile(
-                    icon = Icons.Default.EventAvailable,
+                    icon = SsplIcons.EventAvailable,
                     title = "Missing a certificate?",
                     subtitle = "Check attendance and feedback in the Event portal",
                     onClick = { navController.openPortal(Screen.EventPortalScreen.route) },
@@ -173,7 +175,7 @@ private fun CertificateCard(
         title = cert.title ?: "Certificate of participation",
         subtitle = cert.eventTitle,
         meta = DisplayDates.medium(cert.issueDate).takeIf { it.isNotBlank() }?.let { "Issued $it" },
-        leading = { IconTile(Icons.Default.WorkspacePremium, tint = c.success, background = c.successContainer) },
+        leading = { IconTile(SsplIcons.WorkspacePremium, tint = c.success, background = c.successContainer) },
         trailing = { StatusBadge(cert.typeLabel(), variant = BadgeVariant.INFO) },
         modifier = modifier,
         footer = {
@@ -195,16 +197,16 @@ private fun CertificateCard(
                         modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis
                     )
                     Box(Modifier.size(40.dp).clip(CircleShape), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.ContentCopy, contentDescription = "Copy serial number", tint = c.primary, modifier = Modifier.size(18.dp))
+                        Icon(SsplIcons.ContentCopy, contentDescription = "Copy serial number", tint = c.primary, modifier = Modifier.size(18.dp))
                     }
                 }
                 Spacer(Modifier.padding(top = 10.dp))
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (hasFile) {
-                    SecondaryButton("Download", onClick = onDownload, icon = Icons.Default.Download, modifier = Modifier.weight(1f))
+                    SecondaryButton("Download", onClick = onDownload, icon = SsplIcons.Download, modifier = Modifier.weight(1f))
                 }
-                OutlineButton("Verify", onClick = { onVerify(cert.serialNumber) }, icon = Icons.Default.Verified, modifier = Modifier.weight(1f))
+                OutlineButton("Verify", onClick = { onVerify(cert.serialNumber) }, icon = SsplIcons.Verified, modifier = Modifier.weight(1f))
             }
         }
     )

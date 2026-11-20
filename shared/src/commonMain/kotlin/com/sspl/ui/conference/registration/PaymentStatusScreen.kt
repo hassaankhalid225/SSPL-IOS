@@ -1,5 +1,7 @@
 package com.sspl.ui.conference.registration
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -35,6 +37,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,7 +56,6 @@ import com.sspl.designsystem.components.SecondaryButton
 import com.sspl.designsystem.components.SsplCard
 import com.sspl.designsystem.components.StatusBadge
 import com.sspl.designsystem.theme.AppTheme
-import com.sspl.platform.shared.UrlOpener
 import com.sspl.utils.DisplayDates
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -68,9 +70,9 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun PaymentStatusScreen(
     navController: NavController,
-    viewModel: PaymentStatusViewModel = koinViewModel(),
-    urlOpener: UrlOpener = koinInject()
+    viewModel: PaymentStatusViewModel = koinViewModel()
 ) {
+    var inAppPaymentUrl by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<String?>(null) }
     val handle = remember { navController.previousBackStackEntry?.savedStateHandle }
     val customerTransactionId = remember { handle?.get<String>("customerTransactionId") }
     val awaitingTransactionId = remember { handle?.get<String>("awaitingTransactionId") }
@@ -91,6 +93,14 @@ fun PaymentStatusScreen(
 
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val colors = AppTheme.colors
+
+    inAppPaymentUrl?.let { url ->
+        val done: () -> Unit = {
+            inAppPaymentUrl = null
+            viewModel.checkAwaiting()
+        }
+        com.sspl.ui.components.PaymentWebView(url = url, onPaymentSuccess = done, onPaymentFailed = done, onClose = done)
+    }
     val today = remember { DisplayDates.medium(DisplayDates.today().toString()) }
 
     fun goRegistrations() = navController.navigate(Screen.MyRegistrationsScreen.route) {
@@ -115,11 +125,11 @@ fun PaymentStatusScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             val (icon, tint, bg, title) = when (status) {
-                "success" -> Quad(Icons.Default.Check, colors.success, colors.successContainer, "Payment successful")
-                "pending" -> Quad(Icons.Default.HourglassTop, colors.warning, colors.warningContainer, "Payment pending")
-                "awaiting" -> Quad(Icons.Default.CreditCard, colors.primary, colors.primaryContainer, "Finish your payment")
-                "processing" -> Quad(Icons.Default.Receipt, colors.primary, colors.primaryContainer, "Checking your payment")
-                else -> Quad(Icons.Default.Close, colors.error, colors.errorContainer, "Payment failed")
+                "success" -> Quad(SsplIcons.Check, colors.success, colors.successContainer, "Payment successful")
+                "pending" -> Quad(SsplIcons.HourglassTop, colors.warning, colors.warningContainer, "Payment pending")
+                "awaiting" -> Quad(SsplIcons.CreditCard, colors.primary, colors.primaryContainer, "Finish your payment")
+                "processing" -> Quad(SsplIcons.Receipt, colors.primary, colors.primaryContainer, "Checking your payment")
+                else -> Quad(SsplIcons.Close, colors.error, colors.errorContainer, "Payment failed")
             }
             StatusMedallion(icon, tint, bg, busy = status == "processing")
             Spacer(Modifier.height(18.dp))
@@ -133,17 +143,17 @@ fun PaymentStatusScreen(
                     Text("RECEIPT", style = AppTheme.typography.overline)
                     Spacer(Modifier.height(10.dp))
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        FactRow(Icons.Default.Payments, "Status", when (status) {
+                        FactRow(SsplIcons.Payments, "Status", when (status) {
                             "success" -> "Paid"
                             "pending" -> "Pending verification"
                             "awaiting" -> "Awaiting payment"
                             else -> "Not completed"
                         })
                         state.transactionId?.takeIf { it.isNotBlank() }?.let {
-                            FactRow(Icons.Default.ConfirmationNumber, "Transaction ID", it)
+                            FactRow(SsplIcons.ConfirmationNumber, "Transaction ID", it)
                         }
-                        if (registrationId > 0) FactRow(Icons.Default.Event, "Registration", "#$registrationId")
-                        FactRow(Icons.Default.Receipt, "Date", today)
+                        if (registrationId > 0) FactRow(SsplIcons.Event, "Registration", "#$registrationId")
+                        FactRow(SsplIcons.Receipt, "Date", today)
                     }
                     Spacer(Modifier.height(10.dp))
                     StatusBadge(
@@ -165,7 +175,7 @@ fun PaymentStatusScreen(
                 }
                 "pending" -> {
                     if (!state.transactionId.isNullOrBlank()) {
-                        PrimaryButton("Check again", viewModel::checkAwaiting, icon = Icons.Default.Refresh, loading = state.isLoading)
+                        PrimaryButton("Check again", viewModel::checkAwaiting, icon = SsplIcons.Refresh, loading = state.isLoading)
                         Spacer(Modifier.height(10.dp))
                     }
                     SecondaryButton("View my registrations", ::goRegistrations)
@@ -178,9 +188,9 @@ fun PaymentStatusScreen(
                     if (registrationId > 0) {
                         OutlineButton(
                             "Reopen payment page",
-                            onClick = { viewModel.retryPayment(registrationId) { url -> urlOpener.openUrl(url) } },
+                            onClick = { viewModel.retryPayment(registrationId) { url -> inAppPaymentUrl = url } },
                             loading = state.isLoading,
-                            icon = Icons.AutoMirrored.Filled.OpenInNew
+                            icon = SsplIcons.OpenInNew
                         )
                         Spacer(Modifier.height(10.dp))
                     }
@@ -191,9 +201,9 @@ fun PaymentStatusScreen(
                     if (registrationId > 0) {
                         PrimaryButton(
                             "Try again",
-                            onClick = { viewModel.retryPayment(registrationId) { url -> urlOpener.openUrl(url) } },
+                            onClick = { viewModel.retryPayment(registrationId) { url -> inAppPaymentUrl = url } },
                             loading = state.isLoading,
-                            icon = Icons.Default.Refresh
+                            icon = SsplIcons.Refresh
                         )
                         Spacer(Modifier.height(10.dp))
                     }

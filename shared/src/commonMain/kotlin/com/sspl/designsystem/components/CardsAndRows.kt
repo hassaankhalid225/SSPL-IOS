@@ -1,5 +1,7 @@
     package com.sspl.designsystem.components
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -170,7 +172,7 @@ fun SectionHeader(
                     )
                 )
                 Icon(
-                    imageVector = Icons.Default.ChevronRight,
+                    imageVector = SsplIcons.ChevronRight,
                     contentDescription = null,
                     tint = AppTheme.colors.primary,
                     modifier = Modifier.size(16.dp)
@@ -308,7 +310,7 @@ fun AvatarImage(
                 source = effectiveUrl,
                 contentDescription = name,
                 modifier = Modifier.size(size),
-                fallbackIcon = androidx.compose.material.icons.Icons.Default.Person,
+                fallbackIcon = SsplIcons.Person,
                 fallbackIconSize = size * 0.5f
             )
         } else {
@@ -374,7 +376,7 @@ fun ModernCapsuleSearchBar(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            imageVector = Icons.Default.Search,
+            imageVector = SsplIcons.Search,
             contentDescription = "Search",
             tint = AppTheme.colors.muted,
             modifier = Modifier.size(20.dp)
@@ -418,7 +420,7 @@ fun ModernCapsuleSearchBar(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.Tune,
+                    imageVector = SsplIcons.Tune,
                     contentDescription = "Filter",
                     tint = AppTheme.colors.heading,
                     modifier = Modifier.size(18.dp)
@@ -689,7 +691,7 @@ fun ModernSupportCard(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.HeadsetMic,
+                    imageVector = SsplIcons.HeadsetMic,
                     contentDescription = "Support",
                     tint = AppTheme.colors.primaryDark,
                     modifier = Modifier.size(24.dp)
@@ -746,7 +748,7 @@ fun ModernBookingCard(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Default.CalendarToday,
+                            imageVector = SsplIcons.CalendarToday,
                             contentDescription = null,
                             tint = Color.White,
                             modifier = Modifier.size(28.dp)
@@ -797,7 +799,7 @@ fun ModernBookingCard(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.CalendarToday,
+                        imageVector = SsplIcons.CalendarToday,
                         contentDescription = null,
                         tint = AppTheme.colors.muted,
                         modifier = Modifier.size(13.dp)
@@ -823,7 +825,7 @@ fun ModernBookingCard(
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.AccessTime,
+                            imageVector = SsplIcons.AccessTime,
                             contentDescription = null,
                             tint = AppTheme.colors.muted,
                             modifier = Modifier.size(13.dp)
@@ -850,7 +852,7 @@ fun ModernBookingCard(
                             )
                         )
                         Icon(
-                            imageVector = Icons.Default.ChevronRight,
+                            imageVector = SsplIcons.ChevronRight,
                             contentDescription = null,
                             tint = AppTheme.colors.primaryDark,
                             modifier = Modifier.size(14.dp)

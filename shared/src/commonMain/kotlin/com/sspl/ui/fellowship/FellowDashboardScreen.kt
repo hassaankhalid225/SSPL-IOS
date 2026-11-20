@@ -1,5 +1,7 @@
 package com.sspl.ui.fellowship
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -115,7 +117,7 @@ fun FellowDashboardScreen(
 private fun NotEnrolled(c: FellowDashboardContent.NotEnrolled, onApply: () -> Unit, onTrainer: () -> Unit, onHub: () -> Unit) {
     LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
-            FellowshipHero(eyebrow = "Fellow dashboard", title = "Your fellowship workspace", summary = c.message, icon = Icons.Default.School)
+            FellowshipHero(eyebrow = "Fellow dashboard", title = "Your fellowship workspace", summary = c.message, icon = SsplIcons.School)
         }
         item {
             SsplCard {
@@ -123,7 +125,7 @@ private fun NotEnrolled(c: FellowDashboardContent.NotEnrolled, onApply: () -> Un
                     title = if (c.isTrainer) "You're registered as a trainer" else "No active enrollment",
                     message = if (c.isTrainer) "Review your fellows' logbooks from the trainer desk."
                     else "Once the Society enrolls you on a programme, your logbook, attendance and certificate appear here.",
-                    icon = Icons.AutoMirrored.Filled.MenuBook,
+                    icon = SsplIcons.MenuBook,
                     actionText = if (c.isTrainer) "Open trainer desk" else "Apply for mini fellowship",
                     onActionClick = if (c.isTrainer) onTrainer else onApply
                 )
@@ -157,7 +159,7 @@ private fun FellowContent(
     ) {
         item(key = "hero") {
             GradientHeroCard {
-                GlassPill("FELLOW DASHBOARD", icon = Icons.Default.School)
+                GlassPill("FELLOW DASHBOARD", icon = SsplIcons.School)
                 Spacer(Modifier.height(10.dp))
                 Text(c.programName ?: "Your fellowship placement", style = AppTheme.typography.headlineSmall.copy(color = Color.White, fontWeight = FontWeight.Bold))
                 c.centerName?.let { Text(it, style = AppTheme.typography.bodyMedium.copy(color = Color.White.copy(alpha = 0.82f))) }
@@ -182,12 +184,12 @@ private fun FellowContent(
         item(key = "tiles") {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    StatTile("${data.cases.size}", "Cases logged", Modifier.weight(1f), icon = Icons.AutoMirrored.Filled.MenuBook)
-                    StatTile("${data.attendance.size}", "Sessions", Modifier.weight(1f), icon = Icons.Default.CalendarMonth)
+                    StatTile("${data.cases.size}", "Cases logged", Modifier.weight(1f), icon = SsplIcons.MenuBook)
+                    StatTile("${data.attendance.size}", "Sessions", Modifier.weight(1f), icon = SsplIcons.CalendarMonth)
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    StatTile("${data.assessments.size}", "Assessments", Modifier.weight(1f), icon = Icons.Default.Assessment)
-                    StatTile("${data.research.size}", "Research", Modifier.weight(1f), icon = Icons.Default.Description)
+                    StatTile("${data.assessments.size}", "Assessments", Modifier.weight(1f), icon = SsplIcons.Assessment)
+                    StatTile("${data.research.size}", "Research", Modifier.weight(1f), icon = SsplIcons.Description)
                 }
             }
         }
@@ -201,12 +203,12 @@ private fun FellowContent(
 
         when (tab) {
             0 -> {
-                item(key = "addCase") { PrimaryButton(text = "Log a case", onClick = { sheet = "case" }, icon = Icons.Default.Add) }
+                item(key = "addCase") { PrimaryButton(text = "Log a case", onClick = { sheet = "case" }, icon = SsplIcons.Add) }
                 if (data.cases.isEmpty()) item(key = "noCases") { SectionEmpty("No cases logged yet. Log your first procedure for trainer review.") }
                 items(data.cases, key = { "case_${it.id}" }) { CaseRow(it, showFellow = false) }
             }
             1 -> {
-                item(key = "addAtt") { PrimaryButton(text = "Record attendance", onClick = { sheet = "att" }, icon = Icons.Default.Add) }
+                item(key = "addAtt") { PrimaryButton(text = "Record attendance", onClick = { sheet = "att" }, icon = SsplIcons.Add) }
                 if (data.attendance.isEmpty()) item(key = "noAtt") { SectionEmpty("No attendance recorded yet.") }
                 items(data.attendance, key = { "att_${it.id}" }) { AttendanceRow(it, showFellow = false) }
             }
@@ -215,7 +217,7 @@ private fun FellowContent(
                 items(data.assessments, key = { "ass_${it.id}" }) { AssessmentRow(it) }
             }
             else -> {
-                item(key = "addRes") { PrimaryButton(text = "Submit research / publication", onClick = { sheet = "research" }, icon = Icons.Default.Add) }
+                item(key = "addRes") { PrimaryButton(text = "Submit research / publication", onClick = { sheet = "research" }, icon = SsplIcons.Add) }
                 if (data.research.isEmpty()) item(key = "noRes") { SectionEmpty("No research or publications submitted yet.") }
                 items(data.research, key = { "res_${it.id}" }) { ResearchRow(it, onOpenFile = onOpenUrl) }
             }
@@ -225,18 +227,18 @@ private fun FellowContent(
             SsplCard(Modifier.padding(top = 8.dp)) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text("PLACEMENT", style = AppTheme.typography.overline)
-                    FactRow(Icons.Default.Business, "Training centre", c.centerName ?: "—")
-                    FactRow(Icons.Default.Person, "Master trainer", c.trainerName ?: "—")
-                    FactRow(Icons.Default.WorkspacePremium, "Category · status", "${c.category ?: "—"} · ${c.status?.humanize() ?: "—"}")
-                    FactRow(Icons.Default.CalendarMonth, "Training started", prettyDate(c.startedAt))
+                    FactRow(SsplIcons.Business, "Training centre", c.centerName ?: "—")
+                    FactRow(SsplIcons.Person, "Master trainer", c.trainerName ?: "—")
+                    FactRow(SsplIcons.WorkspacePremium, "Category · status", "${c.category ?: "—"} · ${c.status?.humanize() ?: "—"}")
+                    FactRow(SsplIcons.CalendarMonth, "Training started", prettyDate(c.startedAt))
                 }
             }
         }
 
         item(key = "links") {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                NavTile(Icons.Default.Feedback, "Feedback", onFeedback, Modifier.weight(1f), subtitle = "Part 1 & 2")
-                NavTile(Icons.Default.Description, "Guidelines", onGuidelines, Modifier.weight(1f), subtitle = "SOPs")
+                NavTile(SsplIcons.Feedback, "Feedback", onFeedback, Modifier.weight(1f), subtitle = "Part 1 & 2")
+                NavTile(SsplIcons.Description, "Guidelines", onGuidelines, Modifier.weight(1f), subtitle = "SOPs")
             }
         }
     }
@@ -251,7 +253,7 @@ private fun FellowContent(
 @Composable
 private fun CertificateCard(cert: CertificateInfo, programName: String?, onVerify: () -> Unit, onDownload: (() -> Unit)?) {
     GradientHeroCard {
-        GlassPill("CERTIFICATE ISSUED & VERIFIED", icon = Icons.Default.Verified)
+        GlassPill("CERTIFICATE ISSUED & VERIFIED", icon = SsplIcons.Verified)
         Spacer(Modifier.height(10.dp))
         Text("Congratulations, Fellow!", style = AppTheme.typography.headlineSmall.copy(color = Color.White, fontWeight = FontWeight.Bold))
         Text(
@@ -265,8 +267,8 @@ private fun CertificateCard(cert: CertificateInfo, programName: String?, onVerif
         )
         Spacer(Modifier.height(14.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            if (onDownload != null) SecondaryButton(text = "Download PDF", onClick = onDownload, icon = Icons.Default.Download, modifier = Modifier.weight(1f))
-            SecondaryButton(text = "Verify online", onClick = onVerify, icon = Icons.Default.Verified, modifier = Modifier.weight(1f))
+            if (onDownload != null) SecondaryButton(text = "Download PDF", onClick = onDownload, icon = SsplIcons.Download, modifier = Modifier.weight(1f))
+            SecondaryButton(text = "Verify online", onClick = onVerify, icon = SsplIcons.Verified, modifier = Modifier.weight(1f))
         }
     }
 }
@@ -388,14 +390,14 @@ private fun ResearchSheet(onDismiss: () -> Unit, onSubmit: (Map<String, String>,
         FieldLabel("Upload manuscript / poster / proof", help = "PDF, DOCX, ZIP or JPG (optional)")
         val f = file
         if (f == null) {
-            SecondaryButton(text = "Choose file", onClick = pick, icon = Icons.Default.AttachFile)
+            SecondaryButton(text = "Choose file", onClick = pick, icon = SsplIcons.AttachFile)
         } else {
             Row(
                 Modifier.fillMaxWidth().clip(AppTheme.shapes.small).background(AppTheme.colors.boxColor).padding(start = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(f.name, style = AppTheme.typography.bodyMedium.copy(color = AppTheme.colors.heading), modifier = Modifier.weight(1f))
-                IconButton(onClick = { file = null }) { Icon(Icons.Default.Close, contentDescription = "Remove attachment", tint = AppTheme.colors.muted) }
+                IconButton(onClick = { file = null }) { Icon(SsplIcons.Close, contentDescription = "Remove attachment", tint = AppTheme.colors.muted) }
             }
         }
         FieldError(fileError)

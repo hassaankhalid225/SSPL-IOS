@@ -1,5 +1,7 @@
 package com.sspl.ui.components
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -91,7 +93,7 @@ fun BannerDialog(
                 }
                 // Close sits on the image (white on a glass chip is allowed on image surfaces).
                 Box(Modifier.align(Alignment.TopEnd).padding(10.dp)) {
-                    GlassIconButton(Icons.Default.Close, "Close", onDismiss)
+                    GlassIconButton(SsplIcons.Close, "Close", onDismiss)
                 }
             }
             PrimaryButton(
@@ -119,7 +121,7 @@ private fun BannerPager(banners: List<Banner>, baseUrl: String) {
                         .height(6.dp)
                         .width(if (selected) 18.dp else 6.dp)
                         .clip(AppTheme.shapes.chip)
-                        .background(if (selected) AppTheme.colors.primary else AppTheme.colors.border)
+                        .background(if (selected) AppTheme.colors.buttonStart else AppTheme.colors.border)
                 )
             }
         }
@@ -155,7 +157,7 @@ private fun BannerItem(banner: Banner, baseUrl: String) {
                     Modifier.fillMaxSize().background(AppTheme.colors.headerGradient),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.Image, contentDescription = null, tint = Color.White.copy(alpha = 0.55f), modifier = Modifier.size(44.dp))
+                    Icon(SsplIcons.Image, contentDescription = null, tint = Color.White.copy(alpha = 0.55f), modifier = Modifier.size(44.dp))
                 }
             }
         }

@@ -1,5 +1,7 @@
 package com.sspl.ui.homescreen
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -116,14 +118,14 @@ fun HomeScreen(
     fun gated(action: () -> Unit) = if (shell.isGuest) shell.onAvatar() else action()
 
     val quickActions = listOf(
-        QuickAction(Icons.Default.Event, "Events") { open(Screen.ScientificProgramsScreen.route) },
-        QuickAction(Icons.Default.CalendarMonth, "Conferences") { open(Screen.ConferencesScreen.route) },
-        QuickAction(Icons.Default.School, "Workshops") { open(Screen.WorkshopsScreen.route) },
-        QuickAction(Icons.Default.WorkspacePremium, "Fellowship") { open(Screen.FellowshipHubScreen.route) },
-        QuickAction(Icons.AutoMirrored.Filled.Assignment, "My events", requiresAuth = true) { gated { open(Screen.MyRegistrationsScreen.route) } },
-        QuickAction(Icons.Default.Badge, "Certificates", requiresAuth = true) { gated { open(Screen.MyCertificatesScreen.route) } },
-        QuickAction(Icons.Default.Verified, "Verify") { open(Screen.VerifyCertificateScreen.route) },
-        QuickAction(Icons.Default.Download, "Downloads") { open(Screen.DownloadsScreen.route) }
+        QuickAction(SsplIcons.Event, "Events") { open(Screen.ScientificProgramsScreen.route) },
+        QuickAction(SsplIcons.CalendarMonth, "Conferences") { open(Screen.ConferencesScreen.route) },
+        QuickAction(SsplIcons.School, "Workshops") { open(Screen.WorkshopsScreen.route) },
+        QuickAction(SsplIcons.WorkspacePremium, "Fellowship") { open(Screen.FellowshipHubScreen.route) },
+        QuickAction(SsplIcons.Assignment, "My events", requiresAuth = true) { gated { open(Screen.MyRegistrationsScreen.route) } },
+        QuickAction(SsplIcons.Badge, "Certificates", requiresAuth = true) { gated { open(Screen.MyCertificatesScreen.route) } },
+        QuickAction(SsplIcons.Verified, "Verify") { open(Screen.VerifyCertificateScreen.route) },
+        QuickAction(SsplIcons.Download, "Downloads") { open(Screen.DownloadsScreen.route) }
     )
 
     SsplRefreshBox(
@@ -171,13 +173,15 @@ fun HomeScreen(
                 Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                     SectionHeader(title = "Quick access")
                     Spacer(Modifier.height(6.dp))
-                    quickActions.chunked(4).forEach { row ->
+                    quickActions.chunked(4).forEachIndexed { rowIndex, row ->
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            row.forEach { qa ->
+                            row.forEachIndexed { colIndex, qa ->
                                 QuickActionTile(
+                                    // Staggered draw-on wave across the grid.
+                                    animationDelayMillis = (rowIndex * 4 + colIndex) * 70,
                                     icon = qa.icon,
                                     label = qa.label,
                                     onClick = qa.go,
@@ -250,20 +254,24 @@ fun HomeScreen(
                     SectionHeader(title = "Your society")
                     Spacer(Modifier.height(8.dp))
                     val tiles = listOf(
-                        Triple(Icons.Default.AccountBalance, "About SSPL", Screen.AboutScreen.route),
-                        Triple(Icons.Default.Groups, "Executive council", Screen.ExecutiveCouncilScreen.route),
-                        Triple(Icons.Default.HowToVote, "Elections", Screen.ElectionsScreen.route),
-                        Triple(Icons.Default.Badge, "Members directory", Screen.MembersDirectoryScreen.route),
-                        Triple(Icons.Default.CardMembership, "Membership plans", Screen.MembershipPlansScreen.route),
-                        Triple(Icons.Default.MenuBook, "Our history", Screen.HistoryScreen.route)
+                        Triple(SsplIcons.AccountBalance, "About SSPL", Screen.AboutScreen.route),
+                        Triple(SsplIcons.Groups, "Executive council", Screen.ExecutiveCouncilScreen.route),
+                        Triple(SsplIcons.HowToVote, "Elections", Screen.ElectionsScreen.route),
+                        Triple(SsplIcons.Badge, "Members directory", Screen.MembersDirectoryScreen.route),
+                        Triple(SsplIcons.CardMembership, "Membership plans", Screen.MembershipPlansScreen.route),
+                        Triple(SsplIcons.MenuBook, "Our history", Screen.HistoryScreen.route)
                     )
-                    tiles.chunked(2).forEach { row ->
+                    tiles.chunked(2).forEachIndexed { rowIndex, row ->
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            row.forEach { (icon, label, route) ->
-                                NavTile(icon = icon, title = label, onClick = { open(route) }, modifier = Modifier.weight(1f))
+                            row.forEachIndexed { colIndex, (icon, label, route) ->
+                                NavTile(
+                                    icon = icon, title = label, onClick = { open(route) },
+                                    animationDelayMillis = (rowIndex * 2 + colIndex) * 80,
+                                    modifier = Modifier.weight(1f)
+                                )
                             }
                         }
                     }
@@ -318,10 +326,10 @@ private fun HomeHero(bottomSpace: androidx.compose.ui.unit.Dp) {
                 .padding(start = 18.dp, end = 18.dp, top = 8.dp, bottom = bottomSpace)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                GlassIconButton(Icons.Default.Menu, "Open menu", shell.openDrawer)
+                GlassIconButton(SsplIcons.Menu, "Open menu", shell.openDrawer)
                 Spacer(Modifier.weight(1f))
                 GlassIconButton(
-                    Icons.Outlined.Notifications, "Notifications", shell.onNotifications,
+                    SsplIcons.Notifications, "Notifications", shell.onNotifications,
                     badgeCount = shell.unreadCount
                 )
                 Spacer(Modifier.width(10.dp))
@@ -338,7 +346,7 @@ private fun HomeHero(bottomSpace: androidx.compose.ui.unit.Dp) {
             Spacer(Modifier.height(22.dp))
             Text(
                 text = DisplayDates.greeting().uppercase(),
-                style = AppTheme.typography.overline.copy(color = Color(0xFF9FDCF0))
+                style = AppTheme.typography.overline.copy(color = AppTheme.colors.heroAccent)
             )
             Spacer(Modifier.height(4.dp))
             Text(
@@ -356,17 +364,17 @@ private fun HomeHero(bottomSpace: androidx.compose.ui.unit.Dp) {
                 Row(
                     modifier = Modifier
                         .clip(RoundedCornerShape(50))
-                        .background(Color.White)
+                        .background(AppTheme.colors.heroChip)
                         .clickable(onClick = shell.onAvatar)
                         .padding(horizontal = 14.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         "Sign in to your member portal",
-                        style = AppTheme.typography.labelMedium.copy(color = Color(0xFF0B4A8C), fontWeight = FontWeight.SemiBold)
+                        style = AppTheme.typography.labelMedium.copy(color = AppTheme.colors.onHeroChip, fontWeight = FontWeight.SemiBold)
                     )
                     Spacer(Modifier.width(6.dp))
-                    Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Color(0xFF0B4A8C), modifier = Modifier.size(14.dp))
+                    Icon(SsplIcons.ArrowForward, null, tint = AppTheme.colors.onHeroChip, modifier = Modifier.size(14.dp))
                 }
             }
         }
@@ -393,7 +401,7 @@ private fun FeaturedEventCard(event: EventItem, onClick: () -> Unit, modifier: M
                 source = event.effectiveImage,
                 contentDescription = event.title,
                 modifier = Modifier.fillMaxSize(),
-                fallbackIcon = Icons.Default.Event,
+                fallbackIcon = SsplIcons.Event,
                 fallbackIconSize = 44.dp
             )
             Box(
@@ -411,15 +419,15 @@ private fun FeaturedEventCard(event: EventItem, onClick: () -> Unit, modifier: M
             }
             val rel = DisplayDates.relative(event.effectiveStart)
             if (rel.isNotEmpty() && event.computedStatus == "upcoming") {
-                GlassPill(rel, modifier = Modifier.align(Alignment.BottomStart).padding(12.dp), icon = Icons.Default.Schedule)
+                GlassPill(rel, modifier = Modifier.align(Alignment.BottomStart).padding(12.dp), icon = SsplIcons.Schedule)
             }
         }
         Column(Modifier.padding(16.dp)) {
             Text(event.title, style = AppTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Spacer(Modifier.height(8.dp))
-            MetaLine(Icons.Default.CalendarMonth, listOf(event.formattedDateRange, event.formattedTimeRange).filter { it.isNotBlank() }.joinToString(" · "))
+            MetaLine(SsplIcons.CalendarMonth, listOf(event.formattedDateRange, event.formattedTimeRange).filter { it.isNotBlank() }.joinToString(" · "))
             Spacer(Modifier.height(4.dp))
-            MetaLine(Icons.Default.Place, event.effectiveVenue)
+            MetaLine(SsplIcons.Place, event.effectiveVenue)
             Spacer(Modifier.height(14.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -442,7 +450,7 @@ private fun FeaturedEventCard(event: EventItem, onClick: () -> Unit, modifier: M
                         style = AppTheme.typography.labelMedium.copy(color = Color.White, fontWeight = FontWeight.SemiBold)
                     )
                     Spacer(Modifier.width(4.dp))
-                    Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Color.White, modifier = Modifier.size(14.dp))
+                    Icon(SsplIcons.ArrowForward, null, tint = Color.White, modifier = Modifier.size(14.dp))
                 }
             }
         }
@@ -461,7 +469,7 @@ private fun CompactEventCard(event: EventItem, onClick: () -> Unit) {
             .clickable(onClick = onClick)
     ) {
         Box(Modifier.fillMaxWidth().height(118.dp)) {
-            SsplImage(event.effectiveImage, event.title, Modifier.fillMaxSize(), fallbackIcon = Icons.Default.Event)
+            SsplImage(event.effectiveImage, event.title, Modifier.fillMaxSize(), fallbackIcon = SsplIcons.Event)
             DateBlock(event, Modifier.align(Alignment.TopStart).padding(10.dp), compact = true)
         }
         Column(Modifier.padding(12.dp)) {
@@ -472,7 +480,7 @@ private fun CompactEventCard(event: EventItem, onClick: () -> Unit) {
             Spacer(Modifier.height(2.dp))
             Text(event.title, style = AppTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Spacer(Modifier.height(6.dp))
-            MetaLine(Icons.Default.Place, event.effectiveVenue)
+            MetaLine(SsplIcons.Place, event.effectiveVenue)
         }
     }
 }
@@ -482,20 +490,20 @@ private fun DateBlock(event: EventItem, modifier: Modifier = Modifier, compact: 
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(14.dp))
-            .background(Color.White)
+            .background(AppTheme.colors.surfaceElevated)
             .padding(horizontal = if (compact) 9.dp else 11.dp, vertical = if (compact) 5.dp else 7.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             event.startDayNumber,
             style = AppTheme.typography.number.copy(
-                color = Color(0xFF0B2A4A),
+                color = AppTheme.colors.heading,
                 fontSize = if (compact) AppTheme.typography.titleMedium.fontSize else AppTheme.typography.number.fontSize
             )
         )
         Text(
             event.startMonthName.uppercase(),
-            style = AppTheme.typography.labelSmall.copy(color = Color(0xFF0B5AA6), fontWeight = FontWeight.Bold)
+            style = AppTheme.typography.labelSmall.copy(color = AppTheme.colors.primary, fontWeight = FontWeight.Bold)
         )
     }
 }
@@ -515,7 +523,7 @@ private fun NoEventsCard(onBrowse: () -> Unit) {
     ListRowCard(
         title = "No upcoming events right now",
         subtitle = "New CME events and workshops are announced here first. Browse past events meanwhile.",
-        leading = { IconTile(Icons.Default.CalendarMonth) },
+        leading = { IconTile(SsplIcons.CalendarMonth) },
         onClick = onBrowse,
         modifier = Modifier.padding(horizontal = 16.dp)
     )
@@ -530,7 +538,7 @@ private fun FellowshipImpactCard(stats: FellowshipStats, onClick: () -> Unit, mo
     GradientHeroCard(modifier = modifier, onClick = onClick) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                GlassPill("FELLOWSHIP PROGRAMME", icon = Icons.Default.WorkspacePremium)
+                GlassPill("FELLOWSHIP PROGRAMME", icon = SsplIcons.WorkspacePremium)
                 Spacer(Modifier.height(10.dp))
                 Text(
                     "Training the next generation of surgeons",
@@ -538,7 +546,7 @@ private fun FellowshipImpactCard(stats: FellowshipStats, onClick: () -> Unit, mo
                     maxLines = 2
                 )
             }
-            Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Color.White, modifier = Modifier.size(20.dp))
+            Icon(SsplIcons.ArrowForward, null, tint = Color.White, modifier = Modifier.size(20.dp))
         }
         Spacer(Modifier.height(16.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
@@ -556,7 +564,7 @@ private fun NewsRow(item: SocietyNewsItem, onClick: () -> Unit) {
         title = item.title ?: "Announcement",
         subtitle = (item.message ?: item.description)?.take(140),
         meta = DisplayDates.medium(item.createdAt).takeIf { it.isNotBlank() },
-        leading = { IconTile(Icons.Default.Campaign, tint = AppTheme.colors.accent, background = AppTheme.colors.infoContainer) },
+        leading = { IconTile(SsplIcons.Campaign, tint = AppTheme.colors.accent, background = AppTheme.colors.infoContainer) },
         onClick = onClick,
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp)
     )
@@ -579,9 +587,9 @@ private fun HelpStrip(onContact: () -> Unit, onFaq: () -> Unit, onGuide: () -> U
         )
         Spacer(Modifier.height(12.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            HelpChip(Icons.Default.SupportAgent, "Contact", onContact, Modifier.weight(1f))
-            HelpChip(Icons.Default.QuestionAnswer, "FAQs", onFaq, Modifier.weight(1f))
-            HelpChip(Icons.Default.MenuBook, "Guide", onGuide, Modifier.weight(1f))
+            HelpChip(SsplIcons.SupportAgent, "Contact", onContact, Modifier.weight(1f))
+            HelpChip(SsplIcons.QuestionAnswer, "FAQs", onFaq, Modifier.weight(1f))
+            HelpChip(SsplIcons.MenuBook, "Guide", onGuide, Modifier.weight(1f))
         }
     }
 }

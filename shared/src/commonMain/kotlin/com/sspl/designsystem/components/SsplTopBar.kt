@@ -1,5 +1,7 @@
 package com.sspl.designsystem.components
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -26,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -58,6 +61,17 @@ fun GlassIconButton(
     modifier: Modifier = Modifier,
     badgeCount: Int = 0
 ) {
+    // Gentle bell swing when something is unread: on appear / when the count changes, then every 6 s.
+    val swing = androidx.compose.runtime.remember { androidx.compose.animation.core.Animatable(0f) }
+    androidx.compose.runtime.LaunchedEffect(badgeCount) {
+        while (badgeCount > 0) {
+            for (angle in listOf(14f, -12f, 9f, -6f, 3f, 0f)) {
+                swing.animateTo(angle, androidx.compose.animation.core.tween(90))
+            }
+            kotlinx.coroutines.delay(6_000)
+        }
+        swing.snapTo(0f)
+    }
     Box(modifier = modifier.size(42.dp)) {
         Box(
             modifier = Modifier
@@ -68,7 +82,15 @@ fun GlassIconButton(
                 .clickable(onClick = onClick),
             contentAlignment = Alignment.Center
         ) {
-            Icon(icon, contentDescription = contentDescription, tint = Color.White, modifier = Modifier.size(21.dp))
+            Icon(
+                icon, contentDescription = contentDescription, tint = Color.White,
+                modifier = Modifier
+                    .size(21.dp)
+                    .graphicsLayer {
+                        rotationZ = swing.value
+                        transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0.5f, 0.1f)
+                    }
+            )
         }
         if (badgeCount > 0) {
             Box(
@@ -125,7 +147,7 @@ fun SsplTopBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             GlassIconButton(
-                icon = if (canNavigateBack) Icons.AutoMirrored.Filled.ArrowBack else Icons.Default.Menu,
+                icon = if (canNavigateBack) SsplIcons.ArrowBack else SsplIcons.Menu,
                 contentDescription = if (canNavigateBack) "Back" else "Open menu",
                 onClick = onNavigationClick
             )
@@ -148,7 +170,7 @@ fun SsplTopBar(
             }
             if (onNotificationsClick != null) {
                 GlassIconButton(
-                    icon = Icons.Outlined.Notifications,
+                    icon = SsplIcons.Notifications,
                     contentDescription = "Notifications",
                     onClick = onNotificationsClick,
                     badgeCount = unreadNotificationCount

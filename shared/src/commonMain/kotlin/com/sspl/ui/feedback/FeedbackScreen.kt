@@ -1,5 +1,7 @@
 package com.sspl.ui.feedback
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -76,7 +78,7 @@ fun FeedbackScreen(navController: NavController, viewModel: FeedbackViewModel = 
         EmptyState(
             title = "Choose what to review",
             message = "Open feedback from a session in your event programme or from the Event Portal.",
-            icon = Icons.Default.RateReview,
+            icon = SsplIcons.RateReview,
             modifier = Modifier.fillMaxSize()
         )
         return
@@ -135,7 +137,7 @@ fun FeedbackScreenContent(
     ) {
         item(key = "hero") {
             GradientHeroCard {
-                GlassPill("FEEDBACK", icon = Icons.Default.RateReview)
+                GlassPill("FEEDBACK", icon = SsplIcons.RateReview)
                 Spacer(Modifier.height(10.dp))
                 Text(feedbackForm.title, style = AppTheme.typography.headlineSmall.copy(color = Color.White))
                 Text(
@@ -208,7 +210,7 @@ fun QuestionSelector(
                 Box(
                     Modifier
                         .clip(AppTheme.shapes.chip)
-                        .background(if (sel) colors.primary else colors.surface)
+                        .background(if (sel) colors.buttonStart else colors.surface)
                         .border(1.dp, if (sel) colors.primary else colors.border, AppTheme.shapes.chip)
                         .selectable(selected = sel, role = Role.RadioButton) {
                             selected = o.value

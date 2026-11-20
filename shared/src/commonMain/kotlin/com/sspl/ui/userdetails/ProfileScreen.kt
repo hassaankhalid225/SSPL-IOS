@@ -1,5 +1,7 @@
 package com.sspl.ui.userdetails
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -231,12 +233,12 @@ private fun GuestProfileContent(onSignIn: () -> Unit) {
         }
 
         SectionHeader(title = "With an SSPL account you can")
-        GuestBenefit(Icons.Default.CardMembership, "Manage your membership", "Apply, renew and track your plan status")
-        GuestBenefit(Icons.Default.EventAvailable, "Register for events", "Conferences, workshops and CME sessions")
-        GuestBenefit(Icons.Default.WorkspacePremium, "Download certificates", "All your CME and attendance certificates")
+        GuestBenefit(SsplIcons.CardMembership, "Manage your membership", "Apply, renew and track your plan status")
+        GuestBenefit(SsplIcons.EventAvailable, "Register for events", "Conferences, workshops and CME sessions")
+        GuestBenefit(SsplIcons.WorkspacePremium, "Download certificates", "All your CME and attendance certificates")
 
         Spacer(Modifier.height(4.dp))
-        PrimaryButton(text = "Sign in or create account", onClick = onSignIn, icon = Icons.AutoMirrored.Filled.Login)
+        PrimaryButton(text = "Sign in or create account", onClick = onSignIn, icon = SsplIcons.Login)
     }
 }
 
@@ -309,7 +311,7 @@ private fun AuthenticatedProfileContent(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            Icons.Default.CameraAlt,
+                            SsplIcons.CameraAlt,
                             contentDescription = "Change profile photo",
                             tint = AppTheme.colors.gradientMid,
                             modifier = Modifier.size(16.dp)
@@ -337,7 +339,7 @@ private fun AuthenticatedProfileContent(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                GlassPill(membershipLabel.uppercase(), icon = Icons.Default.CardMembership)
+                GlassPill(membershipLabel.uppercase(), icon = SsplIcons.CardMembership)
                 roles.take(4).forEach { GlassPill(it.replace('_', ' ')) }
             }
         }
@@ -380,7 +382,7 @@ private fun AuthenticatedProfileContent(
                 title = membershipLabel,
                 subtitle = if (activePlan) "Your membership is active" else "No active membership plan",
                 meta = if (activePlan) null else "View plans and apply",
-                leading = { IconTile(Icons.Default.CardMembership) },
+                leading = { IconTile(SsplIcons.CardMembership) },
                 trailing = {
                     StatusBadge(
                         status = if (activePlan) "Active" else (user.membershipStatus?.replace('_', ' ')?.lowercase()
@@ -399,14 +401,14 @@ private fun AuthenticatedProfileContent(
             SectionHeader(title = "Shortcuts")
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 NavTile(
-                    icon = Icons.Default.WorkspacePremium,
+                    icon = SsplIcons.WorkspacePremium,
                     title = "Certificates",
                     subtitle = "CME & attendance",
                     onClick = { onOpen(Screen.MyCertificatesScreen.route) },
                     modifier = Modifier.weight(1f)
                 )
                 NavTile(
-                    icon = Icons.Default.EventAvailable,
+                    icon = SsplIcons.EventAvailable,
                     title = "Registrations",
                     subtitle = "Events you joined",
                     onClick = { onOpen(Screen.MyRegistrationsScreen.route) },
@@ -414,14 +416,14 @@ private fun AuthenticatedProfileContent(
                 )
             }
             NavTile(
-                icon = Icons.Default.Settings,
+                icon = SsplIcons.Settings,
                 title = "Settings",
                 subtitle = "Appearance, account and legal",
                 onClick = { onOpen(Screen.SettingsScreen.route) },
                 modifier = Modifier.fillMaxWidth()
             )
             NavTile(
-                icon = Icons.AutoMirrored.Filled.Logout,
+                icon = SsplIcons.Logout,
                 title = "Sign out",
                 subtitle = "Sign out of this device",
                 onClick = onSignOutClick,

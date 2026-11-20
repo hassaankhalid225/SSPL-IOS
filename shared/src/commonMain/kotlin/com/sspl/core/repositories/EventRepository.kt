@@ -195,6 +195,7 @@ class EventRepository(private val httpClient: HttpClient) {
             }
             emit(eventsList)
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e // keep flow cancellation transparent
             println("EventRepository.getAbstractEligibleEvents error: ${e.message}")
             emit(emptyList())
         }
@@ -221,6 +222,7 @@ class EventRepository(private val httpClient: HttpClient) {
             }
             emit(item)
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e // keep flow cancellation transparent
             println("EventRepository.getEventById error: ${e.message}")
             emit(null)
         }
@@ -246,6 +248,7 @@ class EventRepository(private val httpClient: HttpClient) {
             }
             emit(checkData)
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e // keep flow cancellation transparent
             println("EventRepository.checkEventStatus error: ${e.message}")
             emit(null)
         }
@@ -269,6 +272,7 @@ class EventRepository(private val httpClient: HttpClient) {
             val parsed = json.decodeFromString<EventRegisterResponse>(responseText)
             emit(parsed)
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e // keep flow cancellation transparent
             println("EventRepository.registerForEvent error: ${e.message}")
             emit(EventRegisterResponse(success = false, message = e.message ?: "Failed to register for event"))
         }
@@ -287,6 +291,7 @@ class EventRepository(private val httpClient: HttpClient) {
             val parsed = json.decodeFromString<EventRetryPaymentResponse>(responseText)
             emit(parsed)
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e // keep flow cancellation transparent
             println("EventRepository.retryEventPayment error: ${e.message}")
             emit(EventRetryPaymentResponse(success = false, message = e.message ?: "Payment retry failed"))
         }
@@ -305,6 +310,7 @@ class EventRepository(private val httpClient: HttpClient) {
             val parsed = json.decodeFromString<SwichVerifyStatusResponse>(responseText)
             emit(parsed)
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e // keep flow cancellation transparent
             println("EventRepository.verifySwichPayment error: ${e.message}")
             emit(SwichVerifyStatusResponse(success = false, status = "failed", message = e.message ?: "Verification failed"))
         }
@@ -328,6 +334,7 @@ class EventRepository(private val httpClient: HttpClient) {
             }
             emit(archives)
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e // keep flow cancellation transparent
             println("EventRepository.getPublicArchives error: ${e.message}")
             emit(emptyList())
         }
@@ -411,6 +418,7 @@ class EventRepository(private val httpClient: HttpClient) {
             }
             emit(data)
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e // keep flow cancellation transparent
             println("EventRepository.getMyRegistrations error: ${e.message}")
             emit(null)
         }

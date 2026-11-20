@@ -1,3 +1,5 @@
+@file:OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+
 package com.sspl.core.models
 
 import kotlinx.serialization.SerialName
@@ -21,7 +23,7 @@ data class Registration(
     @SerialName("role_id") val roleId: Long? = null,
     @SerialName("fee_amount") val feeAmount: Double = 0.0,
     @SerialName("payment_status") val paymentStatus: String = "PENDING", // PENDING | SUCCESS | FAILED | REFUNDED
-    @SerialName("payment_mode") val paymentMode: String? = null, // CASH | BANK | CARD | null
+    @kotlinx.serialization.EncodeDefault @SerialName("payment_mode") val paymentMode: String? = null, // CASH | BANK | CARD | null
     @SerialName("transaction_id") val transactionId: String? = null,
     @SerialName("payment_date") val paymentDate: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
@@ -72,7 +74,7 @@ data class RegistrationListResponse(
 
 @Serializable
 data class InitiatePaymentRequest(
-    @SerialName("item_type") val itemType: String = "conference_registration",
+    @kotlinx.serialization.EncodeDefault @SerialName("item_type") val itemType: String = "conference_registration",
     @SerialName("conference_registration_id") val conferenceRegistrationId: Long? = null,
     @SerialName("membership_id") val membershipId: Long? = null,
     val amount: Double? = null,
@@ -100,8 +102,8 @@ data class InitiatePaymentResponse(
 }
 @Serializable
 data class ManualPaymentRequest(
-    @SerialName("payment_status") val paymentStatus: String = "SUCCESS", // Or PENDING verification
-    @SerialName("payment_mode") val paymentMode: String = "BANK",
+    @kotlinx.serialization.EncodeDefault @SerialName("payment_status") val paymentStatus: String = "SUCCESS", // Or PENDING verification
+    @kotlinx.serialization.EncodeDefault @SerialName("payment_mode") val paymentMode: String = "BANK",
     @SerialName("transaction_id") val transactionId: String,
     @SerialName("bank_name") val bankName: String? = null
 )

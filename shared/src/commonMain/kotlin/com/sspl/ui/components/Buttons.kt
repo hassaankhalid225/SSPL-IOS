@@ -42,8 +42,8 @@ fun AppRoundedCornerButton(
         onClick = onClick,
         enabled = isEnabled,
         colors = ButtonDefaults.buttonColors(
-            containerColor = colors.primary,
-            contentColor = colors.onPrimary,
+            containerColor = colors.buttonStart,
+            contentColor = androidx.compose.ui.graphics.Color.White,
             disabledContainerColor = colors.boxColor,
             disabledContentColor = colors.muted
         ),

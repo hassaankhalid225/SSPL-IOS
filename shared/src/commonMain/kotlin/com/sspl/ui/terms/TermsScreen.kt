@@ -1,5 +1,7 @@
 package com.sspl.ui.terms
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -89,7 +91,7 @@ fun TermsScreen(navController: NavController) {
         item(key = "hero") {
             PageIntroHero(
                 eyebrow = "Legal compliance",
-                eyebrowIcon = Icons.Default.Gavel,
+                eyebrowIcon = SsplIcons.Gavel,
                 title = "Terms & conditions",
                 summary = "Society of Surgeons of Pakistan – Lahore Chapter",
                 stats = listOf("${TERMS.size}" to "Sections", "10 days" to "Refund window")
@@ -124,7 +126,7 @@ fun TermsScreen(navController: NavController) {
         item(key = "help") {
             Spacer(Modifier.height(4.dp))
             NavTile(
-                icon = Icons.Default.SupportAgent,
+                icon = SsplIcons.SupportAgent,
                 title = "Questions about these terms?",
                 subtitle = "Contact the SSPL secretariat",
                 onClick = { navController.navigate(Screen.ContactUsScreen.route) { launchSingleTop = true } },

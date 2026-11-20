@@ -1,5 +1,7 @@
 package com.sspl.ui.portal
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -120,10 +122,10 @@ fun PortalNotice(
 ) {
     val c = AppTheme.colors
     val (bg, fg, icon) = when (tone) {
-        NoticeTone.Success -> Triple(c.successContainer, c.success, Icons.Default.CheckCircle)
-        NoticeTone.Error -> Triple(c.errorContainer, c.error, Icons.Default.ErrorOutline)
-        NoticeTone.Warning -> Triple(c.warningContainer, c.warning, Icons.Default.ErrorOutline)
-        NoticeTone.Info -> Triple(c.surfaceTint, c.primary, Icons.Default.ErrorOutline)
+        NoticeTone.Success -> Triple(c.successContainer, c.success, SsplIcons.CheckCircle)
+        NoticeTone.Error -> Triple(c.errorContainer, c.error, SsplIcons.ErrorOutline)
+        NoticeTone.Warning -> Triple(c.warningContainer, c.warning, SsplIcons.ErrorOutline)
+        NoticeTone.Info -> Triple(c.surfaceTint, c.primary, SsplIcons.ErrorOutline)
     }
     Row(
         modifier = modifier
@@ -148,7 +150,7 @@ fun PortalNotice(
                 Modifier.size(32.dp).clip(CircleShape).clickable(onClick = onDismiss),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Close, contentDescription = "Dismiss", tint = fg, modifier = Modifier.size(16.dp))
+                Icon(SsplIcons.Close, contentDescription = "Dismiss", tint = fg, modifier = Modifier.size(16.dp))
             }
         }
     }
@@ -230,7 +232,7 @@ fun FilePickerField(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconTile(
-                if (fileName != null) Icons.Default.InsertDriveFile else Icons.Default.UploadFile,
+                if (fileName != null) SsplIcons.InsertDriveFile else SsplIcons.UploadFile,
                 size = 40.dp, iconSize = 20.dp, corner = 12.dp,
                 background = c.surface
             )
@@ -252,7 +254,7 @@ fun FilePickerField(
                     Modifier.size(40.dp).clip(CircleShape).clickable(enabled = enabled, onClick = onClear),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.Close, contentDescription = "Remove file", tint = c.muted, modifier = Modifier.size(18.dp))
+                    Icon(SsplIcons.Close, contentDescription = "Remove file", tint = c.muted, modifier = Modifier.size(18.dp))
                 }
             }
         }
@@ -304,7 +306,7 @@ fun <T> SheetSelectField(
                 modifier = Modifier.weight(1f),
                 maxLines = 2, overflow = TextOverflow.Ellipsis
             )
-            Icon(Icons.Default.ExpandMore, contentDescription = "Open options", tint = c.muted)
+            Icon(SsplIcons.ExpandMore, contentDescription = "Open options", tint = c.muted)
         }
         AnimatedVisibility(visible = error != null) {
             Text(error.orEmpty(), style = AppTheme.typography.labelSmall.copy(color = c.error), modifier = Modifier.padding(start = 4.dp))
@@ -344,7 +346,7 @@ fun <T> SheetSelectField(
                             Text(optionTitle(o), style = AppTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                             optionSubtitle?.invoke(o)?.let { Text(it, style = AppTheme.typography.bodySmall) }
                         }
-                        if (sel) Icon(Icons.Default.CheckCircle, contentDescription = "Selected", tint = c.primary, modifier = Modifier.size(20.dp))
+                        if (sel) Icon(SsplIcons.CheckCircle, contentDescription = "Selected", tint = c.primary, modifier = Modifier.size(20.dp))
                     }
                 }
             }
@@ -358,7 +360,7 @@ fun PortalGuestGate(onSignIn: () -> Unit, modifier: Modifier = Modifier) {
     EmptyState(
         title = "Sign in to your member portal",
         message = "Your membership, registrations, abstracts and certificates live here. Sign in with your SSPL account to continue.",
-        icon = Icons.Default.Lock,
+        icon = SsplIcons.Lock,
         actionText = "Sign in",
         onActionClick = onSignIn,
         modifier = modifier

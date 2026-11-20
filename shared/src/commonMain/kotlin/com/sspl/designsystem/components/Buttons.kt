@@ -1,5 +1,7 @@
 package com.sspl.designsystem.components
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
@@ -245,7 +247,7 @@ fun StickyCtaBar(
                 onClick = onPrimaryClick,
                 loading = loading,
                 enabled = enabled,
-                trailingIcon = Icons.AutoMirrored.Filled.ArrowForward,
+                trailingIcon = SsplIcons.ArrowForward,
                 modifier = if (priceText != null || secondaryText != null) Modifier.weight(1.2f) else Modifier.fillMaxWidth()
             )
         }

@@ -110,6 +110,20 @@ private fun RootNavigation(
         )
     }
 
+    // Refresh token rejected (truly expired) → back to sign-in, once.
+    val userSession: com.sspl.session.UserSession = koinInject()
+    LaunchedEffect(Unit) {
+        userSession.sessionExpired.collect {
+            val current = navController.currentDestination?.route
+            if (current != Screen.SignInScreen.route && current != Screen.SplashScreen.route) {
+                navController.navigate(Screen.SignInScreen.route) {
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
+        }
+    }
+
     NavHost(
         navController = navController,
         startDestination = Screen.SplashScreen.route,

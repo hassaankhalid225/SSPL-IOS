@@ -1,5 +1,7 @@
 package com.sspl.ui.conference.programs
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -53,7 +55,7 @@ fun SessionDetailScreen(
         EmptyState(
             title = "Session unavailable",
             message = "Open the session again from the event schedule.",
-            icon = Icons.Default.EventBusy,
+            icon = SsplIcons.EventBusy,
             modifier = Modifier.fillMaxSize()
         )
         return
@@ -75,13 +77,13 @@ fun SessionDetailScreen(
             SsplCard {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     DisplayDates.medium(session.startsAt).takeIf { it.isNotBlank() }?.let {
-                        FactRow(Icons.Default.CalendarMonth, "Date", "${DisplayDates.weekdayShort(session.startsAt)}, $it")
+                        FactRow(SsplIcons.CalendarMonth, "Date", "${DisplayDates.weekdayShort(session.startsAt)}, $it")
                     }
                     val time = listOf(safeTime(session.startsAt), safeTime(session.endsAt)).filter { it.isNotBlank() }.joinToString(" – ")
-                    if (time.isNotBlank()) FactRow(Icons.Default.Schedule, "Time", time)
+                    if (time.isNotBlank()) FactRow(SsplIcons.Schedule, "Time", time)
                     val venue = listOfNotNull(session.venue?.title ?: session.venue?.name, session.venue?.address)
                         .filter { it.isNotBlank() }.joinToString(", ")
-                    if (venue.isNotBlank()) FactRow(Icons.Default.Place, "Venue", venue)
+                    if (venue.isNotBlank()) FactRow(SsplIcons.Place, "Venue", venue)
                 }
             }
         }
@@ -113,7 +115,7 @@ fun SessionDetailScreen(
         }
         session.webLink?.takeIf { it.isNotBlank() }?.let { link ->
             item(key = "link") {
-                OutlineButton("Open session link", onClick = { urlOpener.openUrl(link) }, icon = Icons.AutoMirrored.Filled.OpenInNew)
+                OutlineButton("Open session link", onClick = { urlOpener.openUrl(link) }, icon = SsplIcons.OpenInNew)
             }
         }
     }

@@ -22,6 +22,7 @@ class GetConferenceRolesUseCase(private val repository: ConferenceRepository) {
                 emit(ApiStates.Failure(ApiError("Failed to fetch roles: ${response.status}")))
             }
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e // keep flow cancellation transparent
             emit(ApiStates.Failure(ApiError(e.message ?: "Unknown error")))
         }
     }

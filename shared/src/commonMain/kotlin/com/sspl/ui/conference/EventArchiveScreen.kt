@@ -1,5 +1,7 @@
 package com.sspl.ui.conference
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -75,7 +77,7 @@ fun EventArchiveScreen(
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 28.dp)) {
             item(key = "hero") {
                 GradientHeroCard(Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp)) {
-                    GlassPill("EVENT ARCHIVE", icon = Icons.Default.History)
+                    GlassPill("EVENT ARCHIVE", icon = SsplIcons.History)
                     Spacer(Modifier.height(10.dp))
                     Text("Materials from past meetings", style = AppTheme.typography.headlineSmall.copy(color = Color.White))
                     Text(
@@ -110,7 +112,7 @@ fun EventArchiveScreen(
                         title = if (state.searchQuery.isNotBlank()) "No matches" else "Archive is empty",
                         message = if (state.searchQuery.isNotBlank()) "Nothing matched \"${state.searchQuery}\". Try another word."
                         else "Materials from past events will appear here once they're published.",
-                        icon = if (state.searchQuery.isNotBlank()) Icons.Default.SearchOff else Icons.Default.FolderZip,
+                        icon = if (state.searchQuery.isNotBlank()) SsplIcons.SearchOff else SsplIcons.FolderZip,
                         modifier = Modifier.padding(top = 24.dp)
                     )
                 }
@@ -129,7 +131,7 @@ fun EventArchiveScreen(
 @Composable
 private fun ArchiveCard(archive: EventArchiveRecord, onOpen: (ArchiveMaterial) -> Unit, modifier: Modifier = Modifier) {
     val colors = AppTheme.colors
-    var expanded by rememberSaveable(archive.id) { mutableStateOf(archive.materials.size <= 3) }
+    var expanded by rememberSaveable(archive.id) { mutableStateOf(false) }
     Column(
         modifier
             .fillMaxWidth()
@@ -140,7 +142,7 @@ private fun ArchiveCard(archive: EventArchiveRecord, onOpen: (ArchiveMaterial) -
             .padding(14.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconTile(Icons.Default.History)
+            IconTile(SsplIcons.History)
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(archive.conference?.title ?: "Past event", style = AppTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -165,7 +167,7 @@ private fun ArchiveCard(archive: EventArchiveRecord, onOpen: (ArchiveMaterial) -
             ) {
                 Text("${archive.materials.size} materials", style = AppTheme.typography.labelMedium.copy(color = colors.primary), modifier = Modifier.weight(1f))
                 Icon(
-                    if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    if (expanded) SsplIcons.ExpandLess else SsplIcons.ExpandMore,
                     contentDescription = if (expanded) "Hide materials" else "Show materials",
                     tint = colors.primary
                 )
@@ -180,10 +182,10 @@ private fun ArchiveCard(archive: EventArchiveRecord, onOpen: (ArchiveMaterial) -
 @Composable
 private fun MaterialRow(material: ArchiveMaterial, onClick: () -> Unit) {
     val icon = when (material.type?.uppercase()) {
-        "IMAGE", "POSTER" -> Icons.Default.Image
-        "PRESENTATION" -> Icons.Default.PresentToAll
-        "ABSTRACT", "ABSTRACT_BOOK" -> Icons.Default.PictureAsPdf
-        else -> Icons.Default.Description
+        "IMAGE", "POSTER" -> SsplIcons.Image
+        "PRESENTATION" -> SsplIcons.PresentToAll
+        "ABSTRACT", "ABSTRACT_BOOK" -> SsplIcons.PictureAsPdf
+        else -> SsplIcons.Description
     }
     Row(
         Modifier
@@ -199,6 +201,6 @@ private fun MaterialRow(material: ArchiveMaterial, onClick: () -> Unit) {
             Text(material.title ?: "Document", style = AppTheme.typography.bodyMedium.copy(color = AppTheme.colors.heading), maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text((material.type ?: "File").replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() }, style = AppTheme.typography.labelSmall)
         }
-        Icon(Icons.Default.Download, contentDescription = "Open ${material.title ?: "file"}", tint = AppTheme.colors.primary, modifier = Modifier.size(20.dp))
+        Icon(SsplIcons.Download, contentDescription = "Open ${material.title ?: "file"}", tint = AppTheme.colors.primary, modifier = Modifier.size(20.dp))
     }
 }

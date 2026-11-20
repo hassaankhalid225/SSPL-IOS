@@ -88,7 +88,7 @@ import kotlinx.serialization.json.Json
         }
 
         config() // Apply additional configuration
-    }
+    }.also { it.installTokenRefresh(userSession) } // silent 401 → /auth/refresh → replay
 }
 //}
 //}

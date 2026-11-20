@@ -1,5 +1,7 @@
 package com.sspl.designsystem.components
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -190,7 +192,7 @@ fun PasswordField(
             trailingIcon = {
                 IconButton(onClick = toggle) {
                     Icon(
-                        imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                        imageVector = if (passwordVisible) SsplIcons.VisibilityOff else SsplIcons.Visibility,
                         contentDescription = if (passwordVisible) "Hide password" else "Show password",
                         tint = AppTheme.colors.muted
                     )
@@ -229,7 +231,7 @@ fun SearchBar(
             modifier = Modifier.fillMaxWidth()
         ) {
             Icon(
-                imageVector = Icons.Default.Search,
+                imageVector = SsplIcons.Search,
                 contentDescription = null,
                 tint = AppTheme.colors.muted,
                 modifier = Modifier.size(20.dp)
@@ -252,7 +254,7 @@ fun SearchBar(
             )
             if (query.isNotEmpty() && onClear != null) {
                 Icon(
-                    imageVector = Icons.Default.Clear,
+                    imageVector = SsplIcons.Clear,
                     contentDescription = "Clear search",
                     tint = AppTheme.colors.muted,
                     modifier = Modifier

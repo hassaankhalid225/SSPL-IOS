@@ -62,6 +62,8 @@ fun MainScaffold(
     onLogout: () -> Unit,
     unreadNotificationCount: Int = 0,
     onNotificationsClick: (() -> Unit)? = null,
+    /** True only for the Home destination (which draws its own hero header). */
+    isHomeScreen: Boolean = currentRoute is Route.Home,
     modifier: Modifier = Modifier,
     content: @Composable (Modifier) -> Unit
 ) {
@@ -74,7 +76,7 @@ fun MainScaffold(
     val isGuest = user == null || user?.isGuest() == true
     val avatarUrl = RoleUtils.getProfileImageUrl(user?.profilePicture)
     val initials = RoleUtils.getUserInitials(user)
-    val isHome = currentRoute is Route.Home
+    val isHome = isHomeScreen
 
     // Status bar icons are always light: every main screen has a navy gradient behind them.
     SystemBarsAppearance(lightStatusIcons = true, darkTheme = AppTheme.isDark)

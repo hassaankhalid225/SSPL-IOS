@@ -18,15 +18,14 @@ class GetUserDetailsUseCase(
         try {
             val response = userRepository.getUserProfile()
             if (response.status.isSuccess()) {
-                println("the result is $response")
                 val result = response.body<User>()
-                println("the result is $result")
                 emit(ApiStates.Success(result))
             } else {
                 val errorResponse = response.body<ApiError>()
                 emit(ApiStates.Failure(error = errorResponse))
             }
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e // keep flow cancellation transparent
             e.printStackTrace()
             emit(ApiStates.Failure(ApiError(message = e.message.orEmpty())))
         }

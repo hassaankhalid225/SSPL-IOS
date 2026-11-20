@@ -1,5 +1,7 @@
 package com.sspl.designsystem.components
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.spring
@@ -43,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -60,11 +63,11 @@ data class BottomNavItem(
 )
 
 val BOTTOM_NAV_ITEMS = listOf(
-    BottomNavItem(BottomBarTab.HOME, Icons.Outlined.Home, Icons.Filled.Home),
-    BottomNavItem(BottomBarTab.EVENTS, Icons.Outlined.CalendarMonth, Icons.Filled.CalendarMonth),
-    BottomNavItem(BottomBarTab.FELLOWSHIP, Icons.Outlined.School, Icons.Filled.School),
-    BottomNavItem(BottomBarTab.MY_PORTAL, Icons.Outlined.Dashboard, Icons.Filled.Dashboard),
-    BottomNavItem(BottomBarTab.MORE, Icons.Outlined.Widgets, Icons.Filled.Widgets)
+    BottomNavItem(BottomBarTab.HOME, SsplIcons.Home, SsplIcons.Home),
+    BottomNavItem(BottomBarTab.EVENTS, SsplIcons.CalendarMonth, SsplIcons.CalendarMonth),
+    BottomNavItem(BottomBarTab.FELLOWSHIP, SsplIcons.School, SsplIcons.School),
+    BottomNavItem(BottomBarTab.MY_PORTAL, SsplIcons.Dashboard, SsplIcons.Dashboard),
+    BottomNavItem(BottomBarTab.MORE, SsplIcons.Widgets, SsplIcons.Widgets)
 )
 
 @Composable
@@ -77,7 +80,9 @@ fun SsplBottomBar(
         modifier = modifier.fillMaxWidth(),
         color = AppTheme.colors.surface,
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-        shadowElevation = 18.dp
+        shadowElevation = if (AppTheme.isDark) 0.dp else 18.dp,
+        // Shadows vanish on dark backgrounds; a hairline defines the edge instead.
+        border = if (AppTheme.isDark) androidx.compose.foundation.BorderStroke(1.dp, AppTheme.colors.border) else null
     ) {
         Row(
             modifier = Modifier
@@ -121,11 +126,21 @@ private fun BottomTab(item: BottomNavItem, selected: Boolean, onClick: () -> Uni
             .padding(horizontal = if (selected) 16.dp else 13.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // Selected icon: small spring "pop" each time the tab becomes active.
+        val pop = androidx.compose.runtime.remember { androidx.compose.animation.core.Animatable(1f) }
+        androidx.compose.runtime.LaunchedEffect(selected) {
+            if (selected) {
+                pop.snapTo(0.72f)
+                pop.animateTo(1f, spring(dampingRatio = 0.42f, stiffness = 420f))
+            }
+        }
         Icon(
             imageVector = if (selected) item.selectedIcon else item.icon,
             contentDescription = null,
             tint = tint,
-            modifier = Modifier.size(22.dp)
+            modifier = Modifier
+                .size(22.dp)
+                .graphicsLayer { scaleX = pop.value; scaleY = pop.value }
         )
         AnimatedVisibility(
             visible = selected,

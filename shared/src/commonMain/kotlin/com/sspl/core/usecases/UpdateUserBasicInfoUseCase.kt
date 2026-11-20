@@ -46,6 +46,7 @@ class UpdateUserBasicInfoUseCase(
                 emit(ApiStates.Failure(error = errorResponse))
             }
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e // keep flow cancellation transparent
             e.printStackTrace()
             println("🔴 Exception in Flow: ${e.message}")
             emit(ApiStates.Failure(ApiError(message = e.message.orEmpty())))

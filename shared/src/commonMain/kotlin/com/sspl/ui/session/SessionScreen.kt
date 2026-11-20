@@ -1,5 +1,7 @@
 package com.sspl.ui.session
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CoPresent
@@ -28,7 +30,7 @@ fun SessionScreen(navController: NavController) {
     EmptyState(
         title = "No live session selected",
         message = "Pick a session from your event programme, or join with the hall code shown at the venue in the Event Portal.",
-        icon = Icons.Default.CoPresent,
+        icon = SsplIcons.CoPresent,
         actionText = "Open Event Portal",
         onActionClick = {
             if (navController.previousBackStackEntry?.destination?.route == Screen.EventPortalScreen.route) {

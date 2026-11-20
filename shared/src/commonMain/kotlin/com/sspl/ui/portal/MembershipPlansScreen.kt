@@ -1,5 +1,7 @@
 package com.sspl.ui.portal
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -69,18 +71,12 @@ fun MembershipPlansScreen(
     val shell = LocalShellActions.current
 
     state.paymentUrl?.let { url ->
-        Dialog(
-            onDismissRequest = { viewModel.onPaymentFinished(false) },
-            properties = DialogProperties(usePlatformDefaultWidth = false)
-        ) {
-            PaymentWebView(
-                url = url,
-                onPaymentSuccess = { viewModel.onPaymentFinished(true) },
-                onPaymentFailed = { viewModel.onPaymentFinished(false) },
-                onClose = { viewModel.onPaymentFinished(false) },
-                modifier = Modifier.fillMaxSize()
-            )
-        }
+        PaymentWebView(
+            url = url,
+            onPaymentSuccess = { viewModel.onPaymentFinished(true) },
+            onPaymentFailed = { viewModel.onPaymentFinished(false) },
+            onClose = { viewModel.onPaymentFinished(false) }
+        )
     }
     if (state.isApplying) BlockingLoader("Preparing your application…")
 
@@ -98,7 +94,7 @@ fun MembershipPlansScreen(
                     EmptyState(
                         title = "No plans open right now",
                         message = "No membership plans are available at the moment. Please check back or contact the office.",
-                        icon = Icons.Default.CardMembership,
+                        icon = SsplIcons.CardMembership,
                         actionText = "Contact us",
                         onActionClick = { navController.openPortal(Screen.ContactUsScreen.route) },
                         modifier = Modifier.fillMaxSize()
@@ -116,7 +112,7 @@ fun MembershipPlansScreen(
                             eyebrow = "Membership",
                             title = "Join the professional community",
                             summary = "Choose the membership that fits your practice and gain access to events, directory listing and society resources.",
-                            icon = Icons.Default.CardMembership,
+                            icon = SsplIcons.CardMembership,
                             stats = listOf("${plans.size}" to "Plans available")
                         )
                     }
@@ -134,14 +130,14 @@ fun MembershipPlansScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
-                            Icon(Icons.Default.Lock, contentDescription = null, tint = AppTheme.colors.muted, modifier = Modifier.size(14.dp))
+                            Icon(SsplIcons.Lock, contentDescription = null, tint = AppTheme.colors.muted, modifier = Modifier.size(14.dp))
                             Spacer(Modifier.width(6.dp))
                             Text("Payments are processed securely through Swich.", style = AppTheme.typography.bodySmall)
                         }
                     }
                     item(key = "help") {
                         NavTile(
-                            icon = Icons.Default.SupportAgent,
+                            icon = SsplIcons.SupportAgent,
                             title = "Questions before you join?",
                             subtitle = "Talk to the membership office",
                             onClick = { navController.openPortal(Screen.ContactUsScreen.route) },
@@ -196,7 +192,7 @@ private fun PlanCard(plan: MembershipPlan, selected: Boolean, onSelect: () -> Un
                 Text(plan.durationText(), style = AppTheme.typography.bodySmall)
             }
             Icon(
-                if (selected) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
+                if (selected) SsplIcons.CheckCircle else SsplIcons.RadioButtonUnchecked,
                 contentDescription = if (selected) "Selected plan" else "Select plan",
                 tint = if (selected) c.primary else c.muted,
                 modifier = Modifier.size(24.dp)
@@ -222,7 +218,7 @@ private fun PlanCard(plan: MembershipPlan, selected: Boolean, onSelect: () -> Un
                         Modifier.size(18.dp).clip(CircleShape).background(c.primaryContainer),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.Check, contentDescription = null, tint = c.primary, modifier = Modifier.size(12.dp))
+                        Icon(SsplIcons.Check, contentDescription = null, tint = c.primary, modifier = Modifier.size(12.dp))
                     }
                     Spacer(Modifier.width(10.dp))
                     Text(feat, style = AppTheme.typography.bodyMedium)

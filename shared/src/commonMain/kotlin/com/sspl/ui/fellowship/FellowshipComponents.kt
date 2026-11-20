@@ -1,5 +1,7 @@
 package com.sspl.ui.fellowship
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -216,7 +218,7 @@ internal fun PillChoice(
                     modifier = Modifier
                         .heightIn(min = 44.dp)
                         .clip(RoundedCornerShape(50))
-                        .background(if (on) colors.primary else colors.boxColor)
+                        .background(if (on) colors.buttonStart else colors.boxColor)
                         .border(1.dp, if (on) colors.primary else colors.border, RoundedCornerShape(50))
                         .clickable(enabled = enabled, role = Role.RadioButton) { onSelect(opt) }
                         .padding(horizontal = 18.dp, vertical = 10.dp),
@@ -272,11 +274,11 @@ internal fun OptionRow(text: String, checked: Boolean, radio: Boolean, enabled: 
             modifier = Modifier
                 .size(20.dp)
                 .clip(markShape)
-                .background(if (checked) colors.primary else Color.Transparent)
+                .background(if (checked) colors.buttonStart else Color.Transparent)
                 .border(1.5.dp, if (checked) colors.primary else colors.muted.copy(alpha = 0.6f), markShape),
             contentAlignment = Alignment.Center
         ) {
-            if (checked) Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(14.dp))
+            if (checked) Icon(SsplIcons.Check, null, tint = Color.White, modifier = Modifier.size(14.dp))
         }
         Spacer(Modifier.width(12.dp))
         Text(text, style = AppTheme.typography.bodyMedium.copy(color = if (enabled) colors.heading else colors.muted), modifier = Modifier.weight(1f))
@@ -321,7 +323,7 @@ internal fun SelectField(
                     style = AppTheme.typography.bodyLarge.copy(color = if (current != null) colors.heading else colors.muted),
                     modifier = Modifier.weight(1f)
                 )
-                Icon(Icons.Default.ArrowDropDown, contentDescription = "Open options", tint = colors.muted)
+                Icon(SsplIcons.ArrowDropDown, contentDescription = "Open options", tint = colors.muted)
             }
             DropdownMenu(expanded = open, onDismissRequest = { open = false }, containerColor = colors.surfaceElevated) {
                 if (allowClear) {
@@ -359,7 +361,7 @@ internal fun ScaleButtons(
                     .weight(1f)
                     .heightIn(min = 44.dp)
                     .clip(AppTheme.shapes.small)
-                    .background(if (on) colors.primary else colors.boxColor)
+                    .background(if (on) colors.buttonStart else colors.boxColor)
                     .border(1.dp, when { on -> colors.primary; error -> colors.error; else -> colors.border }, AppTheme.shapes.small)
                     .clickable(enabled = enabled, role = Role.RadioButton) { onChange(i) },
                 contentAlignment = Alignment.Center
@@ -380,10 +382,10 @@ internal fun InlineNote(
 ) {
     val colors = AppTheme.colors
     val (bg, fg, icon) = when (tone) {
-        NoteTone.Info -> Triple(colors.infoContainer, colors.info, Icons.Default.Info)
-        NoteTone.Warning -> Triple(colors.warningContainer, colors.warning, Icons.Default.Info)
-        NoteTone.Error -> Triple(colors.errorContainer, colors.error, Icons.Default.ErrorOutline)
-        NoteTone.Success -> Triple(colors.successContainer, colors.success, Icons.Default.CheckCircle)
+        NoteTone.Info -> Triple(colors.infoContainer, colors.info, SsplIcons.Info)
+        NoteTone.Warning -> Triple(colors.warningContainer, colors.warning, SsplIcons.Info)
+        NoteTone.Error -> Triple(colors.errorContainer, colors.error, SsplIcons.ErrorOutline)
+        NoteTone.Success -> Triple(colors.successContainer, colors.success, SsplIcons.CheckCircle)
     }
     Row(
         modifier = modifier.fillMaxWidth().clip(AppTheme.shapes.small).background(bg).padding(12.dp),
@@ -421,14 +423,14 @@ internal fun WizardBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (!isFirst) {
-                OutlineButton(text = "Back", onClick = onBack, icon = Icons.AutoMirrored.Filled.ArrowBack, enabled = !loading, modifier = Modifier.weight(1f))
+                OutlineButton(text = "Back", onClick = onBack, icon = SsplIcons.ArrowBack, enabled = !loading, modifier = Modifier.weight(1f))
             }
             PrimaryButton(
                 text = if (isLast) submitText else nextText,
                 onClick = onNext,
                 loading = loading,
                 enabled = enabled && !loading,
-                trailingIcon = if (isLast) null else Icons.AutoMirrored.Filled.ArrowForward,
+                trailingIcon = if (isLast) null else SsplIcons.ArrowForward,
                 modifier = Modifier.weight(if (isFirst) 1f else 1.4f)
             )
         }
@@ -458,7 +460,7 @@ internal fun RequirementRow(label: String, detail: String?, met: Boolean) {
             Modifier.size(24.dp).clip(CircleShape).background(if (met) colors.successContainer else colors.boxColor),
             contentAlignment = Alignment.Center
         ) {
-            if (met) Icon(Icons.Default.Check, contentDescription = "Met", tint = colors.success, modifier = Modifier.size(15.dp))
+            if (met) Icon(SsplIcons.Check, contentDescription = "Met", tint = colors.success, modifier = Modifier.size(15.dp))
             else Box(Modifier.size(8.dp).clip(CircleShape).background(colors.muted.copy(alpha = 0.5f)))
         }
         Spacer(Modifier.width(10.dp))
@@ -482,7 +484,7 @@ internal fun ReceiptCard(
 ) {
     SsplCard(modifier) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            IconTile(Icons.Default.CheckCircle, tint = AppTheme.colors.success, background = AppTheme.colors.successContainer, size = 52.dp, iconSize = 26.dp)
+            IconTile(SsplIcons.CheckCircle, tint = AppTheme.colors.success, background = AppTheme.colors.successContainer, size = 52.dp, iconSize = 26.dp)
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(eyebrow.uppercase(), style = AppTheme.typography.overline)
                 Text(title, style = AppTheme.typography.headlineSmall.copy(color = AppTheme.colors.heading))

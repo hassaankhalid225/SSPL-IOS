@@ -1,5 +1,7 @@
 package com.sspl.ui.fellowship
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
@@ -92,7 +94,7 @@ fun TrainingCentersScreen(
                     eyebrow = "Training centres & supervisors",
                     title = "Accredited centres & faculty",
                     summary = "Browse certified surgical training centres across Pakistan, review supervisors and apply to your preferred hospital.",
-                    icon = Icons.Default.Business,
+                    icon = SsplIcons.Business,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
                     if (all != null) {
@@ -136,7 +138,7 @@ fun TrainingCentersScreen(
                             EmptyState(
                                 title = "No centres listed yet",
                                 message = "Accredited training centres will appear here once approved by the Society.",
-                                icon = Icons.Default.Business
+                                icon = SsplIcons.Business
                             )
                         }
                     } else if (state.filtered.isEmpty()) {
@@ -144,7 +146,7 @@ fun TrainingCentersScreen(
                             EmptyState(
                                 title = "No centres match your filters",
                                 message = "Try another city or search term, or view all centres.",
-                                icon = Icons.Default.SearchOff,
+                                icon = SsplIcons.SearchOff,
                                 actionText = "Reset filters",
                                 onActionClick = viewModel::resetFilters
                             )
@@ -203,7 +205,7 @@ private fun CenterCard(center: DirectoryCenter, onEmail: () -> Unit, onApply: ()
     SsplCard(modifier.animateContentSize()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(verticalAlignment = Alignment.Top) {
-                IconTile(Icons.Default.Business)
+                IconTile(SsplIcons.Business)
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(center.institution, style = AppTheme.typography.titleSmall.copy(color = colors.heading), maxLines = 3, overflow = TextOverflow.Ellipsis)
@@ -213,11 +215,11 @@ private fun CenterCard(center: DirectoryCenter, onEmail: () -> Unit, onApply: ()
                 AvailabilityBadge(center.availability)
             }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                MetaChip(center.city ?: "Pakistan", icon = Icons.Default.LocationOn)
-                MetaChip("Seats ${center.seatsLabel}", icon = Icons.Default.Groups)
-                center.programName?.let { MetaChip(it, icon = Icons.Default.WorkspacePremium) }
+                MetaChip(center.city ?: "Pakistan", icon = SsplIcons.LocationOn)
+                MetaChip("Seats ${center.seatsLabel}", icon = SsplIcons.Groups)
+                center.programName?.let { MetaChip(it, icon = SsplIcons.WorkspacePremium) }
             }
-            center.masterTrainer?.let { FactRow(Icons.Default.Person, "Master trainer", it) }
+            center.masterTrainer?.let { FactRow(SsplIcons.Person, "Master trainer", it) }
 
             Row(
                 Modifier.fillMaxWidth().clip(AppTheme.shapes.small).clickable { expanded = !expanded }.heightIn(min = 44.dp),
@@ -228,13 +230,13 @@ private fun CenterCard(center: DirectoryCenter, onEmail: () -> Unit, onApply: ()
                     style = AppTheme.typography.labelMedium.copy(color = colors.primary, fontWeight = FontWeight.SemiBold),
                     modifier = Modifier.weight(1f)
                 )
-                Icon(if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, contentDescription = null, tint = colors.primary)
+                Icon(if (expanded) SsplIcons.ExpandLess else SsplIcons.ExpandMore, contentDescription = null, tint = colors.primary)
             }
 
             AnimatedVisibility(expanded) {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     HorizontalDivider(color = colors.divider)
-                    center.address?.let { FactRow(Icons.Default.LocationOn, "Address", it) }
+                    center.address?.let { FactRow(SsplIcons.LocationOn, "Address", it) }
                     if (center.supervisors.isNotEmpty()) {
                         Text("Faculty & supervisors (${center.supervisors.size})", style = AppTheme.typography.titleSmall.copy(color = colors.heading))
                         center.supervisors.forEach { s ->
@@ -254,7 +256,7 @@ private fun CenterCard(center: DirectoryCenter, onEmail: () -> Unit, onApply: ()
                     center.email?.let { email ->
                         Row(
                             Modifier.fillMaxWidth().clip(AppTheme.shapes.small).clickable(onClickLabel = "Email centre", onClick = onEmail),
-                        ) { FactRow(Icons.Default.Email, "Email", email) }
+                        ) { FactRow(SsplIcons.Email, "Email", email) }
                     }
                 }
             }

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="primary">#FF0A528F</color>
-    <color name="splash_navy">#FF061E3A</color>
+    <!-- Must equal the first gradient stop of the Compose SplashScreen (0xFF041327). -->
+    <color name="splash_navy">#FF041327</color>
 </resources>

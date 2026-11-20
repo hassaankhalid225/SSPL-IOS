@@ -1,5 +1,7 @@
 package com.sspl.ui.conference.programs
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EventBusy
@@ -37,7 +39,7 @@ fun ProgramDetailScreen(
         EmptyState(
             title = "Programme unavailable",
             message = "Open the programme again from the event.",
-            icon = Icons.Default.EventBusy,
+            icon = SsplIcons.EventBusy,
             modifier = Modifier.fillMaxSize()
         )
         return

@@ -1,5 +1,7 @@
 package com.sspl.designsystem.components
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -99,65 +101,65 @@ val DRAWER_GROUPS = listOf(
     DrawerGroup(
         label = "Account",
         items = listOf(
-            DrawerItem("Overview", Icons.Default.Person, Route.PortalOverview, requiresAuth = true),
-            DrawerItem("Profile", Icons.Default.Badge, Route.Profile, requiresAuth = true),
-            DrawerItem("Membership", Icons.Default.CardMembership, Route.Membership, requiresAuth = true),
-            DrawerItem("My Certificates", Icons.Default.WorkspacePremium, Route.MyCertificates, requiresAuth = true),
-            DrawerItem("Settings", Icons.Default.Settings, Route.Settings)
+            DrawerItem("Overview", SsplIcons.Person, Route.PortalOverview, requiresAuth = true),
+            DrawerItem("Profile", SsplIcons.Badge, Route.Profile, requiresAuth = true),
+            DrawerItem("Membership", SsplIcons.CardMembership, Route.Membership, requiresAuth = true),
+            DrawerItem("My Certificates", SsplIcons.WorkspacePremium, Route.MyCertificates, requiresAuth = true),
+            DrawerItem("Settings", SsplIcons.Settings, Route.Settings)
         )
     ),
     DrawerGroup(
         label = "Events & Conferences",
         items = listOf(
-            DrawerItem("Browse Events", Icons.Default.Event, Route.Events),
-            DrawerItem("Annual Conferences", Icons.Default.CalendarMonth, Route.Conferences),
-            DrawerItem("Workshops", Icons.Default.School, Route.Workshops()),
-            DrawerItem("My Registrations", Icons.Default.Assignment, Route.MyRegistrations, requiresAuth = true),
-            DrawerItem("Event Portal", Icons.Default.Verified, Route.EventPortal(), requiresAuth = true),
-            DrawerItem("Event Archive", Icons.Default.Archive, Route.EventArchive)
+            DrawerItem("Browse Events", SsplIcons.Event, Route.Events),
+            DrawerItem("Annual Conferences", SsplIcons.CalendarMonth, Route.Conferences),
+            DrawerItem("Workshops", SsplIcons.School, Route.Workshops()),
+            DrawerItem("My Registrations", SsplIcons.Assignment, Route.MyRegistrations, requiresAuth = true),
+            DrawerItem("Event Portal", SsplIcons.Verified, Route.EventPortal(), requiresAuth = true),
+            DrawerItem("Event Archive", SsplIcons.Archive, Route.EventArchive)
         )
     ),
     DrawerGroup(
         label = "Scholarship",
         items = listOf(
-            DrawerItem("Submit Abstract", Icons.Default.Send, Route.SubmitAbstract(), requiresAuth = true),
-            DrawerItem("My Submissions", Icons.Default.Description, Route.MySubmissions, requiresAuth = true),
-            DrawerItem("Presentations", Icons.Default.PresentToAll, Route.Presentations, requiresAuth = true)
+            DrawerItem("Submit Abstract", SsplIcons.Send, Route.SubmitAbstract(), requiresAuth = true),
+            DrawerItem("My Submissions", SsplIcons.Description, Route.MySubmissions, requiresAuth = true),
+            DrawerItem("Presentations", SsplIcons.PresentToAll, Route.Presentations, requiresAuth = true)
         )
     ),
     DrawerGroup(
         label = "Fellowship",
         items = listOf(
-            DrawerItem("Fellowship Hub", Icons.Default.School, Route.FellowshipHub),
-            DrawerItem("Training Centres", Icons.Default.Public, Route.TrainingCentres),
-            DrawerItem("Guidelines", Icons.Default.Book, Route.FellowshipGuidelines),
-            DrawerItem("Apply as Fellow", Icons.Default.Person, Route.ApplyAsFellow, requiresAuth = true),
-            DrawerItem("Apply as Centre", Icons.Default.Public, Route.ApplyAsTrainingCentre, requiresAuth = true),
-            DrawerItem("Fellow Dashboard", Icons.Default.School, Route.FellowDashboard, requiresAuth = true),
-            DrawerItem("Trainer Dashboard", Icons.Default.School, Route.TrainerDashboard, requiresAuth = true, requiredRole = "FELLOWSHIP_TRAINER")
+            DrawerItem("Fellowship Hub", SsplIcons.School, Route.FellowshipHub),
+            DrawerItem("Training Centres", SsplIcons.Public, Route.TrainingCentres),
+            DrawerItem("Guidelines", SsplIcons.Book, Route.FellowshipGuidelines),
+            DrawerItem("Apply as Fellow", SsplIcons.Person, Route.ApplyAsFellow, requiresAuth = true),
+            DrawerItem("Apply as Centre", SsplIcons.Public, Route.ApplyAsTrainingCentre, requiresAuth = true),
+            DrawerItem("Fellow Dashboard", SsplIcons.School, Route.FellowDashboard, requiresAuth = true),
+            DrawerItem("Trainer Dashboard", SsplIcons.School, Route.TrainerDashboard, requiresAuth = true, requiredRole = "FELLOWSHIP_TRAINER")
         )
     ),
     DrawerGroup(
         label = "Society",
         items = listOf(
-            DrawerItem("About Us", Icons.Default.Info, Route.About),
-            DrawerItem("History", Icons.Default.History, Route.History),
-            DrawerItem("Executive Council", Icons.Default.Groups, Route.ExecutiveCouncil),
-            DrawerItem("Elections", Icons.Default.HowToVote, Route.Elections),
-            DrawerItem("Members Directory", Icons.Default.Groups, Route.MembersDirectory),
-            DrawerItem("Membership Plans", Icons.Default.CardMembership, Route.MembershipPlans),
-            DrawerItem("News & Announcements", Icons.Default.Newspaper, Route.News)
+            DrawerItem("About Us", SsplIcons.Info, Route.About),
+            DrawerItem("History", SsplIcons.History, Route.History),
+            DrawerItem("Executive Council", SsplIcons.Groups, Route.ExecutiveCouncil),
+            DrawerItem("Elections", SsplIcons.HowToVote, Route.Elections),
+            DrawerItem("Members Directory", SsplIcons.Groups, Route.MembersDirectory),
+            DrawerItem("Membership Plans", SsplIcons.CardMembership, Route.MembershipPlans),
+            DrawerItem("News & Announcements", SsplIcons.Newspaper, Route.News)
         )
     ),
     DrawerGroup(
         label = "Resources",
         items = listOf(
-            DrawerItem("Downloads", Icons.Default.Download, Route.Downloads),
-            DrawerItem("Verify Certificate", Icons.Default.Security, Route.VerifyCertificate()),
-            DrawerItem("Member Guide", Icons.Default.Book, Route.MemberGuide),
-            DrawerItem("FAQs", Icons.Default.Help, Route.Faqs),
-            DrawerItem("Contact Us", Icons.Default.ContactMail, Route.Contact),
-            DrawerItem("Terms & Conditions", Icons.Default.Description, Route.Terms)
+            DrawerItem("Downloads", SsplIcons.Download, Route.Downloads),
+            DrawerItem("Verify Certificate", SsplIcons.Security, Route.VerifyCertificate()),
+            DrawerItem("Member Guide", SsplIcons.Book, Route.MemberGuide),
+            DrawerItem("FAQs", SsplIcons.Help, Route.Faqs),
+            DrawerItem("Contact Us", SsplIcons.ContactMail, Route.Contact),
+            DrawerItem("Terms & Conditions", SsplIcons.Description, Route.Terms)
         )
     )
 )
@@ -210,7 +212,7 @@ fun SsplDrawerContent(
                             modifier = Modifier.border(2.dp, Color.White.copy(alpha = 0.5f), CircleShape)
                         )
                         GlassIconButton(
-                            icon = Icons.Default.Close,
+                            icon = SsplIcons.Close,
                             contentDescription = "Close menu",
                             onClick = onCloseDrawer
                         )
@@ -306,7 +308,7 @@ fun SsplDrawerContent(
                             )
                             if (isLocked) {
                                 Icon(
-                                    imageVector = Icons.Default.Lock,
+                                    imageVector = SsplIcons.Lock,
                                     contentDescription = "Sign in required",
                                     tint = colors.muted,
                                     modifier = Modifier.size(15.dp)
@@ -341,7 +343,7 @@ fun SsplDrawerContent(
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Icon(
-                        imageVector = if (isGuest) Icons.AutoMirrored.Filled.Login else Icons.AutoMirrored.Filled.Logout,
+                        imageVector = if (isGuest) SsplIcons.Login else SsplIcons.Logout,
                         contentDescription = null,
                         tint = if (isGuest) colors.primary else colors.error,
                         modifier = Modifier.size(20.dp)
@@ -391,9 +393,9 @@ fun ThemeModeSwitch(
             ) {
                 Icon(
                     imageVector = when (mode) {
-                        ThemeMode.SYSTEM -> Icons.Default.PhoneAndroid
-                        ThemeMode.LIGHT -> Icons.Default.LightMode
-                        ThemeMode.DARK -> Icons.Default.DarkMode
+                        ThemeMode.SYSTEM -> SsplIcons.PhoneAndroid
+                        ThemeMode.LIGHT -> SsplIcons.LightMode
+                        ThemeMode.DARK -> SsplIcons.DarkMode
                     },
                     contentDescription = null,
                     tint = if (isSel) colors.primary else colors.muted,

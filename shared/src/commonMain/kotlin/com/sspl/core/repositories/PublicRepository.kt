@@ -64,6 +64,7 @@ class PublicRepository(private val httpClient: HttpClient) {
         } catch (e: PublicApiException) {
             Result.failure(e)
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e // keep flow cancellation transparent
             println("PublicRepository error: ${e.message}")
             Result.failure(PublicApiException("We couldn't reach the server. Check your connection and try again."))
         }

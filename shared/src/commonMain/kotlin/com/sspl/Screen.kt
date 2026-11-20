@@ -1,5 +1,7 @@
 package com.sspl
 
+import com.sspl.designsystem.icons.SsplIcons
+
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -112,7 +114,7 @@ sealed class Screen(
     data object HomeScreen : Screen(
         title = Res.string.home,
         route = "HomeScreen",
-        icon = IconResource.fromImageVector(imageVector = Icons.Default.Home)
+        icon = IconResource.fromImageVector(imageVector = SsplIcons.Home)
     )
 
 

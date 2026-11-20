@@ -1,5 +1,7 @@
 package com.sspl.ui.conference.components
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -70,7 +72,7 @@ fun SessionScheduleRow(
                 .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Default.Coffee, contentDescription = "Break", tint = colors.muted, modifier = Modifier.size(16.dp))
+            Icon(SsplIcons.Coffee, contentDescription = "Break", tint = colors.muted, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(10.dp))
             Text(
                 session.title.ifBlank { "Break" },
@@ -127,7 +129,7 @@ fun SessionScheduleRow(
             val venue = session.venue?.title ?: session.venue?.name ?: session.venue?.address
             if (!venue.isNullOrBlank()) {
                 Spacer(Modifier.height(6.dp))
-                EventMetaLine(Icons.Default.Place, venue.trim())
+                EventMetaLine(SsplIcons.Place, venue.trim())
             }
             val speakers = session.breakdown.orEmpty().flatMap { b -> b.speakers.map { it.fullName().trim() } }.distinct()
             if (speakers.isNotEmpty()) {

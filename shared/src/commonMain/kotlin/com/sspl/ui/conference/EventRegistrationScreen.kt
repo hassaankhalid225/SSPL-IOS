@@ -1,5 +1,7 @@
 package com.sspl.ui.conference
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -77,7 +79,6 @@ import com.sspl.designsystem.components.StepIndicator
 import com.sspl.designsystem.components.StickyCtaBar
 import com.sspl.designsystem.components.TextButtonLink
 import com.sspl.designsystem.theme.AppTheme
-import com.sspl.platform.shared.UrlOpener
 import com.sspl.session.UserSession
 import com.sspl.ui.conference.components.AddOnSetsList
 import org.koin.compose.koinInject
@@ -86,14 +87,13 @@ import org.koin.compose.viewmodel.koinViewModel
 /**
  * C3: Event registration. Step 1 choose a fee category (role), step 2 review & confirm.
  * POST /external/events/{id}/register { role_id }. If the backend returns a Swich payment
- * URL it is opened exactly as before (system browser), then Payment status takes over.
+ * URL it opens in the in-app payment sheet, then Payment status takes over.
  */
 @Composable
 fun EventRegistrationScreen(
     navController: NavController,
     viewModel: EventDetailViewModel = koinViewModel(),
-    userSession: UserSession = koinInject(),
-    urlOpener: UrlOpener = koinInject()
+    userSession: UserSession = koinInject()
 ) {
     val eventIdArg = remember { navController.previousBackStackEntry?.savedStateHandle?.get<Long>("eventId") ?: 0L }
     LaunchedEffect(eventIdArg) { viewModel.loadEvent(eventIdArg) }
@@ -102,16 +102,29 @@ fun EventRegistrationScreen(
     val user by userSession.userFlow.collectAsStateWithLifecycle()
     val shell = LocalShellActions.current
 
-    // Payment hand-off: open the Swich URL once, then show the payment status screen.
+    // Payment hand-off: the Swich page opens inside the app; when it closes (paid, failed or
+    // left), Payment status verifies the transaction with the backend.
+    var inAppPaymentUrl by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(state.paymentUrl) {
         val url = state.paymentUrl ?: return@LaunchedEffect
         viewModel.onPaymentUrlConsumed()
-        urlOpener.openUrl(url)
+        inAppPaymentUrl = url
+    }
+    val afterPayment: () -> Unit = {
+        inAppPaymentUrl = null
         navController.currentBackStackEntry?.savedStateHandle?.apply {
             set("awaitingTransactionId", state.transactionId)
             set("registrationId", state.registrationId ?: 0L)
         }
         navController.navigate(Screen.PaymentStatusScreen.route) { launchSingleTop = true }
+    }
+    inAppPaymentUrl?.let { url ->
+        com.sspl.ui.components.PaymentWebView(
+            url = url,
+            onPaymentSuccess = afterPayment,
+            onPaymentFailed = afterPayment,
+            onClose = afterPayment
+        )
     }
 
     val event = state.event
@@ -120,7 +133,7 @@ fun EventRegistrationScreen(
             EmptyState(
                 title = "Sign in to register",
                 message = "Event registration needs your SSPL member account.",
-                icon = Icons.Default.Lock,
+                icon = SsplIcons.Lock,
                 actionText = "Sign in",
                 onActionClick = shell.onAvatar,
                 modifier = Modifier.fillMaxSize()
@@ -184,7 +197,7 @@ fun EventRegistrationScreen(
             if (alreadyRegistered) {
                 SsplCard(Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconTile(Icons.Default.CheckCircle, tint = AppTheme.colors.success, background = AppTheme.colors.successContainer)
+                        IconTile(SsplIcons.CheckCircle, tint = AppTheme.colors.success, background = AppTheme.colors.successContainer)
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
                             Text("You're already registered", style = AppTheme.typography.titleSmall)
@@ -240,7 +253,7 @@ fun EventRegistrationScreen(
                         .padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Default.ErrorOutline, contentDescription = null, tint = AppTheme.colors.error, modifier = Modifier.size(18.dp))
+                    Icon(SsplIcons.ErrorOutline, contentDescription = null, tint = AppTheme.colors.error, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
                     Text(msg, style = AppTheme.typography.bodySmall.copy(color = AppTheme.colors.error))
                 }
@@ -286,7 +299,7 @@ private fun EventSummaryStrip(card: EventCardUi, modifier: Modifier = Modifier) 
         SsplImage(
             card.image, card.title,
             Modifier.size(64.dp).clip(AppTheme.shapes.small),
-            fallbackIcon = Icons.Default.Event
+            fallbackIcon = SsplIcons.Event
         )
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
@@ -320,11 +333,11 @@ private fun RoleChoiceCard(
             Modifier
                 .size(22.dp)
                 .clip(CircleShape)
-                .background(if (selected) colors.primary else colors.surface)
+                .background(if (selected) colors.buttonStart else colors.surface)
                 .border(2.dp, if (selected) colors.primary else colors.border, CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            if (selected) Icon(Icons.Default.Check, contentDescription = null, tint = colors.onPrimary, modifier = Modifier.size(14.dp))
+            if (selected) Icon(SsplIcons.Check, contentDescription = null, tint = colors.onPrimary, modifier = Modifier.size(14.dp))
         }
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
@@ -366,7 +379,7 @@ private fun ReviewStep(
         SsplCard {
             Text("REGISTRANT", style = AppTheme.typography.overline)
             Spacer(Modifier.height(8.dp))
-            FactRow(Icons.Default.Person, "Name", userName)
+            FactRow(SsplIcons.Person, "Name", userName)
             listOfNotNull(
                 email?.takeIf { it.isNotBlank() }?.let { "Email" to it },
                 pmdc?.takeIf { it.isNotBlank() }?.let { "PMDC no." to it },
@@ -432,7 +445,7 @@ private fun RegistrationDone(
         verticalArrangement = Arrangement.Center
     ) {
         IconTile(
-            if (pending) Icons.Default.HourglassTop else Icons.Default.CheckCircle,
+            if (pending) SsplIcons.HourglassTop else SsplIcons.CheckCircle,
             tint = if (pending) colors.warning else colors.success,
             background = if (pending) colors.warningContainer else colors.successContainer,
             size = 88.dp, iconSize = 44.dp, corner = 44.dp

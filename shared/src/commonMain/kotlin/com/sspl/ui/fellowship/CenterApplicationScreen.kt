@@ -1,5 +1,7 @@
 package com.sspl.ui.fellowship
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -84,7 +86,7 @@ fun CenterApplicationScreen(
                     EmptyState(
                         title = "Centre registration is closed",
                         message = "Fellowship training center applications are not open currently. Please check back later or contact the Society administration.",
-                        icon = Icons.Default.Apartment,
+                        icon = SsplIcons.Apartment,
                         actionText = "Contact us",
                         onActionClick = { navController.navigate(Screen.ContactUsScreen.route) }
                     )
@@ -101,7 +103,7 @@ fun CenterApplicationScreen(
                 containerColor = AppTheme.colors.surfaceElevated,
                 icon = {
                     IconTile(
-                        Icons.Default.Apartment,
+                        SsplIcons.Apartment,
                         tint = when (d.tone) { NoteTone.Success -> AppTheme.colors.success; NoteTone.Error -> AppTheme.colors.error; NoteTone.Warning -> AppTheme.colors.warning; else -> AppTheme.colors.primary },
                         background = when (d.tone) { NoteTone.Success -> AppTheme.colors.successContainer; NoteTone.Error -> AppTheme.colors.errorContainer; NoteTone.Warning -> AppTheme.colors.warningContainer; else -> AppTheme.colors.primaryContainer }
                     )
@@ -190,7 +192,7 @@ private fun CenterWizard(vm: CenterApplicationViewModel, state: CenterApplicatio
                             FormField(state.customFacility, vm::setCustomFacility, "Add another facility",
                                 placeholder = "e.g., 4K camera, dual console monitor", modifier = Modifier.weight(1f))
                         }
-                        SecondaryButton(text = "Add facility", onClick = vm::addCustomFacility, icon = Icons.Default.Add, enabled = state.customFacility.isNotBlank())
+                        SecondaryButton(text = "Add facility", onClick = vm::addCustomFacility, icon = SsplIcons.Add, enabled = state.customFacility.isNotBlank())
                     }
                     "cases" -> FormSection(
                         program.let { "Case volume & exposure" }, eyebrow = "Section C",

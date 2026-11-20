@@ -4,6 +4,7 @@ import com.sspl.core.models.User
 import com.sspl.storage.Storage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -31,6 +32,11 @@ class UserSession(private val storage: Storage) {
 
     private val _userFlow = MutableStateFlow<User?>(null)
     val userFlow = _userFlow.asStateFlow()
+
+    /** Fired when the refresh token is rejected; the app routes to sign-in once. */
+    private val _sessionExpired = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val sessionExpired = _sessionExpired.asSharedFlow()
+    fun notifySessionExpired() { _sessionExpired.tryEmit(Unit) }
 
     private val _profileImageFlow = MutableStateFlow<String?>(null)
     val profileImageFlow = _profileImageFlow.asStateFlow()

@@ -21,6 +21,7 @@ class RegisterUserUseCase(private val repository: ConferenceRepository) {
                 emit(ApiStates.Failure(response.body()))
             }
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e // keep flow cancellation transparent
             emit(ApiStates.Failure(ApiError(message = e.message.orEmpty())))
         }
     }

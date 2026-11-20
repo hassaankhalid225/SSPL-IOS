@@ -1,5 +1,7 @@
 package com.sspl.ui.downloads
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -102,7 +104,7 @@ fun DownloadsScreen(
             item(key = "hero") {
                 PageIntroHero(
                     eyebrow = "Resources",
-                    eyebrowIcon = Icons.Default.FolderOpen,
+                    eyebrowIcon = SsplIcons.FolderOpen,
                     title = "Downloads & templates",
                     summary = "Presentation templates, abstracts, posters, logbooks, guidelines, and society documents.",
                     stats = if (state.items is LoadState.Ready) listOf("${state.total}" to "Files", "${DOWNLOAD_CATEGORIES.size - 1}" to "Categories") else emptyList(),
@@ -146,7 +148,7 @@ fun DownloadsScreen(
                         EmptyState(
                             title = if (filtering) "No files match" else "No downloads yet",
                             message = if (filtering) "Try a different search or category." else "Templates and documents will appear here once published.",
-                            icon = if (filtering) Icons.Default.SearchOff else Icons.Default.FolderOpen,
+                            icon = if (filtering) SsplIcons.SearchOff else SsplIcons.FolderOpen,
                             actionText = if (filtering) "Clear filters" else null,
                             onActionClick = if (filtering) ({ viewModel.onQuery(""); viewModel.onCategory("") }) else null
                         )
@@ -189,12 +191,12 @@ private fun formatBytes(bytes: Long?): String {
 private fun formatStyle(format: String?): Triple<ImageVector, Color, Color> {
     val c = AppTheme.colors
     return when (format?.uppercase()) {
-        "PDF" -> Triple(Icons.Default.PictureAsPdf, c.error, c.errorContainer)
-        "PPT", "PPTX" -> Triple(Icons.Default.Slideshow, c.warning, c.warningContainer)
-        "XLS", "XLSX", "CSV" -> Triple(Icons.Default.TableChart, c.success, c.successContainer)
-        "DOC", "DOCX" -> Triple(Icons.Default.Description, c.primary, c.primaryContainer)
-        "PNG", "JPG", "JPEG", "WEBP" -> Triple(Icons.Default.Image, c.info, c.infoContainer)
-        else -> Triple(Icons.Default.InsertDriveFile, c.muted, c.boxColor)
+        "PDF" -> Triple(SsplIcons.PictureAsPdf, c.error, c.errorContainer)
+        "PPT", "PPTX" -> Triple(SsplIcons.Slideshow, c.warning, c.warningContainer)
+        "XLS", "XLSX", "CSV" -> Triple(SsplIcons.TableChart, c.success, c.successContainer)
+        "DOC", "DOCX" -> Triple(SsplIcons.Description, c.primary, c.primaryContainer)
+        "PNG", "JPG", "JPEG", "WEBP" -> Triple(SsplIcons.Image, c.info, c.infoContainer)
+        else -> Triple(SsplIcons.InsertDriveFile, c.muted, c.boxColor)
     }
 }
 
@@ -256,9 +258,9 @@ private fun DownloadRow(file: DownloadItem, onPreview: () -> Unit, onDownload: (
         Spacer(Modifier.height(12.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             if (file.previewable) {
-                OutlineButton(text = "Preview", onClick = onPreview, icon = Icons.Default.Visibility, modifier = Modifier.weight(1f))
+                OutlineButton(text = "Preview", onClick = onPreview, icon = SsplIcons.Visibility, modifier = Modifier.weight(1f))
             }
-            SecondaryButton(text = "Download", onClick = onDownload, icon = Icons.Default.Download, modifier = Modifier.weight(1f))
+            SecondaryButton(text = "Download", onClick = onDownload, icon = SsplIcons.Download, modifier = Modifier.weight(1f))
         }
     }
 }

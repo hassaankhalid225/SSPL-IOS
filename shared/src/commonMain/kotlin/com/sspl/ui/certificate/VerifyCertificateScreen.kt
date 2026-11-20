@@ -1,5 +1,7 @@
 package com.sspl.ui.certificate
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -88,7 +90,7 @@ fun VerifyCertificateScreen(
         item(key = "hero") {
             PageIntroHero(
                 eyebrow = "Authenticity check",
-                eyebrowIcon = Icons.Default.VerifiedUser,
+                eyebrowIcon = SsplIcons.VerifiedUser,
                 title = "Verify a certificate",
                 summary = "Enter the serial number printed on an SSPL certificate to confirm it was officially issued."
             )
@@ -100,7 +102,7 @@ fun VerifyCertificateScreen(
                     onValueChange = viewModel::onSerial,
                     label = "Serial number",
                     placeholder = "e.g. CERT-2026-00125",
-                    leadingIcon = Icons.Default.Tag,
+                    leadingIcon = SsplIcons.Tag,
                     error = state.inputError,
                     enabled = !loading,
                     keyboardActions = KeyboardActions(onDone = { submit() }, onSearch = { submit() }, onGo = { submit() })
@@ -116,7 +118,7 @@ fun VerifyCertificateScreen(
                     onClick = ::submit,
                     loading = loading,
                     enabled = !loading && state.serial.isNotBlank(),
-                    icon = Icons.Default.Search,
+                    icon = SsplIcons.Search,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -137,7 +139,7 @@ fun VerifyCertificateScreen(
                         onRetry = viewModel::verify
                     )
                     is VerifyResult.Invalid -> StatusPanel(
-                        icon = Icons.Default.Cancel,
+                        icon = SsplIcons.Cancel,
                         tint = AppTheme.colors.error,
                         background = AppTheme.colors.errorContainer,
                         title = "Verification failed",
@@ -175,13 +177,13 @@ private fun FoundResult(c: VerifiedCertificate, onDownload: (String) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         if (c.isRevoked) {
             StatusPanel(
-                Icons.Default.Cancel, AppTheme.colors.error, AppTheme.colors.errorContainer,
+                SsplIcons.Cancel, AppTheme.colors.error, AppTheme.colors.errorContainer,
                 "Certificate revoked",
                 "This certificate was revoked by the issuing authority and is no longer valid."
             )
         } else {
             StatusPanel(
-                Icons.Default.Verified, AppTheme.colors.success, AppTheme.colors.successContainer,
+                SsplIcons.Verified, AppTheme.colors.success, AppTheme.colors.successContainer,
                 "Verified authenticity",
                 "This certificate is valid and was officially issued by SSPL."
             )
@@ -198,15 +200,15 @@ private fun FoundResult(c: VerifiedCertificate, onDownload: (String) -> Unit) {
             HorizontalDivider(color = AppTheme.colors.divider)
             Spacer(Modifier.height(12.dp))
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                FactRow(Icons.Default.Person, "Issued to", c.issuedTo)
-                FactRow(Icons.Default.EventNote, "Session / event", c.eventName)
-                c.trainingCenter?.let { FactRow(Icons.Default.LocationCity, "Training centre", it) }
-                FactRow(Icons.Default.Badge, "Serial number", c.serial)
+                FactRow(SsplIcons.Person, "Issued to", c.issuedTo)
+                FactRow(SsplIcons.EventNote, "Session / event", c.eventName)
+                c.trainingCenter?.let { FactRow(SsplIcons.LocationCity, "Training centre", it) }
+                FactRow(SsplIcons.Badge, "Serial number", c.serial)
                 FactRow(
-                    Icons.Default.CalendarMonth, "Date of issue",
+                    SsplIcons.CalendarMonth, "Date of issue",
                     DisplayDates.medium(c.issuedAt).ifBlank { "N/A" }
                 )
-                FactRow(Icons.Default.Category, "Type", c.type.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() })
+                FactRow(SsplIcons.Category, "Type", c.type.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() })
             }
             val url = c.fileUrl?.let { ImageSources.resolveUrl(it) }
             if (url != null && !c.isRevoked) {
@@ -214,7 +216,7 @@ private fun FoundResult(c: VerifiedCertificate, onDownload: (String) -> Unit) {
                 PrimaryButton(
                     text = "Download official PDF",
                     onClick = { onDownload(url) },
-                    icon = Icons.Default.Download,
+                    icon = SsplIcons.Download,
                     modifier = Modifier.fillMaxWidth()
                 )
             }

@@ -27,6 +27,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -114,6 +119,8 @@ fun SplashScreen(
 
     val colors = AppTheme.colors
     val ambient = rememberInfiniteTransition(label = "ambient")
+    var logoCenter by remember { mutableStateOf<Offset?>(null) }
+    var canvasOrigin by remember { mutableStateOf(Offset.Zero) }
     val drift by ambient.animateFloat(
         initialValue = 0f, targetValue = 1f,
         animationSpec = infiniteRepeatable(tween(6000, easing = LinearEasing), RepeatMode.Reverse),
@@ -133,8 +140,13 @@ fun SplashScreen(
         contentAlignment = Alignment.Center
     ) {
         // Ambient concentric rings + soft glow (very low contrast).
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val c = Offset(size.width / 2f, size.height * 0.44f)
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .onGloballyPositioned { canvasOrigin = it.positionInRoot() }
+        ) {
+            // Rings + glow are centred exactly on the logo (measured), not a guessed height.
+            val c = logoCenter?.let { it - canvasOrigin } ?: Offset(size.width / 2f, size.height / 2f)
             drawCircle(
                 brush = Brush.radialGradient(
                     listOf(Color(0xFF2E8BE6).copy(alpha = 0.28f), Color.Transparent),
@@ -158,7 +170,12 @@ fun SplashScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(horizontal = 32.dp).padding(bottom = 40.dp)
         ) {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(168.dp)) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(168.dp)
+                    .onGloballyPositioned { logoCenter = it.boundsInRoot().center }
+            ) {
                 // The "suture" ring drawing itself around the logo.
                 Canvas(modifier = Modifier.size(168.dp)) {
                     val stroke = 3.dp.toPx()

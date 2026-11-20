@@ -85,6 +85,10 @@ fun MainScreen(onParentGraph: () -> Unit) {
         Screen.FellowDashboardScreen -> Route.FellowDashboard
         Screen.TrainerDashboardScreen -> Route.TrainerDashboard
         Screen.FellowshipFeedbackScreen -> Route.FellowshipFeedback
+        Screen.EditProfile, Screen.UserDetailsScreen -> Route.Profile
+        Screen.PaymentStatusScreen, Screen.ConferenceRegistrationScreen,
+        Screen.WorkshopDetailScreen, Screen.ScientificProgramDetailScreen,
+        Screen.SessionDetailScreen, Screen.SessionScreen, Screen.FeedbackScreen -> Route.Events
         else -> Route.Home
     }
 
@@ -113,6 +117,12 @@ fun MainScreen(onParentGraph: () -> Unit) {
         Screen.SettingsScreen -> "Settings"
         Screen.DeleteAccountScreen -> "Delete Account"
         Screen.EditProfile -> "Edit profile"
+        Screen.UserDetailsScreen -> "Complete profile"
+        Screen.WorkshopDetailScreen -> "Workshop"
+        Screen.ScientificProgramDetailScreen -> "Programme"
+        Screen.SessionDetailScreen -> "Session"
+        Screen.SessionScreen -> "Live session"
+        Screen.FeedbackScreen -> "Feedback"
         Screen.ConferenceRegistrationScreen -> "Registration"
         Screen.PaymentStatusScreen -> "Payment Status"
         Screen.MyRegistrationsScreen -> "My Registrations"
@@ -226,6 +236,7 @@ fun MainScreen(onParentGraph: () -> Unit) {
             onParentGraph()
         },
         unreadNotificationCount = unreadNotifications,
+        isHomeScreen = currentScreen == Screen.HomeScreen,
         onNotificationsClick = {
             navController.navigate(Screen.NotificationsScreen.route)
         }

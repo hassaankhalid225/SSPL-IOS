@@ -1,5 +1,7 @@
 package com.sspl.ui.kyc
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -152,7 +154,7 @@ fun LoginScreenContent(
                     onValueChange = { onEvents(LoginScreenUiEvents.OnEmailTextChange(it)) },
                     label = "Email address",
                     placeholder = "doctor@example.com",
-                    leadingIcon = Icons.Default.AlternateEmail,
+                    leadingIcon = SsplIcons.AlternateEmail,
                     errorMessage = emailErrorMsg,
                     keyboardType = KeyboardType.Email,
                     enabled = !busy,
@@ -205,7 +207,7 @@ fun LoginScreenContent(
             },
             loading = isLoading,
             enabled = isLoginEnabled && !isGuestLoading,
-            trailingIcon = Icons.AutoMirrored.Filled.Login
+            trailingIcon = SsplIcons.Login
         )
 
         if (showOtpToggle) {
@@ -224,7 +226,7 @@ fun LoginScreenContent(
         OutlineButton(
             text = "Continue as guest",
             onClick = { onEvents(LoginScreenUiEvents.ContinueAsGuest) },
-            icon = Icons.Outlined.PersonOutline,
+            icon = SsplIcons.PersonOutline,
             loading = isGuestLoading,
             enabled = !isLoading
         )

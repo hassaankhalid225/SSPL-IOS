@@ -1,5 +1,7 @@
 package com.sspl.ui.council
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -70,7 +72,7 @@ fun ExecutiveCouncilScreen(navController: NavController) {
         item(key = "hero") {
             PageIntroHero(
                 eyebrow = "Term $CABINET_TERM_LABEL",
-                eyebrowIcon = Icons.Default.Groups,
+                eyebrowIcon = SsplIcons.Groups,
                 title = "Cabinet and executive council",
                 summary = "The surgeons guiding SSP Lahore's academic and clinical programme.",
                 stats = listOf(
@@ -135,7 +137,7 @@ private fun BearerCard(member: CouncilMember, onClick: () -> Unit, modifier: Mod
                 source = member.imageUrl,
                 contentDescription = member.name,
                 modifier = Modifier.fillMaxSize(),
-                fallbackIcon = Icons.Default.Person,
+                fallbackIcon = SsplIcons.Person,
                 fallbackIconSize = 40.dp
             )
             // Role pill over the photo (image surface: white text allowed).
@@ -172,7 +174,7 @@ private fun MemberRow(member: CouncilMember, onClick: () -> Unit) {
         leading = { AvatarImage(url = member.imageUrl, name = member.name, size = 46.dp) },
         trailing = {
             Icon(
-                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                SsplIcons.KeyboardArrowRight,
                 contentDescription = null,
                 tint = AppTheme.colors.muted
             )
@@ -203,8 +205,8 @@ private fun MemberSheet(member: CouncilMember) {
         Text(member.role, style = AppTheme.typography.labelMedium.copy(color = AppTheme.colors.accent))
         Spacer(Modifier.height(18.dp))
         Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-            FactRow(Icons.Default.Badge, "Position", member.role)
-            FactRow(Icons.Default.CalendarMonth, "Term", CABINET_TERM_LABEL)
+            FactRow(SsplIcons.Badge, "Position", member.role)
+            FactRow(SsplIcons.CalendarMonth, "Term", CABINET_TERM_LABEL)
         }
         Spacer(Modifier.height(16.dp))
         Text(

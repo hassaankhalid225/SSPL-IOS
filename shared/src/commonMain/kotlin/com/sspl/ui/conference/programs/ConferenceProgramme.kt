@@ -1,5 +1,7 @@
 package com.sspl.ui.conference.programs
 
+import com.sspl.designsystem.icons.SsplIcons
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -168,10 +170,10 @@ private fun ProgrammeList(
             SsplCard {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     DisplayDates.range(conference.startDate ?: detail.startDate, conference.endDate ?: detail.endDate)
-                        .takeIf { it.isNotBlank() }?.let { FactRow(Icons.Default.CalendarMonth, "Dates", it) }
+                        .takeIf { it.isNotBlank() }?.let { FactRow(SsplIcons.CalendarMonth, "Dates", it) }
                     val venue = detail.venue ?: conference.venue ?: days.firstOrNull()?.sessions?.firstOrNull()?.venue
                     listOfNotNull(venue?.title ?: venue?.name, venue?.address).filter { it.isNotBlank() }.joinToString(", ")
-                        .takeIf { it.isNotBlank() }?.let { FactRow(Icons.Default.Place, "Venue", it) }
+                        .takeIf { it.isNotBlank() }?.let { FactRow(SsplIcons.Place, "Venue", it) }
                 }
                 (conference.summary ?: detail.summary)?.takeIf { it.isNotBlank() }?.let {
                     Spacer(Modifier.height(12.dp))

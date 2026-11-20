@@ -80,7 +80,18 @@ data class SsplColorTokens(
     val gradientMid: Color = Color(0xFF0B4A8C),
     val gradientEnd: Color = Color(0xFF1A73D9),
     /** Card shadow tint. */
-    val shadow: Color = Color(0xFF0B2A4A)
+    val shadow: Color = Color(0xFF0B2A4A),
+    // Filled actions (buttons, selected pills). Separate from `primary` so dark mode can use a
+    // soft text-level blue for links/icons and a deeper solid blue under white button text.
+    val buttonStart: Color = Color(0xFF0B5AA6),
+    val buttonEnd: Color = Color(0xFF1A73D9),
+    /** Eyebrow / greeting colour on gradient heroes. */
+    val heroAccent: Color = Color(0xFF9FDCF0),
+    /** Pill / badge sitting on a gradient hero. */
+    val heroChip: Color = Color(0xFFFFFFFF),
+    val onHeroChip: Color = Color(0xFF0B4A8C),
+    /** Strength of decorative rings on gradient surfaces (0..1). */
+    val decorAlpha: Float = 1f
 ) {
     val textMuted: Color get() = muted
 
@@ -98,7 +109,7 @@ data class SsplColorTokens(
 
     /** Bright button gradient. */
     val primaryGradient: Brush
-        get() = Brush.horizontalGradient(listOf(primary, gradientEnd))
+        get() = Brush.horizontalGradient(listOf(buttonStart, buttonEnd))
 
     /** Subtle tinted card fill. */
     val softGradient: Brush
@@ -107,42 +118,59 @@ data class SsplColorTokens(
 
 val LightSsplColors = SsplColorTokens()
 
+/**
+ * Dark palette — neutral cool greys (not navy), soft text-level blue, deep solid blue fills,
+ * no glow. Surfaces step up in lightness for elevation instead of relying on shadows.
+ */
 val DarkSsplColors = SsplColorTokens(
     isDark = true,
-    primary = Color(0xFF5AA5F2),
-    primaryDark = Color(0xFF0A2440),
-    tertiary = Color(0xFF051326),
-    accent = Color(0xFF3CC6E6),
-    secondary = Color(0xFF7DB8F5),
-    primaryLight = Color(0xFF7DB8F5),
-    primaryContainer = Color(0xFF12304F),
-    onPrimaryContainer = Color(0xFFCFE4FB),
-    surface = Color(0xFF101B29),
-    surfaceElevated = Color(0xFF162435),
-    background = Color(0xFF080F19),
-    surfaceTint = Color(0xFF13263B),
-    boxColor = Color(0xFF15222F),
-    border = Color(0xFF213246),
-    divider = Color(0xFF1A2938),
-    heading = Color(0xFFEAF0F7),
-    body = Color(0xFFB9C6D6),
-    muted = Color(0xFF8394A9),
-    success = Color(0xFF4CC985),
-    successContainer = Color(0xFF12301F),
-    warning = Color(0xFFF0B04A),
-    warningContainer = Color(0xFF34260F),
-    error = Color(0xFFF2766B),
-    errorContainer = Color(0xFF3A1714),
-    info = Color(0xFF4FC3E8),
-    infoContainer = Color(0xFF0F2C38),
-    onPrimary = Color(0xFF04172E),
-    onSurface = Color(0xFFEAF0F7),
-    onBackground = Color(0xFFB9C6D6),
-    skeletonBase = Color(0xFF172433),
-    skeletonHighlight = Color(0xFF223447),
-    gradientStart = Color(0xFF030B17),
-    gradientMid = Color(0xFF082848),
-    gradientEnd = Color(0xFF0F4F94),
+    // Brand / actions
+    primary = Color(0xFF8DB8F2),          // links, icons, selected text
+    primaryDark = Color(0xFF1B2533),
+    tertiary = Color(0xFF0B0F14),
+    accent = Color(0xFF86C5D8),           // muted teal, used sparingly
+    secondary = Color(0xFFA9C6EC),
+    primaryLight = Color(0xFFA9C6EC),
+    primaryContainer = Color(0xFF1C2735),
+    onPrimaryContainer = Color(0xFFCFE0F6),
+    buttonStart = Color(0xFF2C67AD),
+    buttonEnd = Color(0xFF3471B8),
+    // Surfaces (elevation = lighter)
+    background = Color(0xFF0E1116),
+    surface = Color(0xFF161B22),
+    surfaceElevated = Color(0xFF1D232C),
+    surfaceTint = Color(0xFF1A212B),
+    boxColor = Color(0xFF1B2129),
+    border = Color(0xFF262D37),
+    divider = Color(0xFF1F252E),
+    // Text
+    heading = Color(0xFFE7EBF0),
+    body = Color(0xFFB3BCC8),
+    muted = Color(0xFF808B99),
+    // Status (desaturated for dark)
+    success = Color(0xFF6CC495),
+    successContainer = Color(0xFF15261D),
+    warning = Color(0xFFE1AE5B),
+    warningContainer = Color(0xFF2A2215),
+    error = Color(0xFFEE867D),
+    errorContainer = Color(0xFF2D1A19),
+    info = Color(0xFF86C5D8),
+    infoContainer = Color(0xFF15242A),
+    // On-colours
+    onPrimary = Color(0xFF0E1116),
+    onSurface = Color(0xFFE7EBF0),
+    onBackground = Color(0xFFB3BCC8),
+    // Skeleton
+    skeletonBase = Color(0xFF1B2129),
+    skeletonHighlight = Color(0xFF242B35),
+    // Header: quiet deep blue-grey, no neon
+    gradientStart = Color(0xFF111821),
+    gradientMid = Color(0xFF15202D),
+    gradientEnd = Color(0xFF1B2C42),
+    heroAccent = Color(0xFF9DB9DA),
+    heroChip = Color(0xFF243245),
+    onHeroChip = Color(0xFFDCE7F5),
+    decorAlpha = 0.45f,
     shadow = Color(0xFF000000)
 )
 
@@ -264,7 +292,11 @@ fun ssplMaterialColorScheme(tokens: SsplColorTokens): ColorScheme {
             error = tokens.error,
             onError = Color.White,
             errorContainer = tokens.errorContainer,
-            onErrorContainer = tokens.error
+            onErrorContainer = tokens.error,
+            inverseSurface = Color(0xFFE7EBF0),
+            inverseOnSurface = Color(0xFF161B22),
+            inversePrimary = Color(0xFF2C67AD),
+            scrim = Color(0xCC000000)
         )
     } else {
         lightColorScheme(
@@ -294,7 +326,10 @@ fun ssplMaterialColorScheme(tokens: SsplColorTokens): ColorScheme {
             error = tokens.error,
             onError = Color.White,
             errorContainer = tokens.errorContainer,
-            onErrorContainer = tokens.error
+            onErrorContainer = tokens.error,
+            inverseSurface = Color(0xFF1C2633),
+            inverseOnSurface = Color(0xFFEEF2F7),
+            inversePrimary = Color(0xFF8DB8F2)
         )
     }
 }
@@ -310,19 +345,23 @@ fun SsplTheme(
     val fontFamily = AppFontFamily()
     val typographyTokens = ssplTypography(fontFamily, colors)
 
+    // Material components (Snackbar, dialogs, menus, buttons, text fields) take their text colour
+    // from LocalContentColor. Baked-in colours here would override that — e.g. dark body text on a
+    // dark snackbar. So Material gets colour-free styles; AppTheme.typography keeps the colours.
+    fun TextStyle.noColor() = copy(color = Color.Unspecified)
     val materialTypography = Typography(
-        displaySmall = typographyTokens.displaySmall,
-        headlineMedium = typographyTokens.headlineMedium,
-        headlineSmall = typographyTokens.headlineSmall,
-        titleLarge = typographyTokens.titleLarge,
-        titleMedium = typographyTokens.titleMedium,
-        titleSmall = typographyTokens.titleSmall,
-        bodyLarge = typographyTokens.bodyLarge,
-        bodyMedium = typographyTokens.bodyMedium,
-        bodySmall = typographyTokens.bodySmall,
-        labelLarge = typographyTokens.labelMedium.copy(fontSize = 14.sp, fontWeight = FontWeight.SemiBold),
-        labelMedium = typographyTokens.labelMedium,
-        labelSmall = typographyTokens.labelSmall
+        displaySmall = typographyTokens.displaySmall.noColor(),
+        headlineMedium = typographyTokens.headlineMedium.noColor(),
+        headlineSmall = typographyTokens.headlineSmall.noColor(),
+        titleLarge = typographyTokens.titleLarge.noColor(),
+        titleMedium = typographyTokens.titleMedium.noColor(),
+        titleSmall = typographyTokens.titleSmall.noColor(),
+        bodyLarge = typographyTokens.bodyLarge.noColor(),
+        bodyMedium = typographyTokens.bodyMedium.noColor(),
+        bodySmall = typographyTokens.bodySmall.noColor(),
+        labelLarge = typographyTokens.labelMedium.copy(fontSize = 14.sp, fontWeight = FontWeight.SemiBold).noColor(),
+        labelMedium = typographyTokens.labelMedium.noColor(),
+        labelSmall = typographyTokens.labelSmall.noColor()
     )
 
     val materialShapes = Shapes(

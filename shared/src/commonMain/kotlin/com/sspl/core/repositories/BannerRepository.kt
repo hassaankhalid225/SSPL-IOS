@@ -22,11 +22,13 @@ class BannerRepository(private val httpClient: HttpClient) {
             // Try parsing as BannersResponse object: { "banners": [...] }
             kotlinx.serialization.json.Json { ignoreUnknownKeys = true }.decodeFromString<BannersResponse>(jsonString).banners
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e // keep flow cancellation transparent
             println(">>> Banners: Failed to parse as BannersResponse, trying as direct List<Banner>")
             try {
                 // Try parsing as direct list: [ { ... }, { ... } ]
                 kotlinx.serialization.json.Json { ignoreUnknownKeys = true }.decodeFromString<List<com.sspl.core.models.Banner>>(jsonString)
             } catch (e2: Exception) {
+                if (e2 is kotlinx.coroutines.CancellationException) throw e2 // keep flow cancellation transparent
                 println(">>> Banners: Failed to parse directly. Error: ${e2.message}")
                 emptyList()
             }
