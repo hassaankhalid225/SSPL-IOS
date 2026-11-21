@@ -108,6 +108,8 @@ kotlin {
                 implementation(libs.coil.network.ktor)
 
                 implementation(libs.kotlinx.datetime)
+                // Entry-pass QR (web BadgeModal parity)
+                implementation(libs.qrose)
 //                implementation(libs.kotlinx.datetime.i18n)
 //                implementation(libs.annotations.common)
 //                implementation(libs.androidx.core.i18n)

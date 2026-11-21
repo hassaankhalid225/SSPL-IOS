@@ -3,7 +3,11 @@ package com.sspl.ui.conference.registration
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sspl.core.ApiStates
+import com.sspl.core.models.InitiatePaymentRequest
 import com.sspl.core.models.MyRegistrationsData
+import com.sspl.core.usecases.InitiatePaymentUseCase
+import com.sspl.session.UserSession
 import com.sspl.core.models.Registration
 import com.sspl.core.repositories.EventRepository
 import com.sspl.ui.conference.toUserMessage
@@ -29,16 +33,23 @@ data class MyRegistrationsState(
     val visible: List<Registration> = emptyList(),
     val counts: List<Int> = listOf(0, 0, 0, 0),
     val retryingId: Long? = null,
-    val actionError: String? = null
+    val actionError: String? = null,
+    /** Web `alert(...)` (invalid / missing account email). */
+    val alertMessage: String? = null,
+    /** Web PhoneModal: registration waiting for a mobile number. */
+    val phonePromptFor: Registration? = null,
+    val phonePromptInitial: String = ""
 )
 
 sealed interface MyRegistrationsEvent {
     data class OpenPayment(val url: String, val registrationId: Long, val transactionId: String?) : MyRegistrationsEvent
 }
 
-/** D4: GET /external/events/my-registrations; retry payment via POST /external/events/registrations/{id}/pay. */
+/** D4: GET /external/events/my-registrations; retry payment via POST /swich/initiate-payment (web parity). */
 class MyRegistrationsViewModel(
-    private val eventRepository: EventRepository
+    private val eventRepository: EventRepository,
+    private val initiatePaymentUseCase: InitiatePaymentUseCase,
+    private val userSession: UserSession
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MyRegistrationsState())
@@ -83,20 +94,75 @@ class MyRegistrationsViewModel(
         return s.copy(visible = lists[s.filter.ordinal], counts = lists.map { it.size })
     }
 
+    /**
+     * Web MyRegistrationsView.handleRetryPayment: account email must be valid (else alert), phone
+     * must be valid (else ask for it), msisdn via toPkMsisdn, then POST /swich/initiate-payment.
+     */
     fun retryPayment(reg: Registration) {
         if (_state.value.retryingId != null) return
         viewModelScope.launch {
-            _state.update { it.copy(retryingId = reg.id, actionError = null) }
-            val resp = eventRepository.retryEventPayment(reg.id).first()
-            val url = resp.payment?.bestPaymentUrl
-            _state.update { it.copy(retryingId = null) }
-            if (resp.success && !url.isNullOrBlank()) {
-                _events.send(MyRegistrationsEvent.OpenPayment(url, reg.id, resp.payment?.bestTransactionId))
-            } else {
+            val user = userSession.getUser()
+            val email = (user?.account?.email ?: "").trim()
+            if (!PaymentContact.isValidEmail(email)) {
                 _state.update {
-                    it.copy(actionError = resp.message?.takeIf { m -> m.isNotBlank() } ?: "Couldn't start the payment. Please try again or contact the secretariat.")
+                    it.copy(
+                        alertMessage = "Your profile has an invalid or missing email address (${email.ifBlank { "None detected" }}). " +
+                            "Please update your profile or contact support."
+                    )
+                }
+                return@launch
+            }
+            val phone = (user?.account?.phone ?: "").trim()
+            if (phone.isNotEmpty() && PaymentContact.isValidPhone(phone)) {
+                proceedWithPayment(reg, PaymentContact.toPkMsisdn(phone), email)
+            } else {
+                _state.update { it.copy(phonePromptFor = reg, phonePromptInitial = phone) }
+            }
+        }
+    }
+
+    /** Phone dialog submit (web PhoneModal): validate, convert, continue. Returns an inline error or null. */
+    fun submitPhone(phone: String): String? {
+        if (!PaymentContact.isValidPhone(phone)) return "Please enter a valid mobile number"
+        val reg = _state.value.phonePromptFor ?: return null
+        _state.update { it.copy(phonePromptFor = null) }
+        viewModelScope.launch {
+            val email = (userSession.getUser()?.account?.email ?: "").trim()
+            proceedWithPayment(reg, PaymentContact.toPkMsisdn(phone), email)
+        }
+        return null
+    }
+
+    fun dismissPhonePrompt() = _state.update { it.copy(phonePromptFor = null) }
+    fun dismissAlert() = _state.update { it.copy(alertMessage = null) }
+
+    private suspend fun proceedWithPayment(reg: Registration, msisdn: String, email: String) {
+        val user = userSession.getUser()
+        _state.update { it.copy(retryingId = reg.id, actionError = null) }
+        val request = InitiatePaymentRequest(
+            amount = reg.feeAmount,
+            item = "${reg.conference?.title?.takeIf { it.isNotBlank() } ?: "Event"} - ${reg.role?.name?.takeIf { it.isNotBlank() } ?: "Participant"}",
+            msisdn = msisdn,
+            name = "${user?.firstName} ${user?.lastName}",
+            email = email,
+            userId = user?.id,
+            conferenceRegistrationId = reg.id
+        )
+        val result = initiatePaymentUseCase(request).first { it !is ApiStates.Loading && it !is ApiStates.Idle }
+        _state.update { it.copy(retryingId = null) }
+        when (result) {
+            is ApiStates.Success -> {
+                val url = result.data?.bestPaymentUrl
+                if (!url.isNullOrBlank()) {
+                    _events.send(MyRegistrationsEvent.OpenPayment(url, reg.id, result.data?.bestTransactionId))
+                } else {
+                    _state.update { it.copy(actionError = "Failed to initiate payment: No payment URL received") }
                 }
             }
+            is ApiStates.Failure -> _state.update {
+                it.copy(actionError = "Failed to initiate payment: ${result.error.message?.takeIf { m -> m.isNotBlank() } ?: "Unknown error"}")
+            }
+            else -> Unit
         }
     }
 

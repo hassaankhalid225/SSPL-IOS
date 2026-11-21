@@ -15,6 +15,10 @@ import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.headersOf
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import io.ktor.http.contentType
+import com.sspl.utils.BASE_URL
 import com.sspl.core.models.RegisterUserRequest
 import com.sspl.core.models.ManualPaymentRequest
 // import kotlin.uuid.Uuid removed
@@ -27,11 +31,27 @@ class ConferenceRepository(private val client: HttpClient) {
     suspend fun getAllConferences(type: String? = null): HttpResponse =
         client.get(ConferenceRequest.GetAll(type = type))
 
+    /** PUT /conferences/{id}/sessions/{sid}/attendees with {lat, lng} (web markAttendanceGPS). */
     suspend fun markAttendanceViaLocation(
         conferenceId: Long,
         sessionId: Long,
+        lat: Double,
+        lng: Double,
     ): HttpResponse =
-        client.put(ConferenceRequest.PostAttendance(conferenceId, sessionId))
+        client.put(ConferenceRequest.PostAttendance(conferenceId, sessionId)) {
+            contentType(ContentType.Application.Json)
+            setBody(buildJsonObject {
+                put("lat", lat)
+                put("lng", lng)
+            })
+        }
+
+    /**
+     * GET /conferences/{id} without the days format — the same call as web ConferenceView
+     * (getConferenceDetails); its sessions carry attendance status, windows and feedback flags.
+     */
+    suspend fun getConferenceParticipation(conferenceId: Long): HttpResponse =
+        client.get("$BASE_URL/conferences/$conferenceId")
 
 
     suspend fun markAttendanceViaImage(

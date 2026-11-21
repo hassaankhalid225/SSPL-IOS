@@ -35,9 +35,11 @@ class AttendanceViewModel(
     fun markAttendanceViaLocation(
         conferenceId: Long,
         sessionId: Long,
+        lat: Double,
+        lng: Double,
     ) {
         viewModelScope.launch {
-            markAttendanceViaLocationUseCase(conferenceId, sessionId).collect { state ->
+            markAttendanceViaLocationUseCase(conferenceId, sessionId, lat, lng).collect { state ->
                 _attendanceViaLocationStatus.emit(state)
                 if (state is ApiStates.Success) {
                     showAttendanceDialogByLocation.update { true }

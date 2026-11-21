@@ -71,17 +71,64 @@ data class Session(
     @SerialName("venue") val venue: Venue? = null
 )
 
+/**
+ * Breakdown speaker. The public events API nests the person (`{ person: { prefix, first_name, … ,
+ * profile | profiles[] } }`) while admin-style payloads are flat — web ConferenceSchedule.jsx reads
+ * `sp.person || sp`. Both shapes decode here; use [displayName] / [displayTitle] / [displayInstitute].
+ */
 @Serializable
 data class Speaker(
     @SerialName("id") val id: Long = 0,
-    @SerialName("email") val email: String = "",
-    @SerialName("prefix") val prefix: String = "",
-    @SerialName("first_name") val firstName: String = "",
-    @SerialName("last_name") val lastName: String = "",
-    @SerialName("gender") val gender: String = "",
+    @SerialName("email") val email: String? = null,
+    @SerialName("prefix") val prefix: String? = null,
+    @SerialName("first_name") val firstName: String? = null,
+    @SerialName("last_name") val lastName: String? = null,
+    @SerialName("gender") val gender: String? = null,
+    @SerialName("person") val person: SpeakerPerson? = null,
+    @SerialName("profile") val profile: SpeakerProfile? = null,
 ) {
-    fun fullName() = listOf(prefix, firstName, lastName).filter { it.isNotBlank() }.joinToString(" ")
+    private val source: SpeakerPerson
+        get() = person ?: SpeakerPerson(email = email, prefix = prefix, firstName = firstName, lastName = lastName)
+
+    /** "Dr. Ali Khan", falling back to the email; blank when nothing usable (callers drop blanks). */
+    val displayName: String
+        get() {
+            val p = source
+            val name = listOf(p.prefix, p.firstName, p.lastName)
+                .mapNotNull { it?.trim()?.takeIf { s -> s.isNotEmpty() } }
+                .joinToString(" ")
+            return name.ifBlank { (p.email ?: email).orEmpty().trim() }
+        }
+
+    private val resolvedProfile: SpeakerProfile?
+        get() = person?.profile ?: person?.profiles?.firstOrNull() ?: profile
+
+    val displayTitle: String get() = resolvedProfile?.title?.trim().orEmpty()
+
+    val displayInstitute: String
+        get() = resolvedProfile?.let { it.hospital?.takeIf { h -> h.isNotBlank() } ?: it.institute }?.trim().orEmpty()
+
+    /** Kept for existing callers. */
+    fun fullName() = displayName
 }
+
+@Serializable
+data class SpeakerPerson(
+    @SerialName("id") val id: Long? = null,
+    @SerialName("email") val email: String? = null,
+    @SerialName("prefix") val prefix: String? = null,
+    @SerialName("first_name") val firstName: String? = null,
+    @SerialName("last_name") val lastName: String? = null,
+    @SerialName("profile") val profile: SpeakerProfile? = null,
+    @SerialName("profiles") val profiles: List<SpeakerProfile>? = null,
+)
+
+@Serializable
+data class SpeakerProfile(
+    @SerialName("title") val title: String? = null,
+    @SerialName("hospital") val hospital: String? = null,
+    @SerialName("institute") val institute: String? = null,
+)
 
 @Serializable
 data class Venue(

@@ -129,25 +129,30 @@ class ConferenceRegistrationViewModel(
             }
             
             val userId = user.id
-            val email = user.account?.email ?: "noemail@example.com"
-            val phone = user.account?.phone
+            // Web parity: a valid account email is required (no placeholder), msisdn via toPkMsisdn.
+            val email = user.account?.email?.trim().orEmpty()
+            if (!PaymentContact.isValidEmail(email)) {
+                _uiState.value = currentState.copy(
+                    error = "Your profile has an invalid or missing email address (${email.ifBlank { "None detected" }}). Please update your profile or contact support."
+                )
+                return@launch
+            }
+            val phone = user.account?.phone?.trim().orEmpty()
             val name = "${user.firstName} ${user.lastName}"
 
-            if (phone.isNullOrBlank()) {
-                _uiState.value = currentState.copy(error = "Phone number is required for payment. Please update your profile.")
+            if (phone.isEmpty() || !PaymentContact.isValidPhone(phone)) {
+                _uiState.value = currentState.copy(error = "Please enter a valid mobile number in your profile to pay.")
                 return@launch
             }
 
-            // Ensure we have a valid registration ID
             val request = InitiatePaymentRequest(
-                itemType = "conference_registration",
-                conferenceRegistrationId = regId,
                 amount = registration.feeAmount,
-                item = "Conference Registration - ${currentState.details.title}",
-                email = email,
+                item = "${currentState.details.title} - ${registration.role?.name?.takeIf { it.isNotBlank() } ?: "Participant"}",
+                msisdn = PaymentContact.toPkMsisdn(phone),
                 name = name,
-                msisdn = phone,
-                userId = userId
+                email = email,
+                userId = userId,
+                conferenceRegistrationId = regId
             )
             
             _uiState.value = currentState.copy(isLoading = true)

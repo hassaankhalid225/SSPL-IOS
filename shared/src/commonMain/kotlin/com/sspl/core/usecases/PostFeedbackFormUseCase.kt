@@ -4,8 +4,6 @@ import com.sspl.core.ApiStates
 import com.sspl.core.models.ApiError
 import com.sspl.core.models.CommonResponse
 import com.sspl.core.models.FeedbackForm
-import com.sspl.core.models.Option
-import com.sspl.core.models.Statement
 import com.sspl.core.repositories.ConferenceRepository
 import io.ktor.client.call.body
 import io.ktor.http.isSuccess
@@ -18,15 +16,16 @@ import kotlinx.serialization.json.put
 
 
 class PostFeedbackFormUseCase(private val conferenceRepository: ConferenceRepository) {
-    operator fun invoke(selectedAnswers: List<Pair<Statement, Option>>,conferenceId: Long,sessionId: Long? = null): Flow<ApiStates<CommonResponse>> = flow {
+    /** [answers] = question/statement id -> value; body {data:[{question_id, value}]} like the web. */
+    operator fun invoke(answers: Map<Int, String>, conferenceId: Long, sessionId: Long? = null): Flow<ApiStates<CommonResponse>> = flow {
         emit(ApiStates.Loading)
         try {
             val jsonBody = buildJsonObject {
                 put("data", buildJsonArray {
-                    selectedAnswers.forEach { (statement, option) ->
+                    answers.forEach { (id, value) ->
                         addJsonObject {
-                            put("question_id", statement.id)
-                            put("value", option.value)
+                            put("question_id", id)
+                            put("value", value)
                         }
                     }
                 })
@@ -40,10 +39,13 @@ class PostFeedbackFormUseCase(private val conferenceRepository: ConferenceReposi
                 )
             }?:conferenceRepository.postFeedbackForm(conferenceId, body = jsonBody)
             if (response.status.isSuccess()) {
-                val responseBody = response.body<CommonResponse>()
+                // Success bodies vary; a missing `message` must not turn a saved answer into an error.
+                val responseBody = runCatching { response.body<CommonResponse>() }
+                    .getOrElse { CommonResponse(message = "Thanks for your feedback!") }
                  emit(ApiStates.Success(responseBody))
             } else {
-                val errorResponse = response.body<ApiError>()
+                val errorResponse = runCatching { response.body<ApiError>() }
+                    .getOrElse { ApiError(message = "Failed to submit feedback.") }
                 emit(ApiStates.Failure(error = errorResponse))
             }
         } catch (e: Exception) {

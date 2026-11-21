@@ -67,10 +67,21 @@ fun ColumnScope.SessionBreakDown(
                         style = AppTheme.typography.bodyMedium.copy(color = colors.heading, fontWeight = FontWeight.Medium)
                     )
                 }
-                val speakers = item.speakers.map { it.fullName().trim() }.filter { it.isNotBlank() }.distinct().take(3)
-                if (speakers.isNotEmpty()) {
-                    Spacer(Modifier.height(2.dp))
-                    Text(speakers.joinToString(" · "), style = AppTheme.typography.bodySmall)
+                // Web: name + profile title + hospital/institute; blank names are dropped.
+                val speakers = item.speakers
+                    .filter { it.displayName.isNotBlank() }
+                    .distinctBy { it.displayName }
+                    .take(3)
+                speakers.forEach { sp ->
+                    Spacer(Modifier.height(3.dp))
+                    Text(
+                        sp.displayName,
+                        style = AppTheme.typography.bodySmall.copy(color = colors.body, fontWeight = FontWeight.Medium)
+                    )
+                    val meta = listOf(sp.displayTitle, sp.displayInstitute).filter { it.isNotBlank() }.joinToString(" · ")
+                    if (meta.isNotBlank()) {
+                        Text(meta, style = AppTheme.typography.labelSmall)
+                    }
                 }
             }
         }

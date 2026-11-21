@@ -32,7 +32,10 @@ data class Registration(
     @SerialName("is_locked") val isLocked: Boolean = false,
     @SerialName("registration_number") val registrationNumber: String? = null,
     val role: Role? = null,
-    val conference: Conference? = null // For "My Registrations" list
+    val conference: Conference? = null, // For "My Registrations" list
+    /** Web BadgeModal QR `uid` / `registration_id`; kept raw so the QR JSON matches the web byte-for-byte. */
+    @SerialName("registration_id") val registrationIdRaw: kotlinx.serialization.json.JsonElement? = null,
+    val person: RegistrationPerson? = null
 ) {
     val isConfirmed: Boolean
         get() = approvalStatus.equals("APPROVED", ignoreCase = true) ||
@@ -47,6 +50,18 @@ data class Registration(
     val needsPayment: Boolean
         get() = (paymentStatus.equals("PENDING", ignoreCase = true) || paymentStatus.equals("FAILED", ignoreCase = true)) && feeAmount > 0.0
 }
+
+@Serializable
+data class RegistrationPerson(
+    val id: Long? = null,
+    val prefix: String? = null,
+    val salutation: String? = null,
+    @SerialName("first_name") val firstName: String? = null,
+    @SerialName("last_name") val lastName: String? = null,
+    val hospital: String? = null,
+    val institution: String? = null,
+    val city: String? = null
+)
 
 @Serializable
 data class CheckRegistrationResponse(
@@ -72,17 +87,21 @@ data class RegistrationListResponse(
     @SerialName("_meta") val meta: PaginationMeta? = null
 )
 
+/**
+ * POST /swich/initiate-payment — same keys as web `initiateSwichPayment` (eventsApi.js):
+ * { amount, item, msisdn, name, email, userId, membershipId?, conferenceRegistrationId? }.
+ * Null fields are dropped (explicitNulls = false).
+ */
 @Serializable
 data class InitiatePaymentRequest(
-    @kotlinx.serialization.EncodeDefault @SerialName("item_type") val itemType: String = "conference_registration",
-    @SerialName("conference_registration_id") val conferenceRegistrationId: Long? = null,
-    @SerialName("membership_id") val membershipId: Long? = null,
     val amount: Double? = null,
     val item: String? = null,
-    val email: String? = null,
+    val msisdn: String? = null,
     val name: String? = null,
-    @SerialName("msisdn") val msisdn: String? = null,
-    val userId: Long? = null
+    val email: String? = null,
+    val userId: Long? = null,
+    val membershipId: Long? = null,
+    val conferenceRegistrationId: Long? = null
 )
 
 @Serializable
@@ -95,11 +114,22 @@ data class InitiatePaymentResponse(
     // Legacy / Alternative format support
     val success: Boolean? = null,
     val paymentUrl: String? = null,
-    val transactionId: String? = null
+    val transactionId: String? = null,
+    /** Old response shape: { payment: { paymentUrl, transactionId } } (web falls back to it). */
+    val payment: InitiatePaymentNested? = null
 ) {
     val bestPaymentUrl: String?
-        get() = paymentUrlSnake ?: paymentUrl
+        get() = paymentUrl ?: paymentUrlSnake ?: payment?.paymentUrl
+
+    val bestTransactionId: String?
+        get() = transactionId ?: customerTransactionId ?: payment?.transactionId
 }
+
+@Serializable
+data class InitiatePaymentNested(
+    val paymentUrl: String? = null,
+    val transactionId: String? = null
+)
 @Serializable
 data class ManualPaymentRequest(
     @kotlinx.serialization.EncodeDefault @SerialName("payment_status") val paymentStatus: String = "SUCCESS", // Or PENDING verification

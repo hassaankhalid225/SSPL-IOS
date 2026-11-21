@@ -6,8 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sspl.core.ApiStates
 import com.sspl.core.models.CommonResponse
-import com.sspl.core.models.Option
-import com.sspl.core.models.Statement
+import com.sspl.core.models.FeedbackForm
+import com.sspl.core.models.QuestionType
 import com.sspl.core.usecases.GetFeedbackFormUseCase
 import com.sspl.core.usecases.PostFeedbackFormUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -64,61 +64,53 @@ fun setSessionId(sessionId: Long?) {
 
     fun onEvent(event: FeedbackUiEvents) {
         when (event) {
-
-
-            is FeedbackUiEvents.OnAnswerSelected -> {
-                val updatedAnswers = _uiState.value.selectedAnswers.toMutableList().apply {
-                    // Remove existing entry for the same statement ID
-                    removeAll { it.first.id == event.statement.id }
-
-                    // If it's a comment, store it as an Option with the comment as its value
-                    if (!event.comment.isNullOrBlank()) {
-                        add(event.statement to Option(label = "Comment", value = event.comment))
-                    } else if (event.option != null) {
-                        add(event.statement to event.option)
-                    }
-                }
-
-                _uiState.value = _uiState.value.copy(selectedAnswers = updatedAnswers, isEnabled = true)
+            is FeedbackUiEvents.OnAnswer -> _uiState.update { st ->
+                st.copy(answers = st.answers + (event.id to event.value))
             }
-
-
 
             is FeedbackUiEvents.OnSubmitClicked -> {
-                _conferenceId.value?.let { id ->
-                    viewModelScope.launch {
-                        postFeedbackFormUseCase(
-                          sessionId = _sessionId.value,  conferenceId = id, selectedAnswers = _uiState.value.selectedAnswers
-                        ).collect { state ->
-                            _uiState.value =
-                                _uiState.value.copy(isLoading = state is ApiStates.Loading)
-
-                            _isFeedbackSubmitted.emit(state)
-                        }
+                val id = _conferenceId.value ?: return
+                if (_uiState.value.isLoading) return
+                // Web sends every answered entry; Submit is only enabled when all are answered.
+                val answers = _uiState.value.answers.filterValues { it.isNotBlank() }
+                viewModelScope.launch {
+                    postFeedbackFormUseCase(
+                        sessionId = _sessionId.value, conferenceId = id, answers = answers
+                    ).collect { state ->
+                        _uiState.update { it.copy(isLoading = state is ApiStates.Loading) }
+                        _isFeedbackSubmitted.emit(state)
                     }
                 }
             }
-
         }
-
     }
-
-
 }
+
+/**
+ * Web EventFeedback.collectRequiredQuestionIds: EVALUATION with statements -> each statement id,
+ * every other question -> its own id. All are required.
+ */
+fun FeedbackForm.requiredAnswerIds(): List<Int> = questionGroups.orEmpty().flatMap { g ->
+    g.questions.orEmpty().flatMap { q ->
+        val st = q.statements.orEmpty()
+        if (q.type == QuestionType.EVALUATION && st.isNotEmpty()) st.map { it.id } else listOf(q.id)
+    }
+}
+
+fun FeedbackForm.hasQuestions(): Boolean = questionGroups.orEmpty().any { it.questions.orEmpty().isNotEmpty() }
 
 @Stable
 @Immutable
 data class FeedbackUiState(
     val isLoading: Boolean = false,
-    val isEnabled: Boolean = false,
-    val bestAspectsComment: String = "",
-    val areaToImproveComment: String = "",
-    val selectedAnswers: List<Pair<Statement, Option>> = emptyList()
-)
-
+    /** question / statement id -> answer value (web `answers` map). */
+    val answers: Map<Int, String> = emptyMap()
+) {
+    fun isComplete(form: FeedbackForm): Boolean =
+        form.requiredAnswerIds().all { answers[it]?.trim()?.isNotEmpty() == true }
+}
 
 sealed interface FeedbackUiEvents {
-    data class OnAnswerSelected(val statement: Statement, val option: Option? = null, val comment: String? = null) : FeedbackUiEvents
-     data object OnSubmitClicked : FeedbackUiEvents
-
+    data class OnAnswer(val id: Int, val value: String) : FeedbackUiEvents
+    data object OnSubmitClicked : FeedbackUiEvents
 }

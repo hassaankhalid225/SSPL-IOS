@@ -12,22 +12,21 @@ import kotlinx.coroutines.flow.flow
 
 
 class MarkAttendanceViaLocationUseCase(private val conferenceRepository: ConferenceRepository) {
-    operator fun invoke(conferenceId: Long, sessionId: Long): Flow<ApiStates<AttendanceResponse>> =
+    operator fun invoke(conferenceId: Long, sessionId: Long, lat: Double, lng: Double): Flow<ApiStates<AttendanceResponse>> =
         flow {
             emit(ApiStates.Loading)
             try {
-                println(conferenceId.toString() + "is the id ")
                 val response =
-                    conferenceRepository.markAttendanceViaLocation(conferenceId, sessionId)
+                    conferenceRepository.markAttendanceViaLocation(conferenceId, sessionId, lat, lng)
 
                 if (response.status.isSuccess()) {
-                    val result = response.body<AttendanceResponse>()
-                    println("The result is $result")
+                    // Web treats any 2xx as marked (status defaults to ACCEPTED).
+                    val result = runCatching { response.body<AttendanceResponse>() }
+                        .getOrElse { AttendanceResponse(status = "ACCEPTED", createdAt = "", updatedAt = "") }
                     emit(ApiStates.Success(result))
                 } else {
-                    println("new result is " + response.body())
-                    val errorResponse = response.body<ApiError>()
-                    println("The result is $errorResponse")
+                    val errorResponse = runCatching { response.body<ApiError>() }
+                        .getOrElse { ApiError(message = "Failed to mark attendance.") }
 
                     emit(ApiStates.Failure(error = errorResponse))
                 }

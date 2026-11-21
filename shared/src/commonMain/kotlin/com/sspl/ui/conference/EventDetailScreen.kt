@@ -42,6 +42,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -57,6 +60,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.core.models.EventRole
+import com.sspl.core.models.eventSchedulePdfUrl
+import com.sspl.designsystem.components.ChipRow
+import com.sspl.designsystem.components.ImageSources
 import com.sspl.designsystem.components.BadgeVariant
 import com.sspl.designsystem.components.ErrorState
 import com.sspl.designsystem.components.ExpandableText
@@ -132,6 +138,7 @@ fun EventDetailScreen(
         }
     }
     var tabIndex by rememberSaveable { mutableIntStateOf(0) }
+    var scheduleSessionId by rememberSaveable { mutableLongStateOf(-1L) }
     val tab = tabs.getOrElse(tabIndex) { DetailTab.OVERVIEW }
 
     val reg = state.registrationData
@@ -149,7 +156,7 @@ fun EventDetailScreen(
         ) {
             item(key = "hero") { DetailHero(card) }
             item(key = "facts") {
-                FactsCard(card, state.minFee, DisplayDates.medium(event.registrationDeadline), Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp))
+                FactsCard(card, state.minFee, DisplayDates.medium(event.registrationDeadline), event.maxAttendees, Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp))
             }
             if (tabs.size > 1) {
                 stickyHeader(key = "tabs") {
@@ -181,21 +188,32 @@ fun EventDetailScreen(
                 DetailTab.OVERVIEW -> {
                     if (isRegistered) {
                         item(key = "registered") {
-                            val status = reg?.registration?.let { r ->
-                                when {
-                                    r.isConfirmed -> "Confirmed"
-                                    r.needsPayment -> "Payment pending"
-                                    r.isPendingApproval -> "Awaiting approval"
-                                    else -> r.paymentStatus
-                                }
-                            } ?: "Registered"
+                            // Web EventDetail.jsx: PENDING → "Pending admin approval" (fee 0) / "Pending payment".
+                            val r = reg?.registration
+                            val pending = r?.paymentStatus.equals("PENDING", ignoreCase = true)
+                            val status = when {
+                                r == null -> "Registered"
+                                r.isConfirmed -> "Confirmed"
+                                pending && r.feeAmount == 0.0 -> "Pending admin approval"
+                                pending -> "Pending payment"
+                                else -> r.paymentStatus.lowercase().replaceFirstChar { it.uppercase() }
+                            }
+                            val roleName = r?.role?.name?.takeIf { it.isNotBlank() }
                             ListRowCard(
-                                title = "You're registered",
-                                subtitle = "Sessions, attendance, feedback and certificates are in the Event Portal once confirmed.",
+                                title = if (pending) "Registration submitted" else "You're registered",
+                                subtitle = listOfNotNull(
+                                    roleName?.let { "Role: $it" },
+                                    "Sessions, attendance, feedback and certificates are in the Event Portal once confirmed."
+                                ).joinToString(" · "),
                                 leading = {
-                                    IconTile(SsplIcons.CheckCircle, tint = AppTheme.colors.success, background = AppTheme.colors.successContainer)
+                                    if (pending) IconTile(SsplIcons.HourglassTop, tint = AppTheme.colors.warning, background = AppTheme.colors.warningContainer)
+                                    else IconTile(SsplIcons.CheckCircle, tint = AppTheme.colors.success, background = AppTheme.colors.successContainer)
                                 },
-                                trailing = { StatusBadge(status) },
+                                trailing = {
+                                    if (r?.isConfirmed == true) StatusBadge(status, variant = BadgeVariant.SUCCESS)
+                                    else if (pending) StatusBadge(status, variant = BadgeVariant.WARNING)
+                                    else StatusBadge(status)
+                                },
                                 onClick = { navController.navigate(Screen.EventPortalScreen.route) { launchSingleTop = true } },
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                             )
@@ -234,7 +252,7 @@ fun EventDetailScreen(
                             }
                         }
                     }
-                    if (event.isAbstractEnabled && card.status != "past") {
+                    if (event.showAbstractCall && card.status != "past") {
                         item(key = "abstract") {
                             ListRowCard(
                                 title = "Abstract submissions open",
@@ -281,15 +299,43 @@ fun EventDetailScreen(
                             }
                         }
                     }
-                    event.webLink?.takeIf { it.isNotBlank() }?.let { link ->
-                        item(key = "web") {
-                            OutlineButton(
-                                text = "Open event website",
-                                onClick = { urlOpener.openUrl(link) },
-                                icon = SsplIcons.OpenInNew,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                    val webLink = event.webLink?.takeIf { it.isNotBlank() }
+                    val documents = event.validDocuments
+                    if (webLink != null || documents.isNotEmpty()) {
+                        item(key = "docsHeader") {
+                            SectionHeader(
+                                title = "Documents & downloads",
+                                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp)
                             )
                         }
+                    }
+                    if (webLink != null) {
+                        item(key = "web") {
+                            ListRowCard(
+                                title = "Downloadables (Google Drive)",
+                                subtitle = "Access event materials",
+                                leading = { IconTile(SsplIcons.Download) },
+                                trailing = {
+                                    Icon(SsplIcons.OpenInNew, contentDescription = "Open link", tint = AppTheme.colors.muted)
+                                },
+                                onClick = { urlOpener.openUrl(webLink) },
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp)
+                            )
+                        }
+                    }
+                    itemsIndexed(documents, key = { i, d -> "doc_${d.id ?: i}" }) { _, doc ->
+                        val url = resolveDocumentUrl(doc.fileUrl)
+                        ListRowCard(
+                            title = doc.title?.takeIf { it.isNotBlank() } ?: "Event document",
+                            subtitle = doc.type?.takeIf { it.isNotBlank() }?.replace('_', ' ')?.lowercase()
+                                ?.replaceFirstChar { it.uppercase() },
+                            leading = { IconTile(SsplIcons.Description) },
+                            trailing = {
+                                Icon(SsplIcons.Download, contentDescription = "Download document", tint = AppTheme.colors.primary)
+                            },
+                            onClick = url?.let { u -> { urlOpener.openUrl(u) } },
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp)
+                        )
                     }
                     if (state.relatedWorkshops.isNotEmpty()) {
                         item(key = "wsHeader") {
@@ -314,8 +360,37 @@ fun EventDetailScreen(
                 }
 
                 DetailTab.SCHEDULE -> {
+                    // Web ConferenceSchedule.jsx: "All sessions (n)" + "Session i: title" tabs and a PDF download.
+                    val realSessions = state.sessions.filter { !it.isBreak }
+                    val selectedSession = realSessions.firstOrNull { it.id == scheduleSessionId }
+                    item(key = "schedActions") {
+                        Column(Modifier.padding(top = 4.dp, bottom = 6.dp)) {
+                            if (realSessions.size > 1) {
+                                val allLabel = "All sessions (${realSessions.size})"
+                                val labels = realSessions.mapIndexed { idx, s ->
+                                    "Session ${idx + 1}: ${s.title.ifBlank { "Untitled" }}"
+                                }
+                                ChipRow(
+                                    options = listOf(allLabel) + labels,
+                                    selected = selectedSession?.let { labels[realSessions.indexOf(it)] } ?: allLabel,
+                                    onSelect = { label ->
+                                        val idx = labels.indexOf(label)
+                                        scheduleSessionId = if (idx >= 0) realSessions[idx].id else -1L
+                                    }
+                                )
+                                Spacer(Modifier.height(10.dp))
+                            }
+                            OutlineButton(
+                                text = if (selectedSession != null) "Download session schedule (PDF)" else "Download schedule (PDF)",
+                                onClick = { urlOpener.openUrl(eventSchedulePdfUrl(event.effectiveId, selectedSession?.id)) },
+                                icon = SsplIcons.Download,
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+                        }
+                    }
+                    val visibleSessions = if (selectedSession != null) listOf(selectedSession) else state.sessions
                     var lastDay = ""
-                    state.sessions.forEachIndexed { i, s ->
+                    visibleSessions.forEachIndexed { i, s ->
                         val day = DisplayDates.medium(s.startsAt)
                         if (day.isNotBlank() && day != lastDay) {
                             lastDay = day
@@ -376,7 +451,8 @@ fun EventDetailScreen(
             !card.registrationOpen -> Triple(if (card.status == "past") "Event has ended" else "Registration closed", false, {})
             shell.isGuest -> Triple("Sign in to register", true, shell.onAvatar)
             reg != null && !reg.canRegister -> Triple("Registration unavailable", false, {})
-            else -> Triple("Register now", true, { openRegistration() })
+            // Web: `pgEvent.is_payment_enabled ? "Pay Now" : "Register Now"`.
+            else -> Triple(if (event.isPaymentEnabled == true) "Pay now" else "Register now", true, { openRegistration() })
         }
         val (ctaText, ctaEnabled, onCta) = cta
         StickyCtaBar(
@@ -436,13 +512,15 @@ private fun DetailHero(card: EventCardUi) {
 }
 
 @Composable
-private fun FactsCard(card: EventCardUi, minFee: Double?, registrationDeadline: String, modifier: Modifier = Modifier) {
+private fun FactsCard(card: EventCardUi, minFee: Double?, registrationDeadline: String, maxAttendees: Int?, modifier: Modifier = Modifier) {
     SsplCard(modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             FactRow(SsplIcons.CalendarMonth, "Date", card.dateRange)
             if (card.timeRange.isNotBlank()) FactRow(SsplIcons.Schedule, "Time", card.timeRange)
             FactRow(SsplIcons.Place, "Venue", card.venue)
-            if (registrationDeadline.isNotBlank() && card.registrationOpen) FactRow(SsplIcons.EventAvailable, "Register by", registrationDeadline)
+            // Web shows capacity + the registration deadline regardless of open/closed state.
+            FactRow(SsplIcons.Groups, "Capacity", if (maxAttendees != null && maxAttendees > 0) "$maxAttendees guests" else "Open registration")
+            if (registrationDeadline.isNotBlank()) FactRow(SsplIcons.EventAvailable, "Registration deadline", registrationDeadline)
             if (minFee != null) FactRow(SsplIcons.Sell, "Registration", if (minFee <= 0.0) "Free" else "From ${formatPkr(minFee)}")
         }
     }
@@ -500,3 +578,7 @@ internal fun RoleFeeCard(role: EventRole, modifier: Modifier = Modifier) {
         }
     }
 }
+
+/** documents[].file_url → absolute URL (web: http… as-is, else EXTERNAL_API + "/" + file_url). */
+private fun resolveDocumentUrl(path: String?): String? =
+    ImageSources.resolveUrl(path?.replace('\\', '/'))

@@ -66,9 +66,13 @@ import kotlin.math.sqrt
 fun MarkAttendanceButton(
     modifier: Modifier = Modifier,
     apiCoordinates: Coordinates,
-    onMarkAttendance: () -> Unit,
+    /** Called with the device position (sent as {lat, lng}, web markAttendanceGPS). */
+    onMarkAttendance: (lat: Double, lng: Double) -> Unit,
     scaffoldState: SnackbarHostState,
-    onMarkAttendanceByImage: (ByteArray) -> Unit
+    onMarkAttendanceByImage: (ByteArray) -> Unit,
+    enabled: Boolean = true,
+    radiusInMeters: Double = 50.0,
+    label: String = "Mark attendance"
 ) {
     val scope = rememberCoroutineScope()
     var showCameraDialog by remember { mutableStateOf(false) }
@@ -164,13 +168,14 @@ fun MarkAttendanceButton(
                             apiLatitude = apiCoordinates.latitude,
                             apiLongitude = apiCoordinates.longitude,
                             currentLatitude = result.data.coordinates.latitude,
-                            currentLongitude = result.data.coordinates.longitude
+                            currentLongitude = result.data.coordinates.longitude,
+                            radiusInMeters = radiusInMeters
                         )
 
 
                         if (isWithinRadius) {
                             scaffoldState.showSnackbar("You are within the allowed radius.")
-                            onMarkAttendance()
+                            onMarkAttendance(result.data.coordinates.latitude, result.data.coordinates.longitude)
                             println("You are within the allowed radius.")
                         } else {
                             showCameraDialog = true
@@ -224,8 +229,8 @@ fun MarkAttendanceButton(
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(50))
-            .background(AppTheme.colors.primaryContainer)
-            .clickable(enabled = !isGettingLocation, onClickLabel = "Mark attendance", onClick = {
+            .background(if (enabled) AppTheme.colors.primaryContainer else AppTheme.colors.boxColor)
+            .clickable(enabled = enabled && !isGettingLocation, onClickLabel = label, onClick = {
                 scope.launch {
                     requestPermissions(locationPermissionController = locationPermissionController,
                         onPermissionGranted = {
@@ -258,13 +263,14 @@ fun MarkAttendanceButton(
                                                     apiLatitude = apiCoordinates.latitude,
                                                     apiLongitude = apiCoordinates.longitude,
                                                     currentLatitude = result.data.coordinates.latitude,
-                                                    currentLongitude = result.data.coordinates.longitude
+                                                    currentLongitude = result.data.coordinates.longitude,
+                                                    radiusInMeters = radiusInMeters
                                                 )
 
 
                                                 if (isWithinRadius) {
                                                     scaffoldState.showSnackbar("You are within the allowed radius.")
-                                                    onMarkAttendance()
+                                                    onMarkAttendance(result.data.coordinates.latitude, result.data.coordinates.longitude)
                                                     println("You are within the allowed radius.")
                                                 } else {
                                                     showCameraDialog = true
@@ -313,7 +319,7 @@ fun MarkAttendanceButton(
                 }
 
             })
-            .heightIn(min = 40.dp)
+            .heightIn(min = 48.dp)
             .padding(horizontal = 14.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -321,11 +327,14 @@ fun MarkAttendanceButton(
         if (isGettingLocation && locationState.latitude.isNullOrEmpty()) {
             LoadingDots(dotSize = 5.dp, spacing = 3.dp)
         } else {
-            Icon(SsplIcons.HowToReg, contentDescription = null, tint = AppTheme.colors.primary, modifier = Modifier.size(16.dp))
+            Icon(SsplIcons.HowToReg, contentDescription = null, tint = if (enabled) AppTheme.colors.primary else AppTheme.colors.muted, modifier = Modifier.size(16.dp))
         }
         Text(
-            text = if (isGettingLocation) "Locating…" else "Mark attendance",
-            style = AppTheme.typography.labelMedium.copy(color = AppTheme.colors.onPrimaryContainer, fontWeight = FontWeight.SemiBold)
+            text = if (isGettingLocation) "Locating…" else label,
+            style = AppTheme.typography.labelMedium.copy(
+                color = if (enabled) AppTheme.colors.onPrimaryContainer else AppTheme.colors.muted,
+                fontWeight = FontWeight.SemiBold
+            )
         )
     }
 

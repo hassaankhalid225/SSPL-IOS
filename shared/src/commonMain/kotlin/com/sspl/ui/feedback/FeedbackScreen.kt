@@ -38,7 +38,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
@@ -52,7 +56,6 @@ import com.sspl.core.ApiStates
 import com.sspl.core.models.FeedbackForm
 import com.sspl.core.models.Option
 import com.sspl.core.models.QuestionType
-import com.sspl.core.models.Statement
 import com.sspl.designsystem.components.EmptyState
 import com.sspl.designsystem.components.ErrorState
 import com.sspl.designsystem.components.GlassPill
@@ -130,6 +133,8 @@ fun FeedbackScreenContent(
     feedbackForm: FeedbackForm,
     onEvent: (FeedbackUiEvents) -> Unit = {}
 ) {
+    val answers = uiState.answers
+    val complete = uiState.isComplete(feedbackForm)
     LazyColumn(
         modifier = Modifier.fillMaxSize().imePadding(),
         contentPadding = PaddingValues(16.dp),
@@ -139,70 +144,124 @@ fun FeedbackScreenContent(
             GradientHeroCard {
                 GlassPill("FEEDBACK", icon = SsplIcons.RateReview)
                 Spacer(Modifier.height(10.dp))
-                Text(feedbackForm.title, style = AppTheme.typography.headlineSmall.copy(color = Color.White))
                 Text(
-                    feedbackForm.description?.takeIf { it.isNotBlank() } ?: "Your answers help us plan better CME sessions.",
+                    feedbackForm.title?.takeIf { it.isNotBlank() } ?: "Session feedback",
+                    style = AppTheme.typography.headlineSmall.copy(color = Color.White)
+                )
+                Text(
+                    feedbackForm.description?.takeIf { it.isNotBlank() }
+                        ?: "All questions are required. Your answers help us plan better CME sessions.",
                     style = AppTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.78f))
                 )
             }
         }
-        itemsIndexed(feedbackForm.questionGroups, key = { i, _ -> "g_$i" }) { _, group ->
+        if (!feedbackForm.hasQuestions()) {
+            item(key = "none") {
+                EmptyState(
+                    title = "No feedback form yet",
+                    message = "No feedback form available for this event yet.",
+                    icon = SsplIcons.RateReview
+                )
+            }
+            return@LazyColumn
+        }
+        itemsIndexed(feedbackForm.questionGroups.orEmpty(), key = { i, g -> "g_${g.id ?: i}_$i" }) { _, group ->
             SsplCard {
-                Text(group.title, style = AppTheme.typography.titleSmall)
-                if (group.description.isNotBlank()) {
-                    Text(group.description, style = AppTheme.typography.bodySmall)
-                }
-                group.questions.forEach { question ->
+                group.title?.takeIf { it.isNotBlank() }?.let { Text(it, style = AppTheme.typography.titleSmall) }
+                group.description?.takeIf { it.isNotBlank() }?.let { Text(it, style = AppTheme.typography.bodySmall) }
+                group.questions.orEmpty().forEach { q ->
                     Spacer(Modifier.height(12.dp))
-                    when (question.type) {
-                        QuestionType.EVALUATION, QuestionType.YESNO -> question.statements.forEach { st ->
-                            QuestionSelector(
-                                statement = st,
-                                options = question.options,
-                                onAnswerSelected = { s, o -> onEvent(FeedbackUiEvents.OnAnswerSelected(s, o)) },
-                                modifier = Modifier.padding(bottom = 10.dp)
-                            )
-                        }
-                        QuestionType.COMMENT -> CommentTextEditor(
-                            placeholderText = question.statement,
-                            onTextChanged = {
-                                onEvent(
-                                    FeedbackUiEvents.OnAnswerSelected(
-                                        statement = Statement(id = question.id, statement = question.statement),
-                                        comment = it
-                                    )
+                    val statements = q.statements.orEmpty()
+                    val options = q.options.orEmpty()
+                    when {
+                        // EVALUATION with statements: one answer per statement id (web parity).
+                        q.type == QuestionType.EVALUATION && statements.isNotEmpty() -> {
+                            q.statement?.takeIf { it.isNotBlank() }?.let {
+                                Text(it, style = AppTheme.typography.bodyMedium.copy(color = AppTheme.colors.heading, fontWeight = FontWeight.Medium))
+                            }
+                            q.description?.takeIf { it.isNotBlank() }?.let { Text(it, style = AppTheme.typography.bodySmall) }
+                            statements.forEach { st ->
+                                QuestionSelector(
+                                    label = st.statement.orEmpty(),
+                                    options = options,
+                                    selected = answers[st.id],
+                                    onSelect = { onEvent(FeedbackUiEvents.OnAnswer(st.id, it.value)) },
+                                    modifier = Modifier.padding(top = 10.dp)
                                 )
                             }
-                        )
+                        }
+                        // CHOICE / YESNO / EVALUATION without statements: answered by question id.
+                        q.type == QuestionType.CHOICE || q.type == QuestionType.YESNO || q.type == QuestionType.EVALUATION -> {
+                            QuestionSelector(
+                                label = q.statement.orEmpty(),
+                                description = q.description,
+                                options = options,
+                                selected = answers[q.id],
+                                onSelect = { onEvent(FeedbackUiEvents.OnAnswer(q.id, it.value)) }
+                            )
+                        }
+                        else -> {
+                            RequiredLabel(q.statement.orEmpty())
+                            q.description?.takeIf { it.isNotBlank() }?.let { Text(it, style = AppTheme.typography.bodySmall) }
+                            Spacer(Modifier.height(6.dp))
+                            CommentTextEditor(
+                                value = answers[q.id].orEmpty(),
+                                placeholderText = "Your answer...",
+                                onTextChanged = { onEvent(FeedbackUiEvents.OnAnswer(q.id, it)) }
+                            )
+                        }
                     }
                 }
             }
         }
         item(key = "submit") {
-            PrimaryButton(
-                text = "Submit feedback",
-                onClick = { onEvent(FeedbackUiEvents.OnSubmitClicked) },
-                enabled = uiState.isEnabled && !uiState.isLoading,
-                loading = uiState.isLoading,
-                modifier = Modifier.padding(top = 4.dp)
-            )
+            Column {
+                if (!complete) {
+                    Text(
+                        "Please answer all questions before submitting.",
+                        style = AppTheme.typography.bodySmall,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                }
+                PrimaryButton(
+                    text = "Submit feedback",
+                    onClick = { onEvent(FeedbackUiEvents.OnSubmitClicked) },
+                    enabled = complete && !uiState.isLoading,
+                    loading = uiState.isLoading,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
         }
     }
 }
 
-/** Single-choice pills for a statement (evaluation scale or yes/no). */
+@Composable
+private fun RequiredLabel(text: String) {
+    val colors = AppTheme.colors
+    Text(
+        buildAnnotatedString {
+            append(text)
+            withStyle(SpanStyle(color = colors.error)) { append(" *") }
+        },
+        style = AppTheme.typography.bodyMedium.copy(color = colors.heading, fontWeight = FontWeight.Medium)
+    )
+}
+
+/** Single-choice pills (evaluation scale, choice or yes/no). */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun QuestionSelector(
-    modifier: Modifier = Modifier,
-    statement: Statement,
+    label: String,
     options: List<Option>,
-    onAnswerSelected: (Statement, Option) -> Unit
+    selected: String?,
+    onSelect: (Option) -> Unit,
+    modifier: Modifier = Modifier,
+    description: String? = null
 ) {
-    var selected by rememberSaveable(statement.id) { mutableStateOf<String?>(null) }
     val colors = AppTheme.colors
     Column(modifier.fillMaxWidth()) {
-        Text(statement.statement, style = AppTheme.typography.bodyMedium.copy(color = colors.heading))
+        RequiredLabel(label)
+        description?.takeIf { it.isNotBlank() }?.let { Text(it, style = AppTheme.typography.bodySmall) }
         Spacer(Modifier.height(6.dp))
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             options.forEach { o ->
@@ -212,12 +271,10 @@ fun QuestionSelector(
                         .clip(AppTheme.shapes.chip)
                         .background(if (sel) colors.buttonStart else colors.surface)
                         .border(1.dp, if (sel) colors.primary else colors.border, AppTheme.shapes.chip)
-                        .selectable(selected = sel, role = Role.RadioButton) {
-                            selected = o.value
-                            onAnswerSelected(statement, o)
-                        }
-                        .heightIn(min = 40.dp)
-                        .padding(horizontal = 14.dp, vertical = 9.dp)
+                        .selectable(selected = sel, role = Role.RadioButton) { onSelect(o) }
+                        .heightIn(min = 48.dp)
+                        .padding(horizontal = 14.dp, vertical = 9.dp),
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(
                         o.label,
@@ -234,15 +291,15 @@ fun QuestionSelector(
 
 @Composable
 fun CommentTextEditor(
+    value: String,
     modifier: Modifier = Modifier,
     placeholderText: String = "Share your thoughts",
     onTextChanged: (String) -> Unit
 ) {
-    var text by rememberSaveable { mutableStateOf("") }
     val colors = AppTheme.colors
     OutlinedTextField(
-        value = text,
-        onValueChange = { text = it; onTextChanged(it) },
+        value = value,
+        onValueChange = onTextChanged,
         modifier = modifier.fillMaxWidth().heightIn(min = 110.dp),
         placeholder = { Text(placeholderText, style = AppTheme.typography.bodyMedium.copy(color = colors.muted)) },
         textStyle = AppTheme.typography.bodyLarge.copy(color = colors.heading),

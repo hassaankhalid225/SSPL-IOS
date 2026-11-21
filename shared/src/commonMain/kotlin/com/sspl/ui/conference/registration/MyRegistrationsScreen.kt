@@ -2,7 +2,25 @@ package com.sspl.ui.conference.registration
 
 import com.sspl.designsystem.icons.SsplIcons
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import com.sspl.core.models.User
+import com.sspl.designsystem.components.ConfirmDialog
+import com.sspl.designsystem.components.OutlineButton
+import com.sspl.designsystem.components.SsplTextField
+import io.github.alexzhirkevich.qrose.options.QrErrorCorrectionLevel
+import io.github.alexzhirkevich.qrose.rememberQrCodePainter
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,7 +42,6 @@ import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Event
-import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material.icons.filled.Warning
@@ -63,7 +80,6 @@ import com.sspl.designsystem.components.SkeletonList
 import com.sspl.designsystem.components.SsplRefreshBox
 import com.sspl.designsystem.components.StatusBadge
 import com.sspl.designsystem.theme.AppTheme
-import com.sspl.platform.shared.UrlOpener
 import com.sspl.session.UserSession
 import com.sspl.utils.DisplayDates
 import org.koin.compose.koinInject
@@ -87,26 +103,53 @@ fun MyRegistrationsScreen(
     conferenceId: Long = 0L,
     navController: NavController,
     viewModel: MyRegistrationsViewModel = koinViewModel(),
-    userSession: UserSession = koinInject(),
-    urlOpener: UrlOpener = koinInject()
+    userSession: UserSession = koinInject()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val user by userSession.userFlow.collectAsStateWithLifecycle()
     var badgeFor by remember { mutableStateOf<Registration?>(null) }
+    // Swich page runs in-app (PaymentWebView); when it closes, Payment status verifies it.
+    var pendingPayment by remember { mutableStateOf<MyRegistrationsEvent.OpenPayment?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { ev ->
             when (ev) {
-                is MyRegistrationsEvent.OpenPayment -> {
-                    urlOpener.openUrl(ev.url)
-                    navController.currentBackStackEntry?.savedStateHandle?.apply {
-                        set("awaitingTransactionId", ev.transactionId)
-                        set("registrationId", ev.registrationId)
-                    }
-                    navController.navigate(Screen.PaymentStatusScreen.route) { launchSingleTop = true }
-                }
+                is MyRegistrationsEvent.OpenPayment -> pendingPayment = ev
             }
         }
+    }
+    pendingPayment?.let { ev ->
+        val afterPayment: () -> Unit = {
+            pendingPayment = null
+            navController.currentBackStackEntry?.savedStateHandle?.apply {
+                set("awaitingTransactionId", ev.transactionId)
+                set("registrationId", ev.registrationId)
+            }
+            navController.navigate(Screen.PaymentStatusScreen.route) { launchSingleTop = true }
+        }
+        com.sspl.ui.components.PaymentWebView(
+            url = ev.url,
+            onPaymentSuccess = afterPayment,
+            onPaymentFailed = afterPayment,
+            onClose = afterPayment
+        )
+    }
+    state.alertMessage?.let { msg ->
+        ConfirmDialog(
+            title = "Email needed for payment",
+            message = msg,
+            confirmText = "OK",
+            dismissText = "Close",
+            onConfirm = viewModel::dismissAlert,
+            onDismiss = viewModel::dismissAlert
+        )
+    }
+    state.phonePromptFor?.let {
+        PaymentPhoneDialog(
+            initial = state.phonePromptInitial,
+            onSubmit = viewModel::submitPhone,
+            onDismiss = viewModel::dismissPhonePrompt
+        )
     }
 
     SsplRefreshBox(
@@ -199,8 +242,7 @@ fun MyRegistrationsScreen(
     badgeFor?.let { reg ->
         AttendeeBadgeDialog(
             registration = reg,
-            userName = listOfNotNull(user?.prefix, user?.firstName, user?.lastName).joinToString(" ").ifBlank { "Delegate" },
-            institution = user?.institution ?: "SSP member",
+            user = user,
             onDismiss = { badgeFor = null }
         )
     }
@@ -237,7 +279,7 @@ private fun RegistrationCard(
                 }
                 if (reg.isConfirmed && !reg.isLocked) {
                     Spacer(Modifier.height(10.dp))
-                    SecondaryButton("View entry badge", onBadge, icon = Icons.Default.QrCode2)
+                    SecondaryButton("View entry pass", onBadge, icon = SsplIcons.QrCode)
                 } else if (reg.needsPayment && !reg.isLocked) {
                     Spacer(Modifier.height(10.dp))
                     PrimaryButton(
@@ -252,21 +294,74 @@ private fun RegistrationCard(
     )
 }
 
-/** Entry pass. Navy gradient header on a surface card (white text only on the gradient). */
+/** Web BadgeModal role badge titles. */
+private fun roleBadgeTitle(role: String?): String {
+    val upper = (role ?: "").uppercase()
+    return when {
+        "FACULTY" in upper || "SPEAKER" in upper -> "FACULTY / SPEAKER"
+        "ORGANIZ" in upper || "COMMITTEE" in upper -> "ORGANIZING COMMITTEE"
+        "VIP" in upper || "CHAIR" in upper || "GUEST" in upper -> "DISTINGUISHED GUEST"
+        "RESIDENT" in upper || "TRAINEE" in upper || "STUDENT" in upper -> "POSTGRADUATE TRAINEE"
+        else -> upper.ifBlank { "CONFERENCE DELEGATE" }
+    }
+}
+
+/** JS truthiness for the raw `registration_id` (null, "", 0 and false are falsy). */
+private fun JsonElement?.truthy(): Boolean {
+    if (this == null || this is JsonNull) return false
+    val p = this as? JsonPrimitive ?: return true
+    if (p.isString) return p.content.isNotEmpty()
+    return p.content != "0" && p.content != "false" && p.content != "0.0"
+}
+
+/**
+ * Exact web BadgeModal payload:
+ * JSON.stringify({ id, uid: registration_id || id, pid: person.id || user.id, registration_id }).
+ */
+internal fun entryPassPayload(reg: Registration, userId: Long?): String {
+    val raw = reg.registrationIdRaw
+    val pid = reg.person?.id?.takeIf { it != 0L } ?: userId?.takeIf { it != 0L }
+    return buildJsonObject {
+        put("id", reg.id)
+        if (raw != null && raw.truthy()) put("uid", raw) else put("uid", reg.id)
+        pid?.let { put("pid", it) }
+        put("registration_id", raw ?: JsonNull)
+    }.toString()
+}
+
+/** Entry pass (web BadgeModal): scannable QR of the registration, attendee + event facts. */
 @Composable
 private fun AttendeeBadgeDialog(
     registration: Registration,
-    userName: String,
-    institution: String,
+    user: User?,
     onDismiss: () -> Unit
 ) {
     val colors = AppTheme.colors
+    val person = registration.person
+    val raw = registration.registrationIdRaw
+    val regNumber = if (raw.truthy()) (raw as? JsonPrimitive)?.content ?: raw.toString() else "REG-${registration.id}"
+    val fullName = listOf(
+        person?.prefix ?: user?.prefix ?: person?.salutation,
+        person?.firstName ?: user?.firstName,
+        person?.lastName ?: user?.lastName
+    ).filterNot { it.isNullOrBlank() }.joinToString(" ").trim().ifBlank { "CONFERENCE ATTENDEE" }
+    val affiliation = listOf(person?.hospital, person?.institution, person?.city)
+        .firstOrNull { !it.isNullOrBlank() }
+    val conf = registration.conference
+    val dateRange = DisplayDates.range(conf?.startDate, conf?.endDate)
+    val venue = conf?.venue?.let { it.title ?: it.name }?.takeIf { it.isNotBlank() } ?: "Lahore, Pakistan"
+    val payload = remember(registration, user?.id) { entryPassPayload(registration, user?.id) }
+    val qrPainter = rememberQrCodePainter(payload) {
+        errorCorrectionLevel = QrErrorCorrectionLevel.Medium
+    }
+
     Dialog(onDismissRequest = onDismiss) {
         Column(
             Modifier
                 .fillMaxWidth()
                 .clip(AppTheme.shapes.card)
                 .background(colors.surfaceElevated)
+                .verticalScroll(rememberScrollState())
         ) {
             Box(
                 Modifier
@@ -276,7 +371,7 @@ private fun AttendeeBadgeDialog(
                 DecorativeRings(Modifier.matchParentSize())
                 Column(Modifier.padding(18.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        GlassPill("ENTRY PASS", icon = SsplIcons.Badge)
+                        GlassPill("ENTRY PASS", icon = SsplIcons.QrCode)
                         Spacer(Modifier.weight(1f))
                         IconButton(onClick = onDismiss) {
                             Icon(SsplIcons.Close, contentDescription = "Close", tint = Color.White)
@@ -284,49 +379,101 @@ private fun AttendeeBadgeDialog(
                     }
                     Spacer(Modifier.height(6.dp))
                     Text(
-                        registration.conference?.title ?: "SSPL event",
+                        conf?.title?.takeIf { it.isNotBlank() } ?: "ANNUAL SURGICAL CONFERENCE",
                         style = AppTheme.typography.titleMedium.copy(color = Color.White),
                         maxLines = 2
                     )
                     Text(
-                        (registration.role?.name ?: "Delegate").uppercase(),
-                        style = AppTheme.typography.overline.copy(color = Color.White.copy(alpha = 0.8f))
+                        listOf(dateRange, venue).filter { it.isNotBlank() }.joinToString(" · "),
+                        style = AppTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.8f)),
+                        maxLines = 2
                     )
                 }
             }
             Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(userName, style = AppTheme.typography.titleLarge, textAlign = TextAlign.Center)
-                Text(institution, style = AppTheme.typography.bodySmall, textAlign = TextAlign.Center)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    StatusBadge(roleBadgeTitle(registration.role?.name), variant = BadgeVariant.INFO)
+                    StatusBadge(regNumber, variant = BadgeVariant.NEUTRAL)
+                }
                 Spacer(Modifier.height(14.dp))
-                // White QR plate: scanners need a light background in both themes.
-                Column(
+                // White quiet-zone plate: scanners need dark modules on a light background in both themes.
+                Box(
                     Modifier
                         .clip(AppTheme.shapes.small)
                         .background(Color.White)
                         .border(1.dp, colors.border, AppTheme.shapes.small)
-                        .padding(14.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .padding(16.dp)
                 ) {
-                    Icon(Icons.Default.QrCode2, contentDescription = "Registration code", tint = colors.primaryDark, modifier = Modifier.size(140.dp))
-                    Text(
-                        "SSPL-REG-${registration.id}",
-                        style = AppTheme.typography.labelMedium.copy(color = colors.primaryDark, fontWeight = FontWeight.Bold)
+                    Image(
+                        painter = qrPainter,
+                        contentDescription = "Entry pass QR code for registration $regNumber",
+                        modifier = Modifier.size(200.dp)
                     )
                 }
-                Spacer(Modifier.height(12.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    StatusBadge(registration.registrationNumber ?: "REG #${registration.id}", variant = BadgeVariant.INFO)
-                    StatusBadge("Approved", variant = BadgeVariant.SUCCESS)
+                Spacer(Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(SsplIcons.VerifiedUser, contentDescription = null, tint = colors.primary, modifier = Modifier.size(14.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        "Verified attendee QR code",
+                        style = AppTheme.typography.labelMedium.copy(color = colors.primary, fontWeight = FontWeight.SemiBold)
+                    )
                 }
+                Spacer(Modifier.height(14.dp))
+                Text("ATTENDEE NAME", style = AppTheme.typography.overline)
+                Text(fullName, style = AppTheme.typography.titleLarge, textAlign = TextAlign.Center)
+                affiliation?.let { Text(it, style = AppTheme.typography.bodySmall, textAlign = TextAlign.Center) }
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    "Show this pass at the registration desk for badge printing and venue check-in.",
+                    "Show this QR code at the conference check-in desk on arrival. Organisers will scan it to issue your printed badge.",
                     style = AppTheme.typography.bodySmall,
                     textAlign = TextAlign.Center
                 )
                 Spacer(Modifier.height(16.dp))
                 PrimaryButton("Done", onDismiss)
-                Spacer(Modifier.width(1.dp))
+            }
+        }
+    }
+}
+
+/** Web PhoneModal: ask for a mobile number before starting Swich payment. */
+@Composable
+private fun PaymentPhoneDialog(
+    initial: String,
+    onSubmit: (String) -> String?,
+    onDismiss: () -> Unit
+) {
+    var phone by remember { mutableStateOf(initial) }
+    var error by remember { mutableStateOf<String?>(null) }
+    val submit: () -> Unit = { error = onSubmit(phone) }
+    Dialog(onDismissRequest = onDismiss) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .clip(AppTheme.shapes.card)
+                .background(AppTheme.colors.surfaceElevated)
+                .imePadding()
+                .padding(20.dp)
+        ) {
+            Text("Mobile number required", style = AppTheme.typography.titleMedium)
+            Spacer(Modifier.height(4.dp))
+            Text("Swich needs a mobile number to process your payment.", style = AppTheme.typography.bodySmall)
+            Spacer(Modifier.height(14.dp))
+            SsplTextField(
+                value = phone,
+                onValueChange = { phone = it; error = null },
+                label = "Mobile number",
+                placeholder = "03XXXXXXXXX",
+                leadingIcon = SsplIcons.Phone,
+                error = error,
+                keyboardType = KeyboardType.Phone,
+                imeAction = ImeAction.Done,
+                keyboardActions = KeyboardActions(onDone = { submit() })
+            )
+            Spacer(Modifier.height(16.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                OutlineButton("Cancel", onDismiss, modifier = Modifier.weight(1f))
+                PrimaryButton("Continue", submit, modifier = Modifier.weight(1f), enabled = phone.isNotBlank())
             }
         }
     }

@@ -19,10 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Coffee
-import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -131,7 +127,9 @@ fun SessionScheduleRow(
                 Spacer(Modifier.height(6.dp))
                 EventMetaLine(SsplIcons.Place, venue.trim())
             }
-            val speakers = session.breakdown.orEmpty().flatMap { b -> b.speakers.map { it.fullName().trim() } }.distinct()
+            val speakers = session.breakdown.orEmpty().flatMap { b -> b.speakers.map { it.displayName.trim() } }
+                .filter { it.isNotBlank() }
+                .distinct()
             if (speakers.isNotEmpty()) {
                 Spacer(Modifier.height(4.dp))
                 Text(
@@ -164,7 +162,7 @@ fun AddOnSetsList(sets: List<AddOnSet>, modifier: Modifier = Modifier) {
                     .padding(14.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconTile(Icons.Default.Inventory2, size = 34.dp, iconSize = 17.dp, corner = 10.dp)
+                    IconTile(SsplIcons.Inventory, size = 34.dp, iconSize = 17.dp, corner = 10.dp)
                     Spacer(Modifier.width(10.dp))
                     Text(set.title?.ifBlank { null } ?: "Included", style = AppTheme.typography.titleSmall)
                 }

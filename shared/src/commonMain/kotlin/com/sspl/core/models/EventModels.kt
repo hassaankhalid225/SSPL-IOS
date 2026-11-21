@@ -19,7 +19,8 @@ data class EventRole(
 ) {
     val isEarlyBirdActive: Boolean
         get() {
-            if (earlyBirdFee == null || earlyBirdDeadline.isNullOrBlank()) return false
+            // Web (EventDetail.jsx isEarlyBirdActive): `!role.early_bird_fee` → a 0 / missing fee is NOT active.
+            if (earlyBirdFee == null || earlyBirdFee <= 0.0 || earlyBirdDeadline.isNullOrBlank()) return false
             return try {
                 val deadline = Instant.parse(earlyBirdDeadline)
                 val now = Instant.fromEpochMilliseconds(DateTimeUtils.timeInMilliNow())
@@ -48,6 +49,15 @@ data class EventVenue(
             ?: name?.takeIf { it.isNotBlank() }
             ?: "Venue to be announced"
 }
+
+/** pgEvent.documents[] (web EventDetail.jsx "Event Documents & Downloads"). */
+@Serializable
+data class EventDocument(
+    val id: Long? = null,
+    val title: String? = null,
+    val type: String? = null,
+    @SerialName("file_url") val fileUrl: String? = null
+)
 
 @Serializable
 data class EventImage(
@@ -84,12 +94,27 @@ data class EventItem(
     @SerialName("registration_deadline") val registrationDeadline: String? = null,
     @SerialName("abstract_deadline") val abstractDeadline: String? = null,
     @SerialName("presentation_deadline") val presentationDeadline: String? = null,
-    @SerialName("is_abstract_enabled") val isAbstractEnabled: Boolean = false,
-    @SerialName("is_presentation_enabled") val isPresentationEnabled: Boolean = false,
+    // Web shows abstract/presentation blocks unless these are explicitly `false` → null = enabled.
+    @SerialName("is_abstract_enabled") val isAbstractEnabledRaw: Boolean? = null,
+    @SerialName("is_presentation_enabled") val isPresentationEnabledRaw: Boolean? = null,
+    @SerialName("is_payment_enabled") val isPaymentEnabled: Boolean? = null,
+    @SerialName("max_attendees") val maxAttendees: Int? = null,
+    val documents: List<EventDocument>? = null,
     @SerialName("active_status") val activeStatus: String? = null,
     @SerialName("is_active") val isActive: Boolean = true
 ) {
     val effectiveId: Long get() = id
+
+    /** `is_abstract_enabled !== false` (web). */
+    val isAbstractEnabled: Boolean get() = isAbstractEnabledRaw != false
+    val isPresentationEnabled: Boolean get() = isPresentationEnabledRaw != false
+
+    /** Web shows the abstract call when not disabled AND (deadline set OR explicitly enabled). */
+    val showAbstractCall: Boolean
+        get() = isAbstractEnabled && (!abstractDeadline.isNullOrBlank() || isAbstractEnabledRaw == true)
+
+    val validDocuments: List<EventDocument>
+        get() = documents.orEmpty().filter { !it.fileUrl.isNullOrBlank() }
 
     val effectiveStart: String? get() = startDate ?: eventStart
     val effectiveEnd: String? get() = endDate ?: eventEnd ?: effectiveStart
@@ -353,3 +378,12 @@ data class MyRegistrationsResponse(
     val data: MyRegistrationsData? = null
 )
 
+
+/**
+ * Public schedule PDF (web ConferenceSchedule.jsx handleDownloadPdf): a plain unauthenticated
+ * link — `GET /external/events/{id}/schedule/pdf?download=true[&sessionId=]` — so it can be
+ * handed straight to the browser.
+ */
+fun eventSchedulePdfUrl(eventId: Long, sessionId: Long? = null): String =
+    "${com.sspl.utils.BASE_URL}/external/events/$eventId/schedule/pdf?download=true" +
+        (sessionId?.takeIf { it > 0 }?.let { "&sessionId=$it" } ?: "")
