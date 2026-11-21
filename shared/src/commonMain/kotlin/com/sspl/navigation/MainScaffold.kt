@@ -81,10 +81,11 @@ fun MainScaffold(
     // Status bar icons are always light: every main screen has a navy gradient behind them.
     SystemBarsAppearance(lightStatusIcons = true, darkTheme = AppTheme.isDark)
 
+    val logoutUseCase: com.sspl.core.usecases.LogoutUseCase = org.koin.compose.koinInject()
     val signOut: () -> Unit = {
         scope.launch {
-            // Clear token, refresh token and cached user so the next launch starts at sign-in.
-            userSession.resetUser()
+            // Best-effort POST /auth/logout, then clear token, refresh token and cached user.
+            logoutUseCase()
             onLogout()
         }
     }

@@ -14,6 +14,9 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 @Serializable
 data class RefreshTokenRequestBody(
@@ -31,6 +34,28 @@ data class RefreshTokenRequestBody(
 class AuthRepository(private val client: HttpClient) {
     suspend fun login(body: Account): HttpResponse =
         client.post(AuthRequest.Login()) {
+            setBody(body)
+        }
+
+    /** POST /auth/login with the exact web body: { email, password, rememberMe } (Login.jsx). */
+    suspend fun login(email: String, password: String, rememberMe: Boolean): HttpResponse =
+        client.post(AuthRequest.Login()) {
+            setBody(buildJsonObject {
+                put("email", email)
+                put("password", password)
+                put("rememberMe", rememberMe)
+            })
+        }
+
+    /** POST /auth/logout { refresh_token } — best effort, callers ignore failures (web parity). */
+    suspend fun logout(refreshToken: String): HttpResponse =
+        client.post(AuthRequest.Logout()) {
+            setBody(RefreshTokenRequestBody(refreshToken = refreshToken))
+        }
+
+    /** POST /auth/signup with a body built field-by-field (mirrors web Signup.jsx payload). */
+    suspend fun signUp(body: JsonObject): HttpResponse =
+        client.post(AuthRequest.SignUp()) {
             setBody(body)
         }
 

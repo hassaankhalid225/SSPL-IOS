@@ -103,6 +103,7 @@ fun ProfileScreen(
     val scope = rememberCoroutineScope()
 
     val isUploadingPhoto by viewModel.isUploadingPhoto.collectAsStateWithLifecycle()
+    val isSigningOut by viewModel.isSigningOut.collectAsStateWithLifecycle()
 
     // Always re-encode as JPEG and downscale so the longest side is <= 1024 px before upload.
     val launcher = rememberImagePickerLauncher(
@@ -148,7 +149,9 @@ fun ProfileScreen(
             else -> {
                 val state = userDetails
                 val fresh = (state as? ApiStates.Success)?.data
-                val user = fresh ?: cachedUser
+                // Session user first: GET /auth/me and the edit screen both write to the session,
+                // so it is always the most recent copy.
+                val user = cachedUser ?: fresh
                 val isLoading = state is ApiStates.Loading
                 val failure = state as? ApiStates.Failure
 
@@ -190,6 +193,7 @@ fun ProfileScreen(
     }
 
     if (isUploadingPhoto) BlockingLoader("Uploading photo…")
+    if (isSigningOut) BlockingLoader("Signing out…")
 }
 
 private fun navigateToEdit(navController: NavController, user: User, personal: Boolean) {
@@ -339,7 +343,8 @@ private fun AuthenticatedProfileContent(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                GlassPill(membershipLabel.uppercase(), icon = SsplIcons.CardMembership)
+                val badge = profileRoleBadge(user)
+                GlassPill(badge.first, icon = badge.second)
                 roles.take(4).forEach { GlassPill(it.replace('_', ' ')) }
             }
         }
@@ -351,9 +356,14 @@ private fun AuthenticatedProfileContent(
                 InfoGrid(
                     items = listOf(
                         "Full name" to user.fullName().ifBlank { notProvided },
-                        "Gender" to (user.gender?.lowercase()?.replaceFirstChar { it.uppercase() } ?: notProvided),
+                        "Gender" to (user.gender?.takeIf { it.isNotBlank() }?.lowercase()
+                            ?.replaceFirstChar { it.uppercase() } ?: notProvided),
                         "Phone" to (user.account?.phone?.takeIf { it.isNotBlank() } ?: notProvided),
-                        "Email" to (user.account?.email ?: notProvided)
+                        "WhatsApp" to (user.whatsapp?.takeIf { it.isNotBlank() } ?: notProvided),
+                        "Email" to (user.account?.email ?: notProvided),
+                        "City" to (user.city?.takeIf { it.isNotBlank() } ?: notProvided),
+                        "Country" to (user.country?.takeIf { it.isNotBlank() } ?: notProvided),
+                        "Address" to (user.address?.takeIf { it.isNotBlank() } ?: notProvided)
                     )
                 )
             }
@@ -367,10 +377,28 @@ private fun AuthenticatedProfileContent(
                     items = listOf(
                         "PMDC number" to (user.pmdcNo?.takeIf { it.isNotBlank() } ?: notProvided),
                         "Designation" to (user.designation?.takeIf { it.isNotBlank() } ?: notProvided),
-                        "Institution" to (user.instituteName?.takeIf { it.isNotBlank() } ?: notProvided),
-                        "Country" to (user.country?.takeIf { it.isNotBlank() } ?: notProvided),
+                        "Hospital / clinic" to (user.hospital?.takeIf { it.isNotBlank() } ?: notProvided),
+                        "Institute" to (user.instituteName?.takeIf { it.isNotBlank() } ?: notProvided),
                         "Society reg. no." to (user.profile?.orgNumber?.takeIf { it.isNotBlank() } ?: notProvided)
                     )
+                )
+            }
+        }
+
+        // Education (web ProfilePage "Education")
+        Column {
+            SectionHeader(title = "Education", actionText = "Edit", onActionClick = onEditProfessional)
+            SsplCard {
+                val p = user.profile
+                InfoGrid(
+                    items = buildList {
+                        add("MBBS" to educationLine(p?.mbbsInstitute, p?.mbbsPassingYear, notProvided))
+                        add("FCPS" to educationLine(p?.fcpsInstitute, p?.fcpsPassingYear, notProvided))
+                        if (!p?.frcsInstitute.isNullOrBlank() || !p?.frcsPassingYear.isNullOrBlank()) {
+                            add("FRCS" to educationLine(p?.frcsInstitute, p?.frcsPassingYear, notProvided))
+                        }
+                        add("MS" to educationLine(p?.msInstitute, p?.msPassingYear, notProvided))
+                    }
                 )
             }
         }
@@ -433,6 +461,30 @@ private fun AuthenticatedProfileContent(
             )
         }
         Spacer(Modifier.height(8.dp))
+    }
+}
+
+private fun educationLine(institute: String?, year: String?, fallback: String): String {
+    val parts = listOfNotNull(institute?.takeIf { it.isNotBlank() }, year?.takeIf { it.isNotBlank() })
+    return if (parts.isEmpty()) fallback else parts.joinToString(" · ")
+}
+
+/**
+ * Web ProfilePage.jsx `RoleBadge`: pending review → registered user (role USER) → plan name /
+ * role with a life-member or member icon.
+ */
+private fun profileRoleBadge(user: User): Pair<String, androidx.compose.ui.graphics.vector.ImageVector> {
+    if (user.membershipStatus.equals("PENDING", ignoreCase = true)) return "Pending review" to SsplIcons.Schedule
+    val role = user.role?.uppercase()?.takeIf { it.isNotBlank() } ?: "USER"
+    if (role == "USER") return "Registered user" to SsplIcons.Person
+    val planName = user.membershipPlan?.name?.takeIf { it.isNotBlank() }
+        ?: user.membershipPlan?.title?.takeIf { it.isNotBlank() }
+    val displayRole = (planName ?: user.role.orEmpty()).replace('_', ' ')
+    val r = displayRole.uppercase()
+    return when {
+        r.contains("LIFE") -> displayRole to SsplIcons.WorkspacePremium
+        r.contains("ORDINARY") || r.contains("MEMBER") || r.contains("ASSOCIATE") -> displayRole to SsplIcons.CardMembership
+        else -> displayRole.ifBlank { "User" } to SsplIcons.Person
     }
 }
 

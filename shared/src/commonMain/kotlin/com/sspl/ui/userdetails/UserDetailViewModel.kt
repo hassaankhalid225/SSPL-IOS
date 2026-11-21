@@ -41,13 +41,8 @@ class UserDetailViewModel(
         viewModelScope.launch {
             when (event) {
                 is UserDetailsUiEvents.OnCityTextChange -> {
-                    val result = validateUserCityUseCase(event.cityText)
-                    _uiState.update {
-                        it.copy(
-                            city = event.cityText,
-                            cityError = if (result is ValidationResult.Error) "City can't be empty" else null
-                        )
-                    }
+                    // Optional on the web sign-up form.
+                    _uiState.update { it.copy(city = event.cityText, cityError = null) }
                 }
 
                 is UserDetailsUiEvents.ToggleCountryPicker -> {
@@ -62,53 +57,25 @@ class UserDetailViewModel(
                     val country = event.country.ifBlank {
                         _uiState.value.country
                     }
-                    val result = validateUserCountryUseCase(country)
-                    _uiState.update {
-                        it.copy(
-                            country = country, showCountryPicker = false,
-                            countryError = if (result is ValidationResult.Error) "Country can't be empty" else null
-                        )
-                    }
+                    // Optional on the web sign-up form.
+                    _uiState.update { it.copy(country = country, showCountryPicker = false, countryError = null) }
                 }
 
                 is UserDetailsUiEvents.OnDesignationTextChange -> {
-                    val result = validateUserDesignationUseCase(event.designationText)
-                    _uiState.update {
-                        it.copy(
-                            designation = event.designationText,
-                            designationError = if (result is ValidationResult.Error) "Designation can't be empty" else null
-                        )
-                    }
+                    _uiState.update { it.copy(designation = event.designationText, designationError = null) }
                 }
 
                 is UserDetailsUiEvents.OnInstitutionTextChange -> {
-                    val result = validateUserInstitutionUseCase(event.institutionText)
-                    _uiState.update {
-                        it.copy(
-                            institution = event.institutionText,
-                            institutionError = if (result is ValidationResult.Error) "Institution can't be empty" else null
-                        )
-                    }
+                    // Optional on the web sign-up form.
+                    _uiState.update { it.copy(institution = event.institutionText, institutionError = null) }
                 }
 
                 is UserDetailsUiEvents.OnPmDcNumberTextChange -> {
-                    val result = validateUserPmDcNumberUseCase(event.pmDcNumberText)
-                    _uiState.update {
-                        it.copy(
-                            pmDcNumber = event.pmDcNumberText,
-                            pmDcNumberError = if (result is ValidationResult.Error) "PMDC Number can't be empty" else null
-                        )
-                    }
+                    _uiState.update { it.copy(pmDcNumber = event.pmDcNumberText, pmDcNumberError = null) }
                 }
 
                 is UserDetailsUiEvents.OnRegistrationNumberTextChange -> {
-                    val result = validateUserRegistrationNumberUseCase(event.registrationNumberText)
-                    _uiState.update {
-                        it.copy(
-                            registrationNumber = event.registrationNumberText,
-                            registrationNumberError = if (result is ValidationResult.Error) "Registration number can't be empty" else null
-                        )
-                    }
+                    _uiState.update { it.copy(registrationNumber = event.registrationNumberText, registrationNumberError = null) }
                 }
 
                 UserDetailsUiEvents.OnSave -> {
@@ -118,6 +85,7 @@ class UserDetailViewModel(
                             pmdcNo = _uiState.value.pmDcNumber.orEmpty(),
                             instituteName = _uiState.value.institution,
                             country = _uiState.value.country,
+                            city = _uiState.value.city,
                             designation = _uiState.value.designation,
                             registrationNo = _uiState.value.registrationNumber.takeIf { it.isNotBlank() }
                         ).collect { state ->
@@ -132,15 +100,15 @@ class UserDetailViewModel(
     }
 
     /**
-     * Save is enabled when institution + country are filled. (Registration number used to be
-     * required here too, but this screen never showed that field, so "Complete profile" could
-     * never be enabled. PMDC / designation / registration number are optional.)
+     * Every field is optional (web Signup.jsx: institute / city / country are `required={false}`;
+     * PMDC / designation are optional). Save is enabled once at least one field is filled — the
+     * user can always "Skip for now".
      */
     private fun updateSaveEnabledState() {
         _uiState.update { s ->
             s.copy(
-                isSaveEnabled = s.institution.isNotBlank() && s.country.isNotBlank() &&
-                        s.institutionError == null && s.countryError == null
+                isSaveEnabled = listOf(s.institution, s.city, s.country, s.pmDcNumber.orEmpty(), s.designation,
+                    s.registrationNumber).any { it.isNotBlank() }
             )
         }
     }

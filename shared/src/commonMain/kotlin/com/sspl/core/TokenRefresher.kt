@@ -43,7 +43,8 @@ internal fun HttpClient.installTokenRefresh(userSession: UserSession) {
         val call = execute(request)
         val path = request.url.buildString().substringBefore('?')
         val isAuthEndpoint = path.endsWith("/auth/login") || path.endsWith("/auth/refresh") ||
-            path.endsWith("/auth/signup") || path.endsWith("/login") || path.endsWith("/refresh")
+            path.endsWith("/auth/signup") || path.endsWith("/login") || path.endsWith("/refresh") ||
+            path.endsWith("/auth/logout") // never refresh just to log out (would rotate the token being revoked)
         if (call.response.status != HttpStatusCode.Unauthorized || sentAuth.isNullOrBlank() || isAuthEndpoint) {
             return@intercept call
         }

@@ -6,6 +6,7 @@ import com.sspl.core.ApiStates
 import com.sspl.core.models.UserResponse
 import com.sspl.core.usecases.EmailValidationUseCase
 import com.sspl.core.usecases.LoginUserUseCase
+import com.sspl.core.usecases.httpStatus
 import com.sspl.core.usecases.PasswordValidationUseCase
 import com.sspl.core.usecases.PhoneNumberValidationUseCase
 import com.sspl.core.usecases.SignUpUserUseCase
@@ -94,6 +95,7 @@ class SignInViewModel(
             }
 
             LoginScreenUiEvents.ContinueAsGuest -> continueAsGuest()
+            is LoginScreenUiEvents.OnRememberMeChange -> _uiState.update { it.copy(rememberMe = event.checked) }
         }
     }
 
@@ -176,18 +178,24 @@ class SignInViewModel(
     }
 
     private suspend fun logInViaEmailPassword(email: String, password: String) {
-        loginUserUseCase.signInUserViaEmail(email = email, password = password).collect { state ->
+        loginUserUseCase.signInUserViaEmail(
+            email = email,
+            password = password,
+            rememberMe = _uiState.value.rememberMe
+        ).collect { state ->
             _uiState.update { it.copy(isLoading = state is ApiStates.Loading) }
 
             var isHandled = false
             if (state is ApiStates.Failure) {
                 // Same classification as the web Login.jsx error handler.
-                val msg = "${state.error.message} ${state.error.error.orEmpty()}".trim().lowercase()
-                val isNotFound = msg == "not found" ||
+                // HTTP status first (404 = no account, 401 = bad credentials), then message text.
+                val status = state.error.httpStatus()
+                val msg = state.error.message.trim().lowercase()
+                val isNotFound = status == 404 || msg == "not found" ||
                         msg.contains("user not found") || msg.contains("account not found") ||
                         msg.contains("does not exist") || msg.contains("no user") ||
                         msg.contains("no account") || msg.contains("not registered")
-                val isInvalidCreds = msg.contains("unauthorized") ||
+                val isInvalidCreds = status == 401 || msg.contains("unauthorized") ||
                         msg.contains("invalid credential") || msg.contains("invalid password") ||
                         msg.contains("wrong password")
                 when {

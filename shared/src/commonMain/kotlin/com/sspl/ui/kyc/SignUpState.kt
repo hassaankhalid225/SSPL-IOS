@@ -24,6 +24,10 @@ data class UserUiState(
     val isPasswordVisible: Boolean = false,
     val isReenteredPasswordVisible: Boolean = false,
     val formError: String? = null,
+    /** Web Signup.jsx: MALE / FEMALE / OTHER, default MALE. */
+    val gender: String = "MALE",
+    /** Web Signup.jsx sends prefix "Mr" by default (no picker on the web form). */
+    val prefix: String = "Mr",
 
     )
 
@@ -38,6 +42,7 @@ sealed interface UserEvents {
     data object ToggleCountryChooser : UserEvents
     data object TogglePasswordVisibility : UserEvents
     data object ToggleReenteredPasswordVisibility : UserEvents
+    data class SetGender(val gender: String) : UserEvents
     data object Submit : UserEvents
 }
 

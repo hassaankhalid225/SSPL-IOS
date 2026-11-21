@@ -34,6 +34,7 @@ import com.sspl.designsystem.components.PasswordField
 import com.sspl.designsystem.components.PrimaryButton
 import com.sspl.designsystem.components.SsplTextField
 import com.sspl.designsystem.components.StepIndicator
+import com.sspl.designsystem.components.SegmentedTabs
 import com.sspl.designsystem.theme.AppTheme
 import com.sspl.ui.components.PhoneWithCountrySelector
 import com.sspl.ui.components.countrypicker.Country
@@ -91,6 +92,7 @@ fun SignUpScreen(
             emailErrorMsg = uiState.emailError,
             phoneNo = uiState.phoneNo,
             formError = uiState.formError,
+            gender = uiState.gender,
             loginScreen = {
                 if (!navController.popBackStack(Screen.SignInScreen.route, inclusive = false)) {
                     navController.navigate(Screen.SignInScreen.route)
@@ -123,6 +125,7 @@ fun SignUpScreenContent(
     emailErrorMsg: String?,
     phoneNo: String,
     formError: String? = null,
+    gender: String = "MALE",
     loginScreen: () -> Unit,
     onEvent: (UserEvents) -> Unit
 ) {
@@ -170,6 +173,15 @@ fun SignUpScreenContent(
                     enabled = !isLoading,
                     keyboardActions = next,
                     modifier = Modifier.weight(1f)
+                )
+            }
+
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("Gender", style = AppTheme.typography.labelMedium.copy(color = AppTheme.colors.heading))
+                SegmentedTabs(
+                    options = GENDER_LABELS,
+                    selectedIndex = GENDER_VALUES.indexOf(gender).coerceAtLeast(0),
+                    onSelect = { if (!isLoading) onEvent(UserEvents.SetGender(GENDER_VALUES[it])) }
                 )
             }
 
@@ -246,6 +258,10 @@ fun SignUpScreenContent(
         AuthFooterLink(prompt = "Already have an account?", action = "Sign in", onClick = loginScreen)
     }
 }
+
+/** Web Signup.jsx gender options (value sent to the API / label shown). */
+internal val GENDER_VALUES = listOf("MALE", "FEMALE", "OTHER")
+internal val GENDER_LABELS = listOf("Male", "Female", "Other")
 
 /** Small uppercase group label inside auth / profile forms. */
 @Composable

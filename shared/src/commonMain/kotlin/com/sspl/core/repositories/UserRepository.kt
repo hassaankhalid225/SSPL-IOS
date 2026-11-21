@@ -14,6 +14,7 @@ import io.ktor.client.request.setBody
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.client.statement.HttpResponse
+import kotlinx.serialization.json.JsonObject
 
 /**
  * Created by M Imran
@@ -27,6 +28,12 @@ class UserRepository(private val client: HttpClient) {
     suspend fun getUserProfile(): HttpResponse = client.get(ProfileRequest.GetUserProfile)
 
     suspend fun updateUserProfile(body: User): HttpResponse =
+        client.put(ProfileRequest.UserProfileRequest) {
+            setBody(body)
+        }
+
+    /** PUT /profiles/me with a JSON body built like web ProfilePage.jsx `handleSave`. */
+    suspend fun updateUserProfile(body: JsonObject): HttpResponse =
         client.put(ProfileRequest.UserProfileRequest) {
             setBody(body)
         }

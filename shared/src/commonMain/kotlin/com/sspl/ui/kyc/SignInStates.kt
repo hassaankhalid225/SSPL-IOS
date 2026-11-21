@@ -11,6 +11,7 @@ sealed interface LoginScreenUiEvents {
     data object OnSave : LoginScreenUiEvents
     data object ContinueAsGuest : LoginScreenUiEvents
     data object TogglePasswordVisibility : LoginScreenUiEvents
+    data class OnRememberMeChange(val checked: Boolean) : LoginScreenUiEvents
     data object ToggleOtpMode : LoginScreenUiEvents
      data class OnCountryChange(val country: Country) : LoginScreenUiEvents
     data object ToggleCountryChooser : LoginScreenUiEvents
@@ -30,6 +31,8 @@ data class LoginUiState(
     val country: Country = Pakistan,
     val showCountryChooser: Boolean = false,
     val isPasswordVisible: Boolean = false,
+    /** Sent as `rememberMe` to POST /auth/login (web Login.jsx). */
+    val rememberMe: Boolean = false,
     val emailError: String? = null,
     val passwordError: String? = null,
     val phoneNoError: String? = null

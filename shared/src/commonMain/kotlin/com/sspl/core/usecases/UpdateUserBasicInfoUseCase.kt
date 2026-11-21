@@ -22,7 +22,6 @@ class UpdateUserBasicInfoUseCase(
         lastName: String,
         phone: String
     ): Flow<ApiStates<User>> = flow {
-        println("Fucking 2")
         emit(ApiStates.Loading)
 
         try {
@@ -38,21 +37,17 @@ class UpdateUserBasicInfoUseCase(
             val response = userRepository.updateUserProfile(body)
             if (response.status.isSuccess()) {
                 val result = response.body<User>()
-                println("✅ API Success: $result")
                 emit(ApiStates.Success(result))
             } else {
                 val errorResponse = response.body<ApiError>()
-                println("❌ API Failure: $errorResponse")
                 emit(ApiStates.Failure(error = errorResponse))
             }
         } catch (e: Exception) {
             if (e is kotlinx.coroutines.CancellationException) throw e // keep flow cancellation transparent
             e.printStackTrace()
-            println("🔴 Exception in Flow: ${e.message}")
             emit(ApiStates.Failure(ApiError(message = e.message.orEmpty())))
         }
     }.catch { e ->
-        println("🔴 Flow Caught Exception: ${e.message}")
     }
 
 }

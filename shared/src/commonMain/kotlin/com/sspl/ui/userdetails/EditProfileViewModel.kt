@@ -4,316 +4,255 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sspl.core.ApiStates
 import com.sspl.core.models.User
+import com.sspl.core.usecases.GetUserDetailsUseCase
 import com.sspl.core.usecases.PhoneNumberValidationUseCase
 import com.sspl.core.usecases.PostUserDetailsUseCase
-import com.sspl.core.usecases.UpdateUserBasicInfoUseCase
-import com.sspl.core.usecases.ValidateUserDesignationUseCase
-import com.sspl.core.usecases.ValidateUserInstitutionUseCase
-import com.sspl.core.usecases.ValidateUserNameUseCase
-import com.sspl.core.usecases.ValidateUserPmdcNoUseCase
-import com.sspl.core.usecases.ValidateUserRegistrationNumberUseCase
+import com.sspl.core.usecases.ProfileUpdateForm
+import com.sspl.core.usecases.ProfileUpdateState
 import com.sspl.session.UserSession
 import com.sspl.ui.components.countrypicker.Country
 import com.sspl.ui.components.countrypicker.Pakistan
-import com.sspl.ui.kyc.ValidationResult
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class EditProfileViewModel (
+/**
+ * Edit profile — same fields, required rules, body and error mapping as the web
+ * "My profile" page (sspl-frotend/src/pages/userDashboard/ProfilePage.jsx), plus the app's
+ * mobile number, designation and society registration number.
+ */
+class EditProfileViewModel(
     private val userSession: UserSession,
-    private val updateUserBasicInfoUseCase: UpdateUserBasicInfoUseCase,
-    private val nameValidationUseCase: ValidateUserNameUseCase,
     private val phoneValidationUseCase: PhoneNumberValidationUseCase,
-    private val validateUserDesignationUseCase: ValidateUserDesignationUseCase,
-    private val validateUserInstitutionUseCase: ValidateUserInstitutionUseCase,
-    private val validateUserRegistrationNumberUseCase: ValidateUserRegistrationNumberUseCase,
-    private val validateUserPmDcNumberUseCase: ValidateUserPmdcNoUseCase,
-    private val postUserDetailsUseCase: PostUserDetailsUseCase
-):ViewModel() {
+    private val postUserDetailsUseCase: PostUserDetailsUseCase,
+    private val getUserDetailsUseCase: GetUserDetailsUseCase,
+) : ViewModel() {
 
-    private val _basicProfileUiState = MutableStateFlow(BasicProfileUiState())
-    val basicProfileUiState = _basicProfileUiState.asStateFlow()
+    private val _uiState = MutableStateFlow(EditProfileUiState())
+    val uiState = _uiState.asStateFlow()
 
-    private val _professionalProfileUiState = MutableStateFlow(ProfessionalProfileUiState())
-    val professionalProfileUiState = _professionalProfileUiState.asStateFlow()
+    private var prefilled = false
 
-
-    private val _isUserProfessionalInfoUpdated: MutableSharedFlow<ApiStates<User>> =
-        MutableSharedFlow()
-    val isUserProfessionalInfoUpdated = _isUserProfessionalInfoUpdated.asSharedFlow()
-
-    private val _isUserBasicInfoUpdated: MutableSharedFlow<ApiStates<User>> =
-        MutableSharedFlow()
-    val isUserBasicInfoUpdated = _isUserBasicInfoUpdated.asSharedFlow()
-
-    private val _user = MutableStateFlow<User?>(null)
-    val user = _user.asStateFlow()
-
-    init {
+    /** Prefill once from the user handed over by the profile screen (falls back to the session). */
+    fun prefill(fromProfile: User?) {
+        if (prefilled) return
+        prefilled = true
         viewModelScope.launch {
-            println("Called ProfileViewModel")
-            _user.value = userSession.getUser()
-            _user.value?.let { mUser ->
-                 _basicProfileUiState.update {
-                    it.copy(
-                        firstName = mUser.firstName.orEmpty(),
-                        lastName = mUser.lastName.orEmpty(), isUpdateEnabled = true,
-                        phone = mUser.account?.phone.orEmpty()
-
-                    )
-                }
+            val user = fromProfile ?: userSession.getUser() ?: return@launch
+            val p = user.profile
+            _uiState.update {
+                it.copy(
+                    fields = mapOf(
+                        F_FIRST_NAME to user.firstName.orEmpty(),
+                        F_LAST_NAME to user.lastName.orEmpty(),
+                        F_PHONE to user.account?.phone.orEmpty(),
+                        F_PMDC to p?.pmdcNumber.orEmpty(),
+                        F_HOSPITAL to p?.hospital.orEmpty(),
+                        F_ADDRESS to p?.address.orEmpty(),
+                        F_CITY to p?.city.orEmpty(),
+                        F_COUNTRY to p?.country.orEmpty(),
+                        F_INSTITUTE to p?.institute.orEmpty(),
+                        F_TITLE to p?.title.orEmpty(),
+                        F_ORG_NUMBER to p?.orgNumber.orEmpty(),
+                        F_MBBS_INSTITUTE to p?.mbbsInstitute.orEmpty(),
+                        F_MBBS_YEAR to p?.mbbsPassingYear.orEmpty(),
+                        F_FCPS_INSTITUTE to p?.fcpsInstitute.orEmpty(),
+                        F_FCPS_YEAR to p?.fcpsPassingYear.orEmpty(),
+                        F_MS_INSTITUTE to p?.msInstitute.orEmpty(),
+                        F_MS_YEAR to p?.msPassingYear.orEmpty(),
+                        F_WHATSAPP to p?.contact?.whatsapp.orEmpty()
+                    ),
+                    gender = user.gender?.uppercase().orEmpty(),
+                    email = user.account?.email.orEmpty()
+                )
             }
         }
     }
 
-    fun onBasicProfileEvent(event: BasicProfileEvents) {
-        when (event) {
-            is BasicProfileEvents.OnCountryChange -> {
-                _basicProfileUiState.value =
-                    _basicProfileUiState.value.copy(
-                        country = event.country,
-                        showCountryChooser = false
-                    )
-            }
-
-            is BasicProfileEvents.ToggleCountryChooser -> {
-                _basicProfileUiState.value =
-                    _basicProfileUiState.value.copy(showCountryChooser = !_basicProfileUiState.value.showCountryChooser)
-            }
-
-
-            is BasicProfileEvents.UpdatePhone -> {
-                val isValid = phoneValidationUseCase(event.phone)
-                _basicProfileUiState.update {
-                    it.copy(
-                        phone = event.phone,
-                        phoneNoError = if (!isValid) "Invalid phone number " else null
-                    )
-                }
-            }
-
-            is BasicProfileEvents.OnSubmit -> {
-                println("is submitted")
-                updateUserBasicInfo()
-                println("is submitted after")
-            }
-
-            is BasicProfileEvents.UpdateFirstName -> {
-                val validationResult = nameValidationUseCase(event.name)
-                _basicProfileUiState.update {
-                    it.copy(
-                        firstName = event.name,
-                        firstNameError = if (validationResult is ValidationResult.Error) validationResult.message else null
-                    )
-                }
-            }
-
-            is BasicProfileEvents.UpdateLastName -> {
-                val validationResult = nameValidationUseCase(event.name)
-                _basicProfileUiState.update {
-                    it.copy(
-                        lastName = event.name,
-                        lastNameError = if (validationResult is ValidationResult.Error) validationResult.message else null
-                    )
-                }
-            }
-
-        }
-        updateBasicProfileUiState()
-    }
-
-    private fun updateUserBasicInfo() {
-        println("🔵 updateUserBasicInfo() CALLED")
-        println("🔹 Current state: ${_basicProfileUiState.value}")
-
-        if (_basicProfileUiState.value.isUpdateEnabled && !_basicProfileUiState.value.isLoading) {
-            println("✅ Conditions Met: Calling UseCase")
-            updateUserBasicInfoUseCase(
-                firstName = _basicProfileUiState.value.firstName,
-                lastName = _basicProfileUiState.value.lastName,
-                phone = _basicProfileUiState.value.phone
-            ).onEach { state ->
-                println("🟡 UseCase emitted: $state")
-
-                _isUserBasicInfoUpdated.emit(state)
-
-                _basicProfileUiState.update {
-                    it.copy(isLoading = state is ApiStates.Loading)
-                }
-
-                if (state is ApiStates.Success) {
-                    state.data?.let { newProfile ->
-                        val newUser = _user.value?.copy(
-                            account = _user.value?.account?.copy(phone = newProfile.account?.phone.orEmpty()),
-                            firstName = newProfile.firstName.orEmpty(),
-                            lastName = newProfile.lastName.orEmpty()
-                        )
-                        newUser?.let { userSession.setUser(it) }
-                        _user.update { newUser }
-                    }
-                }
-            }.launchIn(viewModelScope)
-        } else {
-            println("🚫 Conditions NOT met: Skipping UseCase")
-        }
-    }
-
-    private fun updateBasicProfileUiState() {
-        val state = _basicProfileUiState.value
-        _basicProfileUiState.update {
+    fun onFieldChange(key: String, value: String) {
+        _uiState.update {
             it.copy(
-                isUpdateEnabled = state.phoneNoError == null && state.firstNameError == null && state.lastNameError == null && state.phone.isNotEmpty() && state.firstName.isNotEmpty() && state.lastName.isNotEmpty()
+                fields = it.fields + (key to value),
+                fieldErrors = it.fieldErrors - errorKeyFor(key),
+                formError = null,
+                saveSuccess = false
             )
         }
     }
 
-    fun onProfessionalEvent(event: ProfessionalProfileEvents) {
-        when (event) {
-            is ProfessionalProfileEvents.OnDesignationTextChange -> {
-                val result = validateUserDesignationUseCase(event.designationText)
-                _professionalProfileUiState.update {
-                    it.copy(
-                        designation = event.designationText,
-                        designationError = if (result is ValidationResult.Error) "Designation can't be empty" else null
-                    )
-                }
-            }
-
-            is ProfessionalProfileEvents.OnInstitutionTextChange -> {
-                val result = validateUserInstitutionUseCase(event.institutionText)
-                _professionalProfileUiState.update {
-                    it.copy(
-                        institution = event.institutionText,
-                        institutionError = if (result is ValidationResult.Error) "Institution can't be empty" else null
-                    )
-                }
-            }
-
-            is ProfessionalProfileEvents.OnPmDcNumberTextChange -> {
-                val result = validateUserPmDcNumberUseCase(event.pmDcNumberText)
-                _professionalProfileUiState.update {
-                    it.copy(
-                        pmDcNumber = event.pmDcNumberText,
-                        pmDcNumberError = if (result is ValidationResult.Error) "PMDC Number can't be empty" else null
-                    )
-                }
-            }
-
-            is ProfessionalProfileEvents.OnRegistrationNumberTextChange -> {
-                // optional field (see updateSaveEnabledState)
-                _professionalProfileUiState.update {
-                    it.copy(
-                        registrationNumber = event.registrationNumberText,
-                        registrationNumberError = null
-                    )
-                }
-            }
-
-            ProfessionalProfileEvents.OnSave -> {
-                updateUserProfessionalInfo()
-            }
-        }
-        if (event !is ProfessionalProfileEvents.OnSave) updateSaveEnabledState()
-    }
-
-    private fun updateSaveEnabledState() {
-        _professionalProfileUiState.update { currentState ->
-            currentState.copy(
-                // Institution is required; society registration number is optional (the web has no
-                // such requirement, and members without one could otherwise never save).
-                isUpdateEnabled = currentState.institution.isNotBlank() && currentState.institutionError == null
-            )
+    fun onGenderChange(gender: String) {
+        _uiState.update {
+            it.copy(gender = gender, fieldErrors = it.fieldErrors - F_GENDER, formError = null, saveSuccess = false)
         }
     }
 
-    private fun updateUserProfessionalInfo() {
-        viewModelScope.launch(Dispatchers.IO) {
-            if (_professionalProfileUiState.value.isUpdateEnabled && !_professionalProfileUiState.value.isLoading) {
+    fun onPhoneCountryChange(country: Country) =
+        _uiState.update { it.copy(phoneCountry = country, showPhoneCountryChooser = false) }
 
-                postUserDetailsUseCase.invoke(
-                    pmdcNo = _professionalProfileUiState.value.pmDcNumber.orEmpty(),
-                    registrationNo = _professionalProfileUiState.value.registrationNumber,
-                    instituteName = _professionalProfileUiState.value.institution,
-                    designation = _professionalProfileUiState.value.designation
-                ).collect { state ->
+    fun togglePhoneCountryChooser() =
+        _uiState.update { it.copy(showPhoneCountryChooser = !it.showPhoneCountryChooser) }
 
-                    _isUserProfessionalInfoUpdated.emit(state)
-                    _professionalProfileUiState.update {
-                        it.copy(isLoading = state is ApiStates.Loading)
+    fun dismissSuccess() = _uiState.update { it.copy(saveSuccess = false) }
+
+    /** Client-side rules = the web form's `required` fields (+ the app's phone format check). */
+    private fun validate(s: EditProfileUiState): Map<String, String> {
+        val errors = linkedMapOf<String, String>()
+        if (s.value(F_FIRST_NAME).isBlank()) errors[F_FIRST_NAME] = "First name is required"
+        if (s.value(F_LAST_NAME).isBlank()) errors[F_LAST_NAME] = "Last name is required"
+        if (s.value(F_MBBS_INSTITUTE).isBlank()) errors[F_MBBS_INSTITUTE] = "MBBS institute is required"
+        if (s.value(F_MBBS_YEAR).isBlank()) errors[F_MBBS_YEAR] = "MBBS passing year is required"
+        val phone = s.value(F_PHONE).trim()
+        if (phone.isNotEmpty() && !phoneValidationUseCase(phone)) errors[ERR_PHONE] = "Invalid phone number"
+        return errors
+    }
+
+    fun save() {
+        val s = _uiState.value
+        if (s.isSaving) return
+        val errors = validate(s)
+        if (errors.isNotEmpty()) {
+            _uiState.update {
+                it.copy(fieldErrors = errors, formError = "Please correct the highlighted fields.", saveSuccess = false)
+            }
+            return
+        }
+        val form = ProfileUpdateForm(
+            firstName = s.value(F_FIRST_NAME),
+            lastName = s.value(F_LAST_NAME),
+            gender = s.gender,
+            phone = s.value(F_PHONE).ifBlank { null },
+            pmdcNumber = s.value(F_PMDC),
+            hospital = s.value(F_HOSPITAL),
+            address = s.value(F_ADDRESS),
+            city = s.value(F_CITY),
+            country = s.value(F_COUNTRY),
+            institute = s.value(F_INSTITUTE),
+            title = s.value(F_TITLE),
+            orgNumber = s.value(F_ORG_NUMBER),
+            mbbsInstitute = s.value(F_MBBS_INSTITUTE),
+            mbbsPassingYear = s.value(F_MBBS_YEAR),
+            fcpsInstitute = s.value(F_FCPS_INSTITUTE),
+            fcpsPassingYear = s.value(F_FCPS_YEAR),
+            msInstitute = s.value(F_MS_INSTITUTE),
+            msPassingYear = s.value(F_MS_YEAR),
+            whatsapp = s.value(F_WHATSAPP)
+        )
+        viewModelScope.launch {
+            postUserDetailsUseCase.updateProfile(form).collect { state ->
+                when (state) {
+                    ProfileUpdateState.Loading -> _uiState.update {
+                        it.copy(isSaving = true, fieldErrors = emptyMap(), formError = null, saveSuccess = false)
                     }
-
+                    is ProfileUpdateState.Failure -> _uiState.update {
+                        it.copy(
+                            isSaving = false,
+                            fieldErrors = state.fieldErrors,
+                            formError = state.message.ifBlank {
+                                if (state.fieldErrors.isNotEmpty()) "Please correct the highlighted fields." else null
+                            }
+                        )
+                    }
+                    is ProfileUpdateState.Success -> {
+                        refreshSessionUser(form, state.user)
+                        _uiState.update { it.copy(isSaving = false, saveSuccess = true) }
+                    }
                 }
             }
         }
     }
 
-     fun updateProfessionalProfileUiState(data: User?) {
-         data?.let {
-             _professionalProfileUiState.update {
-                 it.copy(
-                     institution = data.profile?.institute.orEmpty(),
-                     pmDcNumber = data.profile?.pmdcNumber.orEmpty(),
-                     registrationNumber = data.profile?.orgNumber.orEmpty(),
-                     designation = data.profile?.title.orEmpty(),
-                     isUpdateEnabled = true
-                 )
-             }
-         }
+    /**
+     * Web calls `refreshUser(updateResult)`. We re-read GET /auth/me; if that fails, merge the
+     * saved values into the cached user so every screen shows the new details immediately.
+     */
+    private suspend fun refreshSessionUser(form: ProfileUpdateForm, echoed: User?) {
+        val current = userSession.userFlow.value ?: userSession.getUser()
+        val fresh = runCatching {
+            (getUserDetailsUseCase().first { it !is ApiStates.Loading } as? ApiStates.Success)?.data
+        }.getOrNull()
+        val merged: User? = when {
+            fresh != null -> fresh.copy(
+                account = fresh.account ?: current?.account,
+                roles = fresh.roles.ifEmpty { current?.roles.orEmpty() },
+                role = fresh.role ?: current?.role
+            )
+            current != null -> {
+                val p = current.profile ?: com.sspl.core.models.Profile()
+                current.copy(
+                    firstName = form.firstName.trim(),
+                    lastName = form.lastName.trim(),
+                    gender = form.gender.ifBlank { current.gender },
+                    account = current.account?.copy(phone = form.phone ?: current.account.phone),
+                    profilePicture = echoed?.profilePicture ?: current.profilePicture,
+                    profile = p.copy(
+                        pmdcNumber = form.pmdcNumber.trim(),
+                        hospital = form.hospital.trim(),
+                        address = form.address.trim(),
+                        city = form.city.trim(),
+                        country = form.country.trim(),
+                        institute = form.institute.trim(),
+                        title = form.title.trim(),
+                        orgNumber = form.orgNumber.trim(),
+                        mbbsInstitute = form.mbbsInstitute.trim(),
+                        mbbsPassingYear = form.mbbsPassingYear.trim(),
+                        fcpsInstitute = form.fcpsInstitute.trim().ifBlank { p.fcpsInstitute },
+                        fcpsPassingYear = form.fcpsPassingYear.trim().ifBlank { p.fcpsPassingYear },
+                        msInstitute = form.msInstitute.trim().ifBlank { p.msInstitute },
+                        msPassingYear = form.msPassingYear.trim().ifBlank { p.msPassingYear },
+                        contact = if (form.whatsapp.isNotBlank())
+                            (p.contact ?: com.sspl.core.models.Contact()).copy(whatsapp = form.whatsapp.trim())
+                        else p.contact
+                    )
+                )
+            }
+            else -> null
+        }
+        merged?.let { userSession.setUser(it) }
     }
 
+    companion object {
+        const val F_FIRST_NAME = "first_name"
+        const val F_LAST_NAME = "last_name"
+        const val F_GENDER = "gender"
+        const val F_PHONE = "phone"
+        const val F_PMDC = "pmdc_number"
+        const val F_HOSPITAL = "hospital"
+        const val F_ADDRESS = "address"
+        const val F_CITY = "city"
+        const val F_COUNTRY = "country"
+        const val F_INSTITUTE = "institute"
+        const val F_TITLE = "title"
+        const val F_ORG_NUMBER = "org_number"
+        const val F_MBBS_INSTITUTE = "mbbs_institute"
+        const val F_MBBS_YEAR = "mbbs_passing_year"
+        const val F_FCPS_INSTITUTE = "fcps_institute"
+        const val F_FCPS_YEAR = "fcps_passing_year"
+        const val F_MS_INSTITUTE = "ms_institute"
+        const val F_MS_YEAR = "ms_passing_year"
+        const val F_WHATSAPP = "whatsapp"
 
-}
-data class BasicProfileUiState(
-    val phone: String = "",
-    val isLoading: Boolean = false,
-    val isUpdateEnabled: Boolean = false,
-    val firstName: String = "",
-    val lastName: String = "",
-    val firstNameError: String? = null,
-    val lastNameError: String? = null,
-    val phoneNoError: String? = null,
-    val country: Country = Pakistan,
-    val showCountryChooser: Boolean = false,
-)
+        /** Server maps account.phone → "account_phone" (web PROFILE_FIELD_MAP). */
+        const val ERR_PHONE = "account_phone"
 
-data class ProfessionalProfileUiState(
-    val institution: String = "",
-    val pmDcNumber: String? = "",
-    val registrationNumber: String = "",
-    val designation: String = "",
-    val institutionError: String? = null,
-    val pmDcNumberError: String? = null,
-    val registrationNumberError: String? = null,
-    val designationError: String? = null,
-    val isLoading: Boolean = false,
-    val isUpdateEnabled: Boolean = false,
-)
-
-
-sealed interface BasicProfileEvents {
-    data class UpdateFirstName(val name: String) : BasicProfileEvents
-    data class UpdateLastName(val name: String) : BasicProfileEvents
-    data class OnCountryChange(val country: Country) : BasicProfileEvents
-    data class UpdatePhone(val phone: String) : BasicProfileEvents
-    data object ToggleCountryChooser : BasicProfileEvents
-    data object OnSubmit : BasicProfileEvents
+        fun errorKeyFor(fieldKey: String): String = if (fieldKey == F_PHONE) ERR_PHONE else fieldKey
+    }
 }
 
-
-sealed interface ProfessionalProfileEvents {
-    data object OnSave : ProfessionalProfileEvents
-    data class OnInstitutionTextChange(val institutionText: String) : ProfessionalProfileEvents
-    data class OnPmDcNumberTextChange(val pmDcNumberText: String) : ProfessionalProfileEvents
-    data class OnRegistrationNumberTextChange(val registrationNumberText: String) :
-        ProfessionalProfileEvents
-
-    data class OnDesignationTextChange(val designationText: String) : ProfessionalProfileEvents
+data class EditProfileUiState(
+    val fields: Map<String, String> = emptyMap(),
+    /** "" (not set), MALE, FEMALE or OTHER. */
+    val gender: String = "",
+    val email: String = "",
+    val phoneCountry: Country = Pakistan,
+    val showPhoneCountryChooser: Boolean = false,
+    /** Keyed like the web form (see [EditProfileViewModel.errorKeyFor]). */
+    val fieldErrors: Map<String, String> = emptyMap(),
+    val formError: String? = null,
+    val isSaving: Boolean = false,
+    val saveSuccess: Boolean = false
+) {
+    fun value(key: String): String = fields[key].orEmpty()
+    fun error(key: String): String? = fieldErrors[EditProfileViewModel.errorKeyFor(key)]
 }

@@ -80,9 +80,17 @@ fun ForgotPasswordScreen(
     LaunchedEffect(Unit) {
         viewModel.updatePasswordStatus.collect { event ->
             if (event is ApiStates.Success) {
-                snackbar.showSnackbar("Password updated. You can sign in with your new password.")
-                delay(600)
-                goToSignIn()
+                if (viewModel.uiState.value.signedInDirectly) {
+                    // Reset returned an access token: go straight into the app (web parity).
+                    navController.navigate(Screen.MainScreen.route) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                } else {
+                    snackbar.showSnackbar("Password updated. You can sign in with your new password.")
+                    delay(600)
+                    goToSignIn()
+                }
             }
         }
     }

@@ -25,7 +25,12 @@ class ProfileViewModel(
     private val userSession: UserSession,
     private val getUserDetailsUseCase: GetUserDetailsUseCase,
     private val userRepository: UserRepository,
+    private val logoutUseCase: com.sspl.core.usecases.LogoutUseCase,
 ) : ViewModel() {
+
+    /** True while sign-out is in flight (best-effort POST /auth/logout). */
+    private val _isSigningOut = MutableStateFlow(false)
+    val isSigningOut = _isSigningOut.asStateFlow()
 
     /** True while the profile photo is being uploaded (screen shows BlockingLoader). */
     private val _isUploadingPhoto = MutableStateFlow(false)
@@ -139,7 +144,6 @@ class ProfileViewModel(
                 }
             } catch (e: Exception) {
                 if (e is kotlinx.coroutines.CancellationException) throw e
-                println("ProfileViewModel.updateProfileImage failed: ${e::class.simpleName}: ${e.message}")
                 _messages.emit("Couldn't upload your photo. Check your connection and try again.")
             } finally {
                 _isUploadingPhoto.value = false
@@ -148,9 +152,11 @@ class ProfileViewModel(
     }
 
     fun onSignOut() {
+        if (_isSigningOut.value) return
         viewModelScope.launch {
-            userSession.resetToken()
-            userSession.resetUser()
+            _isSigningOut.value = true
+            logoutUseCase() // never throws on network failure; always clears the local session
+            _isSigningOut.value = false
             onSignedOut.update { true }
         }
     }

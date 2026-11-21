@@ -2,7 +2,6 @@ package com.sspl.core.usecases
 
 
 import com.sspl.core.ApiStates
-import com.sspl.core.models.Account
 import com.sspl.core.models.ApiError
 import com.sspl.core.models.UserResponse
 import com.sspl.core.repositories.AuthRepository
@@ -21,21 +20,17 @@ class LoginUserUseCase(
 ) {
 
     fun signInUserViaEmail(
-        email: String, password: String
+        email: String, password: String, rememberMe: Boolean = false
     ): Flow<ApiStates<UserResponse>> = flow {
         emit(ApiStates.Loading)
 
         try {
 
-            val requestBody = Account(
-                email = email,
-                password = password
-            )
-            val response = authRepository.login(body = requestBody)
+            // Password is sent exactly as typed (never trimmed), like the web Login.jsx.
+            val response = authRepository.login(email = email, password = password, rememberMe = rememberMe)
 
             if (response.status.isSuccess()) {
                 val authResponse = response.body<UserResponse>()
-                println(authResponse.toString())
                 authResponse.accessToken?.let { userSession.setToken(it) }
                 authResponse.refreshToken?.let { userSession.setRefreshToken(it) }
                 authResponse.user?.let { userSession.setUser(it) }
@@ -44,8 +39,11 @@ class LoginUserUseCase(
 
                 emit(ApiStates.Success(authResponse))
             } else {
-                val errorResponse = response.body<ApiError>()
-                emit(ApiStates.Failure(error = errorResponse))
+                // Friendly web message + "HTTP_<status>" so the VM can classify 404/401 like Login.jsx.
+                val raw = response.parseApiError()
+                val friendly = raw.toApiError()
+                emit(ApiStates.Failure(error = if (raw.rawMessage?.lowercase()?.contains("not registered") == true)
+                    friendly.copy(message = raw.rawMessage) else friendly))
             }
         } catch (e: Exception) {
             if (e is kotlinx.coroutines.CancellationException) throw e // keep flow cancellation transparent

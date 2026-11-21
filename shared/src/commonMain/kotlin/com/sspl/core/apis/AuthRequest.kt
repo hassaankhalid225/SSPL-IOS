@@ -24,6 +24,11 @@ object AuthRequest {
     @Resource("/refresh")
     data class Refresh(val parent: AuthRequest = AuthRequest)
 
+    /** POST /auth/logout {refresh_token} — web DashboardLayout.jsx `logout()`. */
+    @Serializable
+    @Resource("/logout")
+    data class Logout(val parent: AuthRequest = AuthRequest)
+
     @Serializable
     @Resource("/me")
     data class Me(val parent: AuthRequest = AuthRequest)

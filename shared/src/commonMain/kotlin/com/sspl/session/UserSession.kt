@@ -50,12 +50,12 @@ class UserSession(private val storage: Storage) {
                     _userFlow.value = json.decodeFromString<User>(userString)
                 }
             } catch (e: Exception) {
-                println("UserSession init: Failed to decode cached user: ${e.message}")
+                println("UserSession init: Failed to decode cached user: ${e::class.simpleName}")
             }
             try {
                 _profileImageFlow.value = storage.getString(PROFILE_IMAGE_KEY)
             } catch (e: Exception) {
-                println("UserSession init: Failed to get profile image: ${e.message}")
+                println("UserSession init: Failed to get profile image: ${e::class.simpleName}")
             }
         }
     }
@@ -122,7 +122,7 @@ class UserSession(private val storage: Storage) {
             storage.putString(USER_KEY, userString)
             _userFlow.value = user
         } catch (e: Exception) {
-            println("UserSession setUser error: ${e.message}")
+            println("UserSession setUser error: ${e::class.simpleName}")
         }
     }
 
@@ -132,7 +132,7 @@ class UserSession(private val storage: Storage) {
             try {
                 json.decodeFromString<User>(userString)
             } catch (e: Exception) {
-                println("UserSession getUser error: ${e.message}")
+                println("UserSession getUser error: ${e::class.simpleName}")
                 null
             }
         } else {

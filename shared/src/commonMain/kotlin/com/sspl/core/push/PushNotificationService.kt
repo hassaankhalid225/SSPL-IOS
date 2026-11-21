@@ -20,7 +20,7 @@ class PushNotificationService(
         }
         val platform = tokenManager.getPlatform()
         
-        println("PushNotificationService: Registering device token: $deviceToken for platform: $platform")
+        println("PushNotificationService: Registering device token for platform: $platform")
         
         repository.saveDeviceToken(deviceToken, platform).onSuccess {
             println("PushNotificationService: Device token registered successfully.")

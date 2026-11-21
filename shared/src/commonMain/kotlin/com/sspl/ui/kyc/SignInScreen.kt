@@ -31,6 +31,8 @@ import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.core.ApiStates
 import com.sspl.designsystem.components.FeedbackBanner
+import com.sspl.designsystem.components.SsplCheckboxRow
+import androidx.compose.foundation.layout.Row
 import com.sspl.designsystem.components.OutlineButton
 import com.sspl.designsystem.components.PasswordField
 import com.sspl.designsystem.components.PrimaryButton
@@ -102,6 +104,7 @@ fun LoginScreen(
             phoneErrorMsg = uiState.phoneNoError,
             isLoading = uiState.isLoading,
             isGuestLoading = uiState.isGuestLoading,
+            rememberMe = uiState.rememberMe,
             showCountryChooser = uiState.showCountryChooser,
             onEvents = viewModel::onEvent,
             createNewAccount = { navController.navigate(Screen.SignUpScreen.route) },
@@ -121,6 +124,7 @@ fun LoginScreenContent(
     phoneErrorMsg: String?,
     isLoading: Boolean = false,
     isGuestLoading: Boolean = false,
+    rememberMe: Boolean = false,
     selectedCountry: Country,
     showCountryChooser: Boolean = false,
     email: String = "",
@@ -179,7 +183,17 @@ fun LoginScreenContent(
                         }
                     )
                 )
-                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SsplCheckboxRow(
+                        checked = rememberMe,
+                        onCheckedChange = { onEvents(LoginScreenUiEvents.OnRememberMeChange(it)) },
+                        label = "Remember me",
+                        enabled = !busy,
+                        modifier = Modifier.weight(1f)
+                    )
                     TextButtonLink(text = "Forgot password?", onClick = onForgotPassword, enabled = !busy)
                 }
             }

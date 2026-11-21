@@ -7,6 +7,7 @@ import com.sspl.core.usecases.EmailValidationUseCase
 import com.sspl.core.usecases.PasswordValidationUseCase
 import com.sspl.core.usecases.PhoneNumberValidationUseCase
 import com.sspl.core.usecases.SignUpUserUseCase
+import com.sspl.core.usecases.httpStatus
 import com.sspl.core.usecases.ValidateUserNameUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -83,6 +84,7 @@ class SignUpViewModel(
                 it.copy(isReenteredPasswordVisible = !it.isReenteredPasswordVisible)
             }
 
+            is UserEvents.SetGender -> _uiState.update { it.copy(gender = event.gender) }
             UserEvents.Submit -> submit()
         }
         updateSignUpState()
@@ -130,13 +132,15 @@ class SignUpViewModel(
                 lastName = st.lastName,
                 email = st.email,
                 password = st.password,
-                phoneNumber = st.country.dialCode + st.phoneNo
+                phoneNumber = st.country.dialCode + st.phoneNo,
+                gender = st.gender,
+                prefix = st.prefix
             ).collect { state ->
                 var isHandled = false
                 if (state is ApiStates.Failure) {
                     // Same conflict detection as web Signup.jsx
-                    val msg = "${state.error.message} ${state.error.error.orEmpty()}".lowercase()
-                    val isConflict = msg.contains("already exist") || msg.contains("already registered") ||
+                    val msg = state.error.message.lowercase()
+                    val isConflict = state.error.httpStatus() == 409 || msg.contains("already exist") || msg.contains("already registered") ||
                             msg.contains("already in use") || msg.contains("already taken") ||
                             msg.contains("duplicate") || msg.contains("conflict") ||
                             ((msg.contains("email") || msg.contains("phone") || msg.contains("mobile")) &&

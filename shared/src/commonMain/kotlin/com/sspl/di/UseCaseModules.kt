@@ -70,6 +70,7 @@ internal val useCaseModules = module {
     factory { PostUserDetailsUseCase(get()) }
     factory { GetUserDetailsUseCase(get()) }
     factory { UpdateUserBasicInfoUseCase(get()) }
+    factory { com.sspl.core.usecases.LogoutUseCase(get(), get()) }
     factory { MarkAttendanceViaImageUseCase(get()) }
     factory { MarkAttendanceViaLocationUseCase(get()) }
     factory { DeleteAccountUseCase(get(), get()) }

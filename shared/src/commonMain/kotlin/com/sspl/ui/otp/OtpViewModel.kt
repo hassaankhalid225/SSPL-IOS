@@ -12,10 +12,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
- * WARNING (pre-existing): there is no phone-OTP endpoint in the backend / web contract. This VM
- * verifies against a hard-coded code locally and does not create a session. The login screen no
- * longer exposes the phone mode, so this screen is unreachable from the UI until a real endpoint
- * exists. Kept so the route and DI wiring stay intact.
+ * Phone-OTP sign-in is NOT part of the backend contract: the web's OtpPage.jsx calls
+ * `/verify/send-otp` and `/verify/verify-otp` on a different service (VITE_API_URL_BASE, cookie
+ * auth for "subscribers"), not the SSPL portal API. This screen is unreachable from the UI (the
+ * login screen doesn't expose phone mode). No code is ever accepted locally and no fake "code
+ * sent" message is shown — every attempt explains that phone sign-in is unavailable.
  */
 class OtpViewModel : ViewModel() {
     private val _resultFlow = MutableSharedFlow<OtpOneTimeEvents>()
@@ -26,9 +27,6 @@ class OtpViewModel : ViewModel() {
 
     private var timerJob: Job? = null
 
-    init {
-        startResendTimer()
-    }
 
     fun onEvent(event: OtpEvent) {
         when (event) {
@@ -41,13 +39,7 @@ class OtpViewModel : ViewModel() {
     private fun verifyOtp(otp: String) {
         if (_state.value.isVerifying) return
         viewModelScope.launch {
-            _state.update { it.copy(isVerifying = true) }
-            delay(VERIFICATION_DELAY)
-            when (otp) {
-                VALID_OTP -> _resultFlow.emit(OtpOneTimeEvents.Success)
-                else -> _resultFlow.emit(OtpOneTimeEvents.ShowMessage("That code is not correct. Check the SMS and try again."))
-            }
-            _state.update { it.copy(isVerifying = false) }
+            _resultFlow.emit(OtpOneTimeEvents.ShowMessage(UNAVAILABLE))
         }
     }
 
@@ -55,8 +47,7 @@ class OtpViewModel : ViewModel() {
         if (_state.value.resendSecondsLeft > 0) return
         viewModelScope.launch {
             _state.update { it.copy(otpValue = "") }
-            _resultFlow.emit(OtpOneTimeEvents.ShowMessage("A new code has been sent."))
-            startResendTimer()
+            _resultFlow.emit(OtpOneTimeEvents.ShowMessage(UNAVAILABLE))
         }
     }
 
@@ -71,8 +62,8 @@ class OtpViewModel : ViewModel() {
     }
 
     companion object {
-        private const val VALID_OTP = "123456"
-        private const val VERIFICATION_DELAY = 1500L
+        private const val UNAVAILABLE =
+            "Phone sign-in isn't available. Please sign in with your email and password."
         private const val RESEND_SECONDS = 60
     }
 }

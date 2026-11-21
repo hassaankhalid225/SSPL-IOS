@@ -58,6 +58,8 @@ import com.sspl.designsystem.components.ThemeModeSwitch
 import com.sspl.designsystem.theme.AppTheme
 import com.sspl.designsystem.theme.ThemePreferences
 import com.sspl.session.UserSession
+import com.sspl.core.usecases.LogoutUseCase
+import com.sspl.designsystem.components.BlockingLoader
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
@@ -76,6 +78,7 @@ fun SettingsScreen(
     navController: NavController,
     userSession: UserSession = koinInject(),
     themePreferences: ThemePreferences = koinInject(),
+    logoutUseCase: LogoutUseCase = koinInject(),
     onParentGraph: (() -> Unit)? = null,
     onResetPassword: (() -> Unit)? = null
 ) {
@@ -83,6 +86,7 @@ fun SettingsScreen(
     val themeMode by themePreferences.mode.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     var showSignOutDialog by remember { mutableStateOf(false) }
+    var signingOut by remember { mutableStateOf(false) }
     val isGuest = user == null || user?.isGuest() == true
 
     val leaveToSignIn: () -> Unit = {
@@ -101,10 +105,14 @@ fun SettingsScreen(
             dismissText = "Cancel",
             onConfirm = {
                 showSignOutDialog = false
-                scope.launch {
-                    userSession.resetToken()
-                    userSession.resetUser()
-                    leaveToSignIn()
+                if (!signingOut) {
+                    signingOut = true
+                    scope.launch {
+                        // Best-effort POST /auth/logout, then the local session is always cleared.
+                        logoutUseCase()
+                        signingOut = false
+                        leaveToSignIn()
+                    }
                 }
             },
             onDismiss = { showSignOutDialog = false }
@@ -220,6 +228,7 @@ fun SettingsScreen(
             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
         )
     }
+    if (signingOut) BlockingLoader("Signing out…")
 }
 
 @Composable

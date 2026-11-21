@@ -7,6 +7,8 @@ import com.sspl.core.usecases.EmailValidationUseCase
 import com.sspl.core.usecases.InitResetPasswordUseCase
 import com.sspl.core.usecases.PasswordValidationUseCase
 import com.sspl.core.usecases.UpdatePasswordUseCase
+import com.sspl.core.push.PushNotificationService
+import com.sspl.session.UserSession
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -26,7 +28,9 @@ class ForgotPasswordViewModel(
     private val emailValidationUseCase: EmailValidationUseCase,
     private val initResetPasswordUseCase: InitResetPasswordUseCase,
     private val passwordValidationUseCase: PasswordValidationUseCase,
-    private val updatePasswordUseCase: UpdatePasswordUseCase
+    private val updatePasswordUseCase: UpdatePasswordUseCase,
+    private val userSession: UserSession,
+    private val pushNotificationService: PushNotificationService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ForgotPasswordUiState())
@@ -156,6 +160,19 @@ class ForgotPasswordViewModel(
                     _uiState.update {
                         it.copy(formError = state.error.message.ifBlank { "Could not reset password. Check the code and try again." })
                     }
+                } else if (state is ApiStates.Success) {
+                    // Web ForgotPasswordPage.jsx: when the reset returns an access token the user is
+                    // signed in directly (tokens + user stored) instead of being sent to sign-in.
+                    val auth = state.data
+                    val token = auth?.accessToken
+                    if (!token.isNullOrBlank()) {
+                        userSession.setToken(token)
+                        auth.refreshToken?.let { userSession.setRefreshToken(it) }
+                        auth.user?.let { userSession.setUser(it) }
+                        runCatching { pushNotificationService.registerDeviceToken() }
+                        _uiState.update { it.copy(signedInDirectly = true) }
+                    }
+                    _updatePasswordStatus.emit(state)
                 } else {
                     _updatePasswordStatus.emit(state)
                 }
@@ -225,7 +242,9 @@ data class ForgotPasswordUiState(
     /** Success/info line ("A 6-digit code has been sent…"). */
     val infoMessage: String? = null,
     /** Seconds until "Resend code" is available again. */
-    val resendSecondsLeft: Int = 0
+    val resendSecondsLeft: Int = 0,
+    /** True when the reset response carried an access token and the session was stored. */
+    val signedInDirectly: Boolean = false
 )
 
 sealed interface ForgotPasswordUiEvents {

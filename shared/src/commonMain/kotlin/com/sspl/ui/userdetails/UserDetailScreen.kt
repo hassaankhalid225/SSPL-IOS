@@ -161,15 +161,25 @@ fun UserDetailsScreenContent(
             SsplTextField(
                 value = institution,
                 onValueChange = { onEvent(UserDetailsUiEvents.OnInstitutionTextChange(it)) },
-                label = "Hospital / institution",
-                placeholder = "e.g. Mayo Hospital, Lahore",
+                label = "Institute (optional)",
+                placeholder = "Organization name",
                 leadingIcon = SsplIcons.Business,
                 errorMessage = institutionError,
+                enabled = !isLoading,
+                keyboardActions = next
+            )
+            SsplTextField(
+                value = city,
+                onValueChange = { onEvent(UserDetailsUiEvents.OnCityTextChange(it)) },
+                label = "City (optional)",
+                placeholder = "Lahore",
+                leadingIcon = SsplIcons.LocationOn,
+                errorMessage = cityError,
                 enabled = !isLoading,
                 keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }, onNext = { focusManager.clearFocus() })
             )
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Country", style = AppTheme.typography.labelMedium.copy(color = AppTheme.colors.heading))
+                Text("Country (optional)", style = AppTheme.typography.labelMedium.copy(color = AppTheme.colors.heading))
                 CountrySelectorField(
                     country = country,
                     onCountryChange = { onEvent(UserDetailsUiEvents.OnCountryChange(it?.name ?: "")) },
