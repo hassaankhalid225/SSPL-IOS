@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -72,9 +74,10 @@ import org.koin.compose.viewmodel.koinViewModel
 
 // ---- Static copy (web: pages/About.jsx, data/homepage/missionVision.ts, pillars.ts, stats.ts) ----
 
-private const val MISSION =
+/** Shared with Home (web MissionVisionSection uses the same copy). */
+internal const val ABOUT_MISSION =
     "The Society of Surgeons of Pakistan (Lahore) is a professional academic organization committed to the promotion of excellence in surgical practice, education, and research. The Society provides a structured platform for surgeons and medical professionals to share clinical experience, discuss challenging cases, and stay updated with advancements in surgical sciences."
-private const val VISION =
+internal const val ABOUT_VISION =
     "Through regular clinical discussions and academic engagements, the Society aims to enhance professional competence, encourage ethical surgical practice, and promote collaboration among surgeons for the betterment of patient care."
 
 private val MEMBERSHIP_INTRO = listOf(
@@ -90,17 +93,19 @@ private const val POLICY =
 private data class Pillar(val icon: ImageVector, val title: String, val body: String, val route: String)
 
 private val PILLARS = listOf(
-    Pillar(SsplIcons.Groups, "Membership", "Join a distinguished community of surgeons dedicated to professional growth.", Screen.MembershipPlansScreen.route),
-    Pillar(SsplIcons.WorkspacePremium, "Fellowship", "Structured fellowship with accredited centres and mentorship.", Screen.FellowshipHubScreen.route),
-    Pillar(SsplIcons.CalendarMonth, "Conferences", "National and regional congresses with world-class faculty.", Screen.ConferencesScreen.route),
-    Pillar(SsplIcons.Article, "Publications", "Society notices, guidelines and announcements.", Screen.NotificationsScreen.route)
+    Pillar(SsplIcons.Groups, "Membership", "Join a distinguished community of surgeons dedicated to professional growth and collaborative excellence.", Screen.MembershipPlansScreen.route),
+    Pillar(SsplIcons.WorkspacePremium, "Fellowship", "Apply for SSP Lahore's structured surgical fellowship with accredited training centers, mentorship, and competency-based assessment.", Screen.FellowshipHubScreen.route),
+    Pillar(SsplIcons.CalendarMonth, "Conferences", "Participate in national and regional surgical congresses featuring world-class faculty and innovation.", Screen.ConferencesScreen.route),
+    Pillar(SsplIcons.Article, "Publications", "Explore research, guidelines, and society publications advancing evidence-based surgical practice.", Screen.NotificationsScreen.route)
 )
 
+private data class AboutStat(val value: String, val label: String, val description: String, val icon: ImageVector)
+
 private val STATS = listOf(
-    Triple("1,200+", "Members", SsplIcons.Groups),
-    Triple("150+", "CME activities / year", SsplIcons.MenuBook),
-    Triple("45+", "Training programs", SsplIcons.WorkspacePremium),
-    Triple("25+", "Years of service", SsplIcons.Schedule)
+    AboutStat("1,200+", "Members", "Surgeons & specialists", SsplIcons.Groups),
+    AboutStat("150+", "CME activities", "Every year", SsplIcons.MenuBook),
+    AboutStat("45+", "Training programs", "& workshops", SsplIcons.WorkspacePremium),
+    AboutStat("25+", "Years of service", "To the surgical community", SsplIcons.Schedule)
 )
 
 @Composable
@@ -134,8 +139,8 @@ fun AboutScreen(
             item(key = "mv") {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     SectionHeader(title = "Mission and vision")
-                    MissionCard(SsplIcons.Flag, "Mission", MISSION)
-                    MissionCard(SsplIcons.Visibility, "Vision", VISION)
+                    MissionCard(SsplIcons.Flag, "Mission", ABOUT_MISSION)
+                    MissionCard(SsplIcons.Visibility, "Vision", ABOUT_VISION)
                 }
             }
 
@@ -145,17 +150,11 @@ fun AboutScreen(
                     Spacer(Modifier.height(8.dp))
                     PILLARS.chunked(2).forEach { row ->
                         Row(
-                            Modifier.fillMaxWidth().padding(bottom = 10.dp),
+                            Modifier.fillMaxWidth().height(IntrinsicSize.Min).padding(bottom = 10.dp),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             row.forEach { p ->
-                                NavTile(
-                                    icon = p.icon,
-                                    title = p.title,
-                                    subtitle = p.body,
-                                    onClick = { open(p.route) },
-                                    modifier = Modifier.weight(1f)
-                                )
+                                PillarCard(p, onClick = { open(p.route) }, modifier = Modifier.weight(1f).fillMaxHeight())
                             }
                         }
                     }
@@ -168,10 +167,10 @@ fun AboutScreen(
                     Spacer(Modifier.height(8.dp))
                     STATS.chunked(2).forEach { row ->
                         Row(
-                            Modifier.fillMaxWidth().padding(bottom = 10.dp),
+                            Modifier.fillMaxWidth().height(IntrinsicSize.Min).padding(bottom = 10.dp),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            row.forEach { (v, l, i) -> StatTile(value = v, label = l, icon = i, modifier = Modifier.weight(1f)) }
+                            row.forEach { st -> AboutStatCard(st, Modifier.weight(1f).fillMaxHeight()) }
                         }
                     }
                 }
@@ -261,6 +260,43 @@ fun AboutScreen(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun PillarCard(pillar: Pillar, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val colors = AppTheme.colors
+    Column(
+        modifier = modifier
+            .clip(AppTheme.shapes.card)
+            .background(colors.surface)
+            .border(1.dp, colors.border.copy(alpha = 0.7f), AppTheme.shapes.card)
+            .clickable(onClickLabel = "Open ${pillar.title}", onClick = onClick)
+            .padding(14.dp)
+    ) {
+        IconTile(pillar.icon, size = 36.dp, iconSize = 18.dp, corner = 10.dp)
+        Spacer(Modifier.height(10.dp))
+        Text(pillar.title, style = AppTheme.typography.titleSmall)
+        Spacer(Modifier.height(4.dp))
+        Text(pillar.body, style = AppTheme.typography.bodySmall.copy(color = colors.body))
+    }
+}
+
+@Composable
+private fun AboutStatCard(stat: AboutStat, modifier: Modifier = Modifier) {
+    val colors = AppTheme.colors
+    Column(
+        modifier = modifier
+            .clip(AppTheme.shapes.card)
+            .background(colors.surface)
+            .border(1.dp, colors.border.copy(alpha = 0.7f), AppTheme.shapes.card)
+            .padding(14.dp)
+    ) {
+        IconTile(stat.icon, size = 34.dp, iconSize = 17.dp, corner = 10.dp, animate = true)
+        Spacer(Modifier.height(10.dp))
+        Text(stat.value, style = AppTheme.typography.number, maxLines = 1)
+        Text(stat.label, style = AppTheme.typography.labelMedium.copy(color = colors.heading, fontWeight = FontWeight.SemiBold))
+        Text(stat.description, style = AppTheme.typography.bodySmall)
     }
 }
 

@@ -13,11 +13,16 @@ import com.sspl.core.repositories.FellowshipRepository
 import com.sspl.core.repositories.PublicRepository
 import com.sspl.core.usecases.GetBannersUseCase
 import com.sspl.designsystem.components.LoadState
+import com.sspl.ui.fellowship.Program
+import com.sspl.ui.fellowship.objects
+import com.sspl.ui.fellowship.parseProgram
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 data class HomeUiState(
     val banners: LoadState<List<Banner>> = LoadState.Loading,
@@ -25,6 +30,8 @@ data class HomeUiState(
     val events: LoadState<List<EventItem>> = LoadState.Loading,
     val news: List<SocietyNewsItem> = emptyList(),
     val stats: FellowshipStats? = null,
+    /** Open fellowship programmes (web EducationSection → fetchOpenFellowshipPrograms). */
+    val programs: LoadState<List<Program>> = LoadState.Loading,
     val isRefreshing: Boolean = false
 )
 
@@ -45,7 +52,7 @@ class HomeScreenViewModel(
 
     init {
         // Instant paint from cache when returning to Home.
-        eventRepository.cachedEvents(active = null)?.let { cached ->
+        eventRepository.cachedEvents(active = true)?.let { cached ->
             _state.update { it.copy(events = LoadState.Ready(pickHomeEvents(cached))) }
         }
         loadHomeData()
@@ -64,6 +71,7 @@ class HomeScreenViewModel(
         fetchEvents(force)
         fetchNews()
         fetchStats()
+        fetchPrograms()
     }
 
     fun retryEvents() {
@@ -90,7 +98,7 @@ class HomeScreenViewModel(
 
     private fun fetchEvents(force: Boolean) {
         viewModelScope.launch {
-            val result = eventRepository.loadEvents(active = null, forceRefresh = force)
+            val result = eventRepository.loadEvents(active = true, forceRefresh = force)
             _state.update { st ->
                 st.copy(
                     isRefreshing = false,
@@ -110,7 +118,7 @@ class HomeScreenViewModel(
     private fun fetchNews() {
         viewModelScope.launch {
             publicRepository.getSocietyNews().collect { list ->
-                _state.update { it.copy(news = list.filter { n -> n.isActive && n.isVisible }.take(4)) }
+                _state.update { it.copy(news = list.filter { n -> n.isActive && n.isVisible }.take(6)) }
             }
         }
     }
@@ -123,9 +131,30 @@ class HomeScreenViewModel(
         }
     }
 
+    private fun fetchPrograms() {
+        viewModelScope.launch {
+            val result = runCatching {
+                withContext(Dispatchers.Default) { fellowshipRepository.openPrograms().objects().map(::parseProgram) }
+            }
+            _state.update { st ->
+                st.copy(
+                    programs = result.fold(
+                        onSuccess = { LoadState.Ready(it) },
+                        // The section simply hides on failure; the Fellowship tab owns the full retry UI.
+                        onFailure = { if (st.programs is LoadState.Ready) st.programs else LoadState.Ready(emptyList()) }
+                    )
+                )
+            }
+        }
+    }
+
+    /**
+     * Web (cmsPublicApi.fetchHomepageEventsFromApi): `/external/events?active=true`, drop events whose
+     * end date has passed, earliest first, 4 shown. Ongoing are pinned ahead of upcoming.
+     */
     private fun pickHomeEvents(all: List<EventItem>): List<EventItem> {
         val ongoing = all.filter { it.computedStatus == "ongoing" }
         val upcoming = all.filter { it.computedStatus == "upcoming" }.sortedBy { it.effectiveStart ?: "9999" }
-        return (ongoing + upcoming).take(8)
+        return (ongoing + upcoming).take(4)
     }
 }

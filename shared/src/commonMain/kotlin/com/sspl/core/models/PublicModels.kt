@@ -14,6 +14,8 @@ data class SocietyNewsItem(
     val description: String? = null,
     val image: String? = null,
     @SerialName("image_url") val imageUrl: String? = null,
+    /** Notification category shown as a badge on the web (Notifications.jsx). */
+    val type: String? = null,
     @SerialName("createdAt") val createdAt: String? = null,
     // Web filters on camelCase keys (cmsPublicApi.ts); accept both spellings.
     @SerialName("isActive") @kotlinx.serialization.json.JsonNames("is_active") val isActive: Boolean = true,

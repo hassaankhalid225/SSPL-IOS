@@ -2,6 +2,7 @@ package com.sspl.ui.homescreen
 
 import com.sspl.designsystem.icons.SsplIcons
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -51,13 +53,18 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -86,6 +93,13 @@ import com.sspl.designsystem.components.SkeletonMediaCard
 import com.sspl.designsystem.components.SsplImage
 import com.sspl.designsystem.components.SsplRefreshBox
 import com.sspl.designsystem.theme.AppTheme
+import com.sspl.ui.about.ABOUT_MISSION
+import com.sspl.ui.about.ABOUT_VISION
+import com.sspl.ui.council.CABINET_AND_EXECUTIVES
+import com.sspl.ui.council.CABINET_TERM_LABEL
+import com.sspl.ui.council.CouncilMember
+import com.sspl.ui.fellowship.FellowshipNavArgs
+import com.sspl.ui.fellowship.Program
 import com.sspl.utils.DisplayDates
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -99,7 +113,8 @@ private data class QuickAction(
 /**
  * B1: Home.
  * Hero header (draws behind status bar) → banners overlapping the hero edge (max 3) →
- * quick actions → featured event + carousel → fellowship impact → society → news → help.
+ * quick actions → featured event + carousel → education (fellowship + open programmes) → news →
+ * leadership strip → mission/vision → society → help.
  */
 @Composable
 fun HomeScreen(
@@ -116,6 +131,16 @@ fun HomeScreen(
         open(Screen.EventDetailScreen.route)
     }
     fun gated(action: () -> Unit) = if (shell.isGuest) shell.onAvatar() else action()
+    // Same hand-off FellowshipHubScreen uses (routes carry no args).
+    fun applyFellow(programId: Long?) {
+        FellowshipNavArgs.programId = programId
+        FellowshipNavArgs.centerId = null
+        open(Screen.ApplyAsFellowScreen.route)
+    }
+    fun applyCenter() {
+        FellowshipNavArgs.programId = null
+        open(Screen.ApplyAsTrainingCentreScreen.route)
+    }
 
     val quickActions = listOf(
         QuickAction(SsplIcons.Event, "Events") { open(Screen.ScientificProgramsScreen.route) },
@@ -237,14 +262,98 @@ fun HomeScreen(
                 }
             }
 
-            // ---- Fellowship impact ----------------------------------------------------------
-            state.stats?.takeIf { it.activeFellows + it.graduatedFellows + it.trainingCenters > 0 }?.let { stats ->
-                item(key = "fellowship") {
+            // ---- Education & training (web EducationSection) --------------------------------
+            item(key = "education") {
+                Column(Modifier.padding(top = 24.dp)) {
+                    SectionHeader(
+                        title = "Education & training",
+                        actionText = "Explore",
+                        onActionClick = { open(Screen.FellowshipHubScreen.route) },
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    Spacer(Modifier.height(8.dp))
                     FellowshipImpactCard(
-                        stats = stats,
+                        stats = state.stats,
                         onClick = { open(Screen.FellowshipHubScreen.route) },
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    when (val pr = state.programs) {
+                        is LoadState.Loading -> {
+                            Spacer(Modifier.height(12.dp))
+                            Row(
+                                Modifier.padding(horizontal = 16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                repeat(2) { SkeletonBox(Modifier.width(240.dp).height(196.dp), AppTheme.shapes.card) }
+                            }
+                        }
+                        is LoadState.Ready -> if (pr.data.isNotEmpty()) {
+                            Spacer(Modifier.height(14.dp))
+                            Text(
+                                if (pr.data.size > 1) "OPEN MINI FELLOWSHIPS · ${pr.data.size}" else "OPEN MINI FELLOWSHIP",
+                                style = AppTheme.typography.overline,
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+                            Spacer(Modifier.height(6.dp))
+                            LazyRow(
+                                contentPadding = PaddingValues(horizontal = 16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                items(pr.data, key = { "prog_" + (it.id?.toString() ?: it.name) }) { prog ->
+                                    ProgramPosterCard(prog, onClick = { applyFellow(prog.id) })
+                                }
+                            }
+                        }
+                        else -> Unit
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    Row(
+                        Modifier.padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        HelpChip(SsplIcons.HowToReg, "Apply", { applyFellow(null) }, Modifier.weight(1f))
+                        HelpChip(SsplIcons.Business, "Add centre", { applyCenter() }, Modifier.weight(1f))
+                        HelpChip(SsplIcons.Apartment, "Centres", { open(Screen.TrainingCentresScreen.route) }, Modifier.weight(1f))
+                    }
+                }
+            }
+
+            // ---- News (web WhatsNewSection: 6 items) -------------------------------------
+            if (state.news.isNotEmpty()) {
+                item(key = "newsHeader") {
+                    SectionHeader(
+                        title = "Announcements",
+                        actionText = "View all",
+                        onActionClick = { open(Screen.NotificationsScreen.route) },
                         modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp)
                     )
+                }
+                items(state.news, key = { "news_" + it.effectiveId }) { n ->
+                    NewsRow(n, onClick = { open(Screen.NotificationsScreen.route) })
+                }
+            }
+
+            // ---- Leadership (web LeadershipSection: President + cabinet strip) ----------------
+            item(key = "leadership") {
+                LeadershipSection(
+                    onViewAll = { open(Screen.ExecutiveCouncilScreen.route) },
+                    modifier = Modifier.padding(top = 24.dp)
+                )
+            }
+
+            // ---- Mission & vision (web MissionVisionSection; same copy as About) -------------
+            item(key = "missionVision") {
+                Column(
+                    Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    SectionHeader(
+                        title = "Mission and vision",
+                        actionText = "About SSPL",
+                        onActionClick = { open(Screen.AboutScreen.route) }
+                    )
+                    MissionVisionCard(SsplIcons.Flag, "Mission", ABOUT_MISSION, animationDelayMillis = 0)
+                    MissionVisionCard(SsplIcons.Visibility, "Vision", ABOUT_VISION, animationDelayMillis = 90)
                 }
             }
 
@@ -275,21 +384,6 @@ fun HomeScreen(
                             }
                         }
                     }
-                }
-            }
-
-            // ---- News ------------------------------------------------------------------
-            if (state.news.isNotEmpty()) {
-                item(key = "newsHeader") {
-                    SectionHeader(
-                        title = "Announcements",
-                        actionText = "View all",
-                        onActionClick = { open(Screen.NotificationsScreen.route) },
-                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp)
-                    )
-                }
-                items(state.news, key = { "news_" + it.effectiveId }) { n ->
-                    NewsRow(n, onClick = { open(Screen.NotificationsScreen.route) })
                 }
             }
 
@@ -534,7 +628,7 @@ private fun NoEventsCard(onBrowse: () -> Unit) {
 // =====================================================================================
 
 @Composable
-private fun FellowshipImpactCard(stats: FellowshipStats, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun FellowshipImpactCard(stats: FellowshipStats?, onClick: () -> Unit, modifier: Modifier = Modifier) {
     GradientHeroCard(modifier = modifier, onClick = onClick) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
@@ -546,14 +640,194 @@ private fun FellowshipImpactCard(stats: FellowshipStats, onClick: () -> Unit, mo
                     maxLines = 2
                 )
             }
-            Icon(SsplIcons.ArrowForward, null, tint = Color.White, modifier = Modifier.size(20.dp))
+            Icon(SsplIcons.ArrowForward, contentDescription = "Open fellowship", tint = Color.White, modifier = Modifier.size(20.dp))
         }
-        Spacer(Modifier.height(16.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-            HeroStat("${stats.activeFellows}", "Active fellows", Modifier.weight(1f))
-            HeroStat("${stats.graduatedFellows}", "Completed", Modifier.weight(1f))
-            HeroStat("${stats.trainingCenters}", "Centres", Modifier.weight(1f))
-            if (stats.totalCasesLogged > 0) HeroStat("${stats.totalCasesLogged}", "Procedures", Modifier.weight(1f))
+        // Entry stays visible even when every counter is 0 (new programme).
+        if (stats != null) {
+            Spacer(Modifier.height(16.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                HeroStat("${stats.activeFellows}", "Active fellows", Modifier.weight(1f))
+                HeroStat("${stats.graduatedFellows}", "Completed", Modifier.weight(1f))
+                HeroStat("${stats.trainingCenters}", "Centres", Modifier.weight(1f))
+                if (stats.totalCasesLogged > 0) HeroStat("${stats.totalCasesLogged}", "Procedures", Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProgramPosterCard(program: Program, onClick: () -> Unit) {
+    val colors = AppTheme.colors
+    Column(
+        modifier = Modifier
+            .width(240.dp)
+            .clip(AppTheme.shapes.card)
+            .background(colors.surface)
+            .border(1.dp, colors.border.copy(alpha = 0.7f), AppTheme.shapes.card)
+            .clickable(onClickLabel = "Apply for ${program.name}", onClick = onClick)
+    ) {
+        // Posters are admin-uploaded artwork: fit, never crop the text out.
+        SsplImage(
+            source = program.posters.firstOrNull(),
+            contentDescription = "${program.name} poster",
+            modifier = Modifier.fillMaxWidth().height(124.dp).background(colors.surfaceTint),
+            contentScale = ContentScale.Fit,
+            fallbackIcon = SsplIcons.WorkspacePremium,
+            fallbackIconSize = 36.dp
+        )
+        Column(Modifier.padding(12.dp)) {
+            if (program.shortName.isNotBlank()) {
+                Text(program.shortName.uppercase(), style = AppTheme.typography.overline, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            Text(program.name, style = AppTheme.typography.titleSmall, maxLines = 2, minLines = 2, overflow = TextOverflow.Ellipsis)
+            Spacer(Modifier.height(6.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    listOfNotNull(program.duration, program.specialty).joinToString(" · "),
+                    style = AppTheme.typography.labelSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    "Apply",
+                    style = AppTheme.typography.labelMedium.copy(color = colors.primary, fontWeight = FontWeight.SemiBold)
+                )
+                Icon(SsplIcons.ArrowForward, null, tint = colors.primary, modifier = Modifier.padding(start = 4.dp).size(14.dp))
+            }
+        }
+    }
+}
+
+// =====================================================================================
+// Leadership / mission
+// =====================================================================================
+
+@Composable
+private fun LeadershipSection(onViewAll: () -> Unit, modifier: Modifier = Modifier) {
+    val colors = AppTheme.colors
+    val president = CABINET_AND_EXECUTIVES.firstOrNull { it.role == "President" }
+    val roster = CABINET_AND_EXECUTIVES.filter { it != president }
+    Column(modifier) {
+        SectionHeader(
+            title = "Leadership $CABINET_TERM_LABEL",
+            actionText = "View all",
+            onActionClick = onViewAll,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+        Spacer(Modifier.height(8.dp))
+        if (president != null) {
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth()
+                    .clip(AppTheme.shapes.card)
+                    .background(colors.surface)
+                    .border(1.dp, colors.border.copy(alpha = 0.7f), AppTheme.shapes.card)
+                    .clickable(onClickLabel = "View executive council", onClick = onViewAll)
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                SsplImage(
+                    source = president.imageUrl,
+                    contentDescription = president.name,
+                    modifier = Modifier.size(width = 72.dp, height = 88.dp).clip(AppTheme.shapes.small),
+                    fallbackIcon = SsplIcons.Person
+                )
+                Spacer(Modifier.width(14.dp))
+                Column(Modifier.weight(1f)) {
+                    Text("PRESIDENT", style = AppTheme.typography.overline)
+                    Text(president.name, style = AppTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text(
+                        "Guiding surgical excellence in Lahore",
+                        style = AppTheme.typography.bodySmall,
+                        maxLines = 2
+                    )
+                }
+            }
+            Spacer(Modifier.height(12.dp))
+        }
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            items(roster, key = { "leader_" + it.name }) { m -> LeaderChip(m, onClick = onViewAll) }
+        }
+    }
+}
+
+@Composable
+private fun LeaderChip(member: CouncilMember, onClick: () -> Unit) {
+    val colors = AppTheme.colors
+    Column(
+        modifier = Modifier
+            .width(112.dp)
+            .clip(AppTheme.shapes.card)
+            .background(colors.surface)
+            .border(1.dp, colors.border.copy(alpha = 0.7f), AppTheme.shapes.card)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 8.dp, vertical = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        SsplImage(
+            source = member.imageUrl,
+            contentDescription = member.name,
+            modifier = Modifier
+                .size(64.dp)
+                .clip(CircleShape)
+                .border(2.dp, colors.primaryContainer, CircleShape),
+            fallbackIcon = SsplIcons.Person,
+            fallbackIconSize = 26.dp
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            member.name,
+            style = AppTheme.typography.labelMedium.copy(color = colors.heading, fontWeight = FontWeight.SemiBold),
+            maxLines = 2,
+            minLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center
+        )
+        Text(
+            member.role,
+            style = AppTheme.typography.labelSmall.copy(color = colors.accent),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+private fun MissionVisionCard(icon: ImageVector, title: String, body: String, animationDelayMillis: Int) {
+    val colors = AppTheme.colors
+    var expanded by rememberSaveable(title) { mutableStateOf(false) }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(AppTheme.shapes.card)
+            .background(colors.surface)
+            .border(1.dp, colors.border.copy(alpha = 0.7f), AppTheme.shapes.card)
+            .clickable(onClickLabel = if (expanded) "Show less" else "Read more") { expanded = !expanded }
+            .animateContentSize()
+            .padding(14.dp)
+    ) {
+        IconTile(icon, size = 36.dp, iconSize = 18.dp, corner = 11.dp, animate = true, animationDelayMillis = animationDelayMillis)
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            Text(title, style = AppTheme.typography.titleSmall)
+            Spacer(Modifier.height(2.dp))
+            Text(
+                body,
+                style = AppTheme.typography.bodySmall.copy(color = colors.body),
+                maxLines = if (expanded) Int.MAX_VALUE else 3,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                if (expanded) "Show less" else "Read more",
+                style = AppTheme.typography.labelMedium.copy(color = colors.primary, fontWeight = FontWeight.SemiBold),
+                modifier = Modifier.padding(top = 4.dp)
+            )
         }
     }
 }
@@ -601,7 +875,8 @@ private fun HelpChip(icon: ImageVector, label: String, onClick: () -> Unit, modi
             .clip(RoundedCornerShape(50))
             .background(AppTheme.colors.surface)
             .clickable(onClick = onClick)
-            .padding(vertical = 10.dp),
+            .heightIn(min = 48.dp)
+            .padding(horizontal = 6.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {

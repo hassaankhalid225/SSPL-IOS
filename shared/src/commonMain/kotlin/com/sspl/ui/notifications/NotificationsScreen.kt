@@ -213,6 +213,10 @@ private fun NewsCard(item: SocietyNewsItem) {
                         }
                     }
                 }
+                item.type?.takeIf { it.isNotBlank() }?.let { type ->
+                    Spacer(Modifier.width(8.dp))
+                    StatusBadge(type.replace('_', ' ').uppercase(), variant = BadgeVariant.PRIMARY)
+                }
             }
             if (body.isNotBlank()) {
                 Spacer(Modifier.height(10.dp))
