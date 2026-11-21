@@ -133,8 +133,9 @@ val DRAWER_GROUPS = listOf(
             DrawerItem("Fellowship Hub", SsplIcons.School, Route.FellowshipHub),
             DrawerItem("Training Centres", SsplIcons.Public, Route.TrainingCentres),
             DrawerItem("Guidelines", SsplIcons.Book, Route.FellowshipGuidelines),
-            DrawerItem("Apply as Fellow", SsplIcons.Person, Route.ApplyAsFellow, requiresAuth = true),
-            DrawerItem("Apply as Centre", SsplIcons.Public, Route.ApplyAsTrainingCentre, requiresAuth = true),
+            // Public on the web (POST /fellowship/fellows | /training-centers need no login) → open to guests.
+            DrawerItem("Apply as Fellow", SsplIcons.Person, Route.ApplyAsFellow, requiresAuth = false),
+            DrawerItem("Apply as Centre", SsplIcons.Public, Route.ApplyAsTrainingCentre, requiresAuth = false),
             DrawerItem("Fellow Dashboard", SsplIcons.School, Route.FellowDashboard, requiresAuth = true),
             DrawerItem("Trainer Dashboard", SsplIcons.School, Route.TrainerDashboard, requiresAuth = true, requiredRole = "FELLOWSHIP_TRAINER")
         )

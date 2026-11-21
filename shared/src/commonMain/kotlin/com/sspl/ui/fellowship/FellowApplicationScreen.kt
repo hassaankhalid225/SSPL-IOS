@@ -63,6 +63,7 @@ import com.sspl.session.UserSession
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
+import com.sspl.storage.Storage
 import com.sspl.ui.portal.rememberPortalFilePicker
 
 /**
@@ -72,9 +73,10 @@ import com.sspl.ui.portal.rememberPortalFilePicker
 fun FellowApplicationScreen(
     navController: NavController,
     repository: FellowshipRepository = koinInject(),
-    userSession: UserSession = koinInject()
+    userSession: UserSession = koinInject(),
+    storage: Storage = koinInject()
 ) {
-    val vm: FellowApplicationViewModel = viewModel { FellowApplicationViewModel(repository, userSession) }
+    val vm: FellowApplicationViewModel = viewModel { FellowApplicationViewModel(repository, userSession, FellowshipDraftStore(storage)) }
     val state by vm.state.collectAsStateWithLifecycle()
 
     Box(Modifier.fillMaxSize().background(AppTheme.colors.background)) {
@@ -86,12 +88,17 @@ fun FellowApplicationScreen(
                     ReceiptCard(
                         eyebrow = "Application status",
                         title = "Application submitted successfully",
-                        rows = listOf("Application ID" to receipt.id, "Program" to receipt.program, "Status" to receipt.status),
+                        rows = listOfNotNull(
+                            "Application ID" to receipt.id,
+                            "Program" to receipt.program,
+                            "Status" to receipt.status,
+                            receipt.submittedAt?.let { "Submitted on" to prettyDate(it) }
+                        ),
                         note = "You will receive an email when your application status changes.",
                         primaryText = "Back to fellowship",
                         onPrimary = { navController.popBackStack() },
-                        secondaryText = "Programme guidelines",
-                        onSecondary = { navController.navigate(Screen.FellowshipGuidelinesScreen.route) }
+                        secondaryText = "Start a new application",
+                        onSecondary = vm::startNewApplication
                     )
                 }
             }
@@ -166,6 +173,17 @@ private fun Wizard(vm: FellowApplicationViewModel, state: FellowApplicationUiSta
                     if (program.shortName.isNotBlank()) Text(program.shortName, style = AppTheme.typography.labelMedium.copy(color = AppTheme.colors.primary))
                 }
             }
+            item(key = "mode") {
+                if (state.closed) {
+                    InlineNote(
+                        "Applications are not open. You can review the form. Nothing will be submitted.",
+                        tone = NoteTone.Warning,
+                        title = "Preview only"
+                    )
+                } else {
+                    Text("Your progress is saved on this device, so you can continue later.", style = AppTheme.typography.bodySmall)
+                }
+            }
             item(key = "steps") {
                 SsplCard {
                     StepIndicator(currentStep = state.stepIndex + 1, totalSteps = steps.size, stepLabels = steps.map { it.second })
@@ -227,7 +245,8 @@ private fun Wizard(vm: FellowApplicationViewModel, state: FellowApplicationUiSta
             onBack = vm::back,
             onNext = { vm.next() },
             loading = state.submitting,
-            enabled = state.files.values.none { it.uploading }
+            enabled = state.files.values.none { it.uploading } && !(state.closed && state.stepIndex == steps.lastIndex),
+            submitText = if (state.closed) "Submission closed" else "Submit application"
         )
     }
 }

@@ -59,8 +59,10 @@ class FellowshipRepository(private val httpClient: HttpClient) {
         val parsed = runCatching { json.parseToJsonElement(text) }.getOrNull()
         if (!status.isSuccess()) {
             val obj = parsed as? JsonObject
+            // Backend shapes: {message}, {error:"…"} or {success:false, error:{code, message}}.
             val msg = (obj?.get("message") as? JsonPrimitive)?.contentOrNull
                 ?: (obj?.get("error") as? JsonPrimitive)?.contentOrNull
+                ?: ((obj?.get("error") as? JsonObject)?.get("message") as? JsonPrimitive)?.contentOrNull
             throw FellowshipApiException(status.value, msg?.takeIf { it.isNotBlank() } ?: fallback)
         }
         return parsed ?: JsonObject(emptyMap())
@@ -102,6 +104,29 @@ class FellowshipRepository(private val httpClient: HttpClient) {
         val obj = el.asObject()
         val target = (obj["data"] as? JsonObject) ?: obj
         return json.decodeFromJsonElement(target)
+    }
+
+    /**
+     * Web DynamicCounter parity: live figures merged over the built-in base counts
+     * (`{...defaults, ...data}`); on any failure the base counts are shown as-is.
+     */
+    suspend fun publicStatsOrDefaults(): FellowshipStats {
+        val d = FellowshipStats.WebDefaults
+        val target = runCatching {
+            val obj = getJson("/fellowship/stats/public").asObject()
+            (obj["data"] as? JsonObject) ?: obj
+        }.getOrNull() ?: return d
+        fun pick(vararg keys: String, fallback: Int): Int = keys.firstNotNullOfOrNull { k ->
+            (target[k] as? JsonPrimitive)?.contentOrNull?.toDoubleOrNull()?.toInt()
+        } ?: fallback
+        return FellowshipStats(
+            activeFellows = pick("active_fellows", fallback = d.activeFellows),
+            trainingCenters = pick("training_centers", fallback = d.trainingCenters),
+            graduatedFellows = pick("completed_fellows", "graduated_fellows", fallback = d.graduatedFellows),
+            totalFellows = pick("total_fellows", fallback = d.totalFellows),
+            masterTrainers = pick("master_trainers", fallback = d.masterTrainers),
+            totalCasesLogged = pick("procedures_logged", "total_cases_logged", fallback = d.totalCasesLogged)
+        )
     }
 
     /** GET /fellowship/programs/open → `{records:[…]}`. */

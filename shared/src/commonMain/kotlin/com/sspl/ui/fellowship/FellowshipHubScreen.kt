@@ -79,6 +79,7 @@ import com.sspl.designsystem.components.SsplImage
 import com.sspl.designsystem.components.SsplRefreshBox
 import com.sspl.designsystem.components.StatusBadge
 import com.sspl.designsystem.components.BadgeVariant
+import com.sspl.designsystem.components.ChipRow
 import com.sspl.designsystem.theme.AppTheme
 import com.sspl.session.UserSession
 import com.sspl.core.repositories.FellowshipRepository
@@ -150,16 +151,15 @@ fun FellowshipHubScreen(
                     ErrorState(title = "Programmes didn't load", message = p.message, onRetry = viewModel::retryPrograms)
                 }
                 is LoadState.Ready -> if (p.data.isEmpty()) {
-                    item(key = "programsEmpty") {
-                        SsplCard {
-                            EmptyState(
-                                title = "Applications are not open right now",
-                                message = "No fellowship cycle is accepting applications. Review the guidelines to prepare for the next intake.",
-                                icon = SsplIcons.School,
-                                actionText = "Read guidelines",
-                                onActionClick = { open(Screen.FellowshipGuidelinesScreen.route) }
-                            )
-                        }
+                    // Web: nothing open → the default Basic Laparoscopy outline + "Preview the application".
+                    item(key = "programsClosed") {
+                        ProgramCard(
+                            program = defaultLaparoscopyProgram(),
+                            initiallyExpanded = false,
+                            closed = true,
+                            onApply = { applyFellow(null) },
+                            onRegisterCenter = { applyCenter(null) }
+                        )
                     }
                 } else {
                     items(p.data, key = { "prog_" + (it.id ?: it.name.hashCode().toLong()) }) { prog ->
@@ -182,6 +182,20 @@ fun FellowshipHubScreen(
                     onActionClick = { open(Screen.TrainingCentresScreen.route) },
                     modifier = Modifier.padding(top = 10.dp)
                 )
+            }
+            // More than one open programme → let the user filter the centre list by programme (web selectedId).
+            val openPrograms = (state.programs as? LoadState.Ready)?.data.orEmpty().filter { it.id != null }
+            if (openPrograms.size > 1) {
+                item(key = "centersFilter") {
+                    val all = "All programmes"
+                    val labelOf = { pr: Program -> pr.shortName.ifBlank { pr.name } }
+                    ChipRow(
+                        options = listOf(all) + openPrograms.map(labelOf),
+                        selected = openPrograms.firstOrNull { it.id == state.selectedProgramId }?.let(labelOf) ?: all,
+                        onSelect = { label -> viewModel.selectCentreProgram(openPrograms.firstOrNull { labelOf(it) == label }?.id) },
+                        horizontalPadding = 0.dp
+                    )
+                }
             }
             when (val c = state.centers) {
                 is LoadState.Loading -> items(3, key = { "cs_$it" }) { SkeletonListItem() }
@@ -233,19 +247,19 @@ private fun HubHero(stats: LoadState<FellowshipStats>) {
     ) {
         Spacer(Modifier.height(16.dp))
         when (stats) {
-            is LoadState.Ready -> Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                HeroStat("${stats.data.activeFellows}", "Active fellows")
-                HeroStat("${stats.data.graduatedFellows}", "Completed")
-                HeroStat("${stats.data.trainingCenters}", "Centres")
-                HeroStat("${stats.data.totalCasesLogged}", "Cases logged")
-            }
             is LoadState.Loading -> Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 repeat(4) { SkeletonBox(Modifier.weight(1f).height(38.dp)) }
             }
-            is LoadState.Error -> Text(
-                "Live figures are unavailable right now.",
-                style = AppTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.72f))
-            )
+            // Web DynamicCounter order + labels; failures fall back to the web's base counts.
+            else -> {
+                val d = (stats as? LoadState.Ready)?.data ?: FellowshipStats.WebDefaults
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    HeroStat("${d.graduatedFellows}+", "Completed", Modifier.weight(1f))
+                    HeroStat("${d.activeFellows}", "Currently enrolled", Modifier.weight(1f))
+                    HeroStat("${d.totalFellows}+", "Total fellows", Modifier.weight(1f))
+                    HeroStat("${d.trainingCenters}", "Accredited centres", Modifier.weight(1f))
+                }
+            }
         }
     }
 }
@@ -276,7 +290,13 @@ private fun RoleShortcut(isTrainer: Boolean, onDashboard: () -> Unit, onFeedback
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ProgramCard(program: Program, initiallyExpanded: Boolean, onApply: () -> Unit, onRegisterCenter: () -> Unit) {
+private fun ProgramCard(
+    program: Program,
+    initiallyExpanded: Boolean,
+    onApply: () -> Unit,
+    onRegisterCenter: () -> Unit,
+    closed: Boolean = false
+) {
     var expanded by rememberSaveable(program.id) { mutableStateOf(initiallyExpanded) }
     val colors = AppTheme.colors
     SsplCard(Modifier.animateContentSize()) {
@@ -294,9 +314,16 @@ private fun ProgramCard(program: Program, initiallyExpanded: Boolean, onApply: (
                     Text(program.name, style = AppTheme.typography.titleMedium.copy(color = colors.heading))
                 }
                 Spacer(Modifier.width(8.dp))
-                StatusBadge("Open", variant = BadgeVariant.SUCCESS)
+                if (closed) StatusBadge("Closed", variant = BadgeVariant.NEUTRAL)
+                else StatusBadge("Open", variant = BadgeVariant.SUCCESS)
             }
             if (program.description.isNotBlank()) Text(program.description, style = AppTheme.typography.bodyMedium)
+            if (closed) {
+                InlineNote(
+                    "Applications are not open right now. The outline below is the Basic Laparoscopy program.",
+                    tone = NoteTone.Warning
+                )
+            }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 program.specialty?.let { MetaChip(it, icon = SsplIcons.Badge) }
                 program.duration?.let { MetaChip(it, icon = SsplIcons.Schedule) }
@@ -319,7 +346,8 @@ private fun ProgramCard(program: Program, initiallyExpanded: Boolean, onApply: (
 
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 SecondaryButton(text = "Register centre", onClick = onRegisterCenter, modifier = Modifier.weight(1f))
-                PrimaryButton(text = "Apply now", onClick = onApply, modifier = Modifier.weight(1f))
+                if (closed) OutlineButton(text = "Preview the application", onClick = onApply, modifier = Modifier.weight(1f))
+                else PrimaryButton(text = "Apply now", onClick = onApply, modifier = Modifier.weight(1f))
             }
         }
     }

@@ -51,6 +51,8 @@ import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.core.repositories.FellowshipRepository
 import com.sspl.designsystem.components.ChipRow
+import com.sspl.designsystem.components.StatusBadge
+import com.sspl.designsystem.components.BadgeVariant
 import com.sspl.designsystem.components.EmptyState
 import com.sspl.designsystem.components.ErrorState
 import com.sspl.designsystem.components.FactRow
@@ -239,11 +241,20 @@ private fun CenterCard(center: DirectoryCenter, onEmail: () -> Unit, onApply: ()
                     center.address?.let { FactRow(SsplIcons.LocationOn, "Address", it) }
                     if (center.supervisors.isNotEmpty()) {
                         Text("Faculty & supervisors (${center.supervisors.size})", style = AppTheme.typography.titleSmall.copy(color = colors.heading))
-                        center.supervisors.forEach { s ->
-                            Column(Modifier.fillMaxWidth().clip(AppTheme.shapes.small).background(colors.boxColor).padding(10.dp)) {
-                                Text(s.name, style = AppTheme.typography.bodyMedium.copy(color = colors.heading, fontWeight = FontWeight.SemiBold))
-                                val meta = listOfNotNull(s.role, s.designation, s.qualifications, s.pmdc?.let { "PMDC $it" }).joinToString(" · ")
-                                if (meta.isNotBlank()) Text(meta, style = AppTheme.typography.bodySmall)
+                        center.supervisors.forEachIndexed { idx, s ->
+                            // Web: first supervisor defaults to "Master Trainer", the rest to "Supervisor".
+                            val fallback = if (idx == 0) "Master Trainer" else "Supervisor"
+                            Row(
+                                Modifier.fillMaxWidth().clip(AppTheme.shapes.small).background(colors.boxColor).padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(s.name, style = AppTheme.typography.bodyMedium.copy(color = colors.heading, fontWeight = FontWeight.SemiBold))
+                                    val meta = listOfNotNull(s.designation ?: fallback, s.qualifications, s.pmdc?.let { "PMDC $it" }).joinToString(" · ")
+                                    Text(meta, style = AppTheme.typography.bodySmall)
+                                }
+                                Spacer(Modifier.width(8.dp))
+                                StatusBadge(s.role ?: fallback, variant = if (idx == 0) BadgeVariant.PRIMARY else BadgeVariant.NEUTRAL)
                             }
                         }
                     }

@@ -49,6 +49,8 @@ private suspend fun loadClinical(repo: FellowshipRepository, isTrainer: Boolean)
 sealed interface FellowDashboardContent {
     data object Loading : FellowDashboardContent
     data class Error(val message: String) : FellowDashboardContent
+    /** Trainer (incl. trainer + fellow): the web sends these users to the trainer portal → open the trainer desk. */
+    data object RedirectToTrainer : FellowDashboardContent
     /** Not a fellow, or a fellow without an active enrollment. */
     data class NotEnrolled(val message: String, val isTrainer: Boolean) : FellowDashboardContent
     data class Ready(
@@ -92,6 +94,11 @@ class FellowDashboardViewModel(
             val user = userSession.userFlow.value
             val isTrainer = RoleUtils.hasUserRole(user, "FELLOWSHIP_TRAINER")
             val isFellow = RoleUtils.hasUserRole(user, "FELLOWSHIP_FELLOW")
+            if (isTrainer) {
+                // FellowshipDashboardView.jsx: the trainer check wins over the fellow role.
+                _state.update { it.copy(isRefreshing = false, content = FellowDashboardContent.RedirectToTrainer) }
+                return@launch
+            }
             if (!isFellow) {
                 _state.update {
                     it.copy(

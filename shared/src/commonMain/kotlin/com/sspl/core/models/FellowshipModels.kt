@@ -22,4 +22,15 @@ data class FellowshipStats(
     @SerialName("total_fellows") val totalFellows: Int = 0,
     @SerialName("master_trainers") val masterTrainers: Int = 0,
     @SerialName("procedures_logged") @kotlinx.serialization.json.JsonNames("total_cases_logged") val totalCasesLogged: Int = 0
-)
+) {
+    companion object {
+        /** Built-in base counts the web shows until/unless the live API answers (DynamicCounter.jsx). */
+        val WebDefaults = FellowshipStats(
+            activeFellows = 18,
+            trainingCenters = 6,
+            graduatedFellows = 46,
+            totalFellows = 64,
+            totalCasesLogged = 345
+        )
+    }
+}

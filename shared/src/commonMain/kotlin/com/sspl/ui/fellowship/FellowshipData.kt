@@ -284,12 +284,68 @@ fun parseProgram(p: JsonObject): Program {
     )
 }
 
+/**
+ * `laparoscopyExample()` / `resolveProgram(null)` — the default Basic Laparoscopy outline the web shows
+ * (read-only preview) when no fellowship programme is open. `id == null` ⇒ nothing can be submitted.
+ */
+fun defaultLaparoscopyProgram(): Program {
+    fun q(id: String, label: String) = QuestionDef(id, label, "number", true, null, emptyList())
+    return Program(
+        id = null,
+        name = "Mini Fellowship in Laparoscopic Cholecystectomy",
+        shortName = "Basic Laparoscopy",
+        description = "Structured laparoscopic cholecystectomy training for accredited centers and fellows.",
+        programType = "Mini Fellowship",
+        specialty = "General Surgery",
+        duration = "2 weeks",
+        location = "Lahore",
+        centerType = "Accredited training center",
+        experienceTitle = "Laparoscopic experience",
+        posters = emptyList(),
+        facilities = listOf("Dedicated Operation Theatre", "Laparoscopic Tower", "HD Camera System", "Energy Device", "CO2 Insufflator", "Suction/Irrigation System"),
+        rawFacilities = emptyList(),
+        procedures = listOf("Laparoscopic Cholecystectomy", "Diagnostic Laparoscopy"),
+        caseVolume = listOf(CaseVolumeRow("Laparoscopic Cholecystectomy", "10", "20", "30")),
+        objectives = listOf(
+            ObjectiveDef("Perform safe laparoscopic port placement", "Demonstrate appropriate port positioning and safe access technique."),
+            ObjectiveDef("Identify the critical view of safety", "Demonstrate appropriate identification before clipping and division.")
+        ),
+        categories = listOf(
+            CategoryDef("CATEGORY_A", "Category A", "No previous laparoscopic experience", "No previous laparoscopic experience.", "None", emptyList()),
+            CategoryDef(
+                "CATEGORY_B", "Category B", "Some experience; not comfortable with LC",
+                "Some experience with pneumoperitoneum and diagnostic laparoscopy; not comfortable with laparoscopic cholecystectomy.",
+                "Assisted laparoscopy",
+                listOf(q("q-b1", "Number of laparoscopic procedures assisted"), q("q-b2", "Number of diagnostic laparoscopies performed"))
+            ),
+            CategoryDef(
+                "CATEGORY_C", "Category C", "Straightforward LC; needs help in difficult cases",
+                "Performs straightforward laparoscopic cholecystectomy and needs conversion in difficult cases.",
+                "Independent straightforward LC",
+                listOf(q("q-c1", "Number of laparoscopic cholecystectomies performed"), q("q-c2", "Number performed independently"))
+            )
+        ),
+        personalFields = DEFAULT_PERSONAL,
+        trainingFields = DEFAULT_TRAINING,
+        preferences = DEFAULT_PREFERENCES,
+        documents = listOf(
+            DocumentDef("doc-pmdc", "PMDC registration", true, listOf("PDF", "JPG", "PNG"), 5.0),
+            DocumentDef("doc-cv", "CV", true, listOf("PDF", "DOC"), 5.0),
+            DocumentDef("doc-photo", "Photograph", true, listOf("JPG", "PNG"), 2.0),
+            DocumentDef("doc-qual", "Qualification certificate", true, listOf("PDF", "JPG"), 5.0),
+            DocumentDef("doc-letter", "Employer letter", false, listOf("PDF"), 5.0)
+        ),
+        declaration = DEFAULT_DECLARATION
+    )
+}
+
 /** `applicationSteps(program)` */
 fun Program.applicationSteps(): List<Pair<String, String>> = buildList {
     if (personalFields.isNotEmpty()) add("personal" to "Personal")
     if (trainingFields.isNotEmpty()) add("training" to "Training")
     if (categories.isNotEmpty()) add("experience" to "Experience")
-    add("preferences" to "Preferences") // centre choice always lives here
+    // Web programModel.js: only when the programme defines preference fields (centre choice lives in this step).
+    if (preferences.any { it.label.isNotBlank() }) add("preferences" to "Preferences")
     if (documents.isNotEmpty()) add("documents" to "Documents")
     add("declaration" to "Declaration")
 }

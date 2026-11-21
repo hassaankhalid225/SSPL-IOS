@@ -72,6 +72,7 @@ import org.koin.compose.koinInject
 import com.sspl.ui.portal.PickedFile
 import com.sspl.ui.portal.rememberPortalFilePicker
 import androidx.compose.ui.Alignment
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.filled.AttachFile
@@ -95,6 +96,15 @@ fun FellowDashboardScreen(
     Box(Modifier.fillMaxSize().background(AppTheme.colors.background)) {
         when (val c = state.content) {
             is FellowDashboardContent.Loading -> SkeletonDetail()
+            is FellowDashboardContent.RedirectToTrainer -> {
+                SkeletonDetail()
+                LaunchedEffect(Unit) {
+                    navController.navigate(Screen.TrainerDashboardScreen.route) {
+                        popUpTo(Screen.FellowDashboardScreen.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            }
             is FellowDashboardContent.Error -> ErrorState(title = "Dashboard didn't load", message = c.message, onRetry = vm::retry)
             is FellowDashboardContent.NotEnrolled -> NotEnrolled(c, onApply = {
                 FellowshipNavArgs.centerId = null; open(Screen.ApplyAsFellowScreen.route)
@@ -104,7 +114,13 @@ fun FellowDashboardScreen(
                     c, state, vm,
                     onGuidelines = { open(Screen.FellowshipGuidelinesScreen.route) },
                     onFeedback = { open(Screen.FellowshipFeedbackScreen.route) },
-                    onVerify = { open(Screen.VerifyCertificateScreen.route) },
+                    onVerify = {
+                        // VerifyCertificateScreen reads the serial from the previous entry's savedStateHandle.
+                        c.certificate?.serial?.let { serial ->
+                            navController.currentBackStackEntry?.savedStateHandle?.set("certSerial", serial)
+                        }
+                        open(Screen.VerifyCertificateScreen.route)
+                    },
                     onOpenUrl = { raw -> ImageSources.resolveUrl(raw.replace('\\', '/'))?.let(urlOpener::openUrl) }
                 )
             }
@@ -374,7 +390,7 @@ private fun ResearchSheet(onDismiss: () -> Unit, onSubmit: (Map<String, String>,
         val ext = picked.name.substringAfterLast('.', "").uppercase().let { if (it == "JPEG") "JPG" else it }
         when {
             picked.bytes == null -> { file = null; fileError = "File is too large to upload." }
-            ext !in RESEARCH_EXTENSIONS -> { file = null; fileError = "Use PDF, DOC, DOCX, ZIP or JPG." }
+            ext !in RESEARCH_EXTENSIONS -> { file = null; fileError = "Use PDF, DOC, DOCX, ZIP, JPG or PNG." }
             else -> { file = picked; fileError = null }
         }
     }
@@ -387,7 +403,7 @@ private fun ResearchSheet(onDismiss: () -> Unit, onSubmit: (Map<String, String>,
         FormField(venue, { venue = it }, "Journal / conference event", placeholder = "e.g. SURGICON 2027 / Pakistan Journal of Surgery")
         FormField(year, { year = it }, "Publication year", keyboardType = KeyboardType.Number)
         FormField(abstract, { abstract = it }, "Abstract / summary (optional)", multiline = true)
-        FieldLabel("Upload manuscript / poster / proof", help = "PDF, DOCX, ZIP or JPG (optional)")
+        FieldLabel("Upload manuscript / poster / proof", help = "PDF, DOC, DOCX, ZIP, JPG or PNG (optional)")
         val f = file
         if (f == null) {
             SecondaryButton(text = "Choose file", onClick = pick, icon = SsplIcons.AttachFile)
@@ -415,5 +431,5 @@ private fun ResearchSheet(onDismiss: () -> Unit, onSubmit: (Map<String, String>,
     }
 }
 
-private val RESEARCH_TYPES = listOf("PDF", "DOC", "DOCX", "ZIP", "JPG")
-private val RESEARCH_EXTENSIONS = setOf("PDF", "DOC", "DOCX", "ZIP", "JPG")
+private val RESEARCH_TYPES = listOf("PDF", "DOC", "DOCX", "ZIP", "JPG", "PNG")
+private val RESEARCH_EXTENSIONS = setOf("PDF", "DOC", "DOCX", "ZIP", "JPG", "PNG")

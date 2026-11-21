@@ -42,6 +42,7 @@ import com.sspl.designsystem.components.StepIndicator
 import com.sspl.designsystem.components.TextButtonLink
 import com.sspl.designsystem.theme.AppTheme
 import org.koin.compose.koinInject
+import com.sspl.storage.Storage
 
 /**
  * E5: Register a training centre — 5-step accreditation wizard (CenterApplicationWizard.jsx).
@@ -49,9 +50,10 @@ import org.koin.compose.koinInject
 @Composable
 fun CenterApplicationScreen(
     navController: NavController,
-    repository: FellowshipRepository = koinInject()
+    repository: FellowshipRepository = koinInject(),
+    storage: Storage = koinInject()
 ) {
-    val vm: CenterApplicationViewModel = viewModel { CenterApplicationViewModel(repository) }
+    val vm: CenterApplicationViewModel = viewModel { CenterApplicationViewModel(repository, FellowshipDraftStore(storage)) }
     val state by vm.state.collectAsStateWithLifecycle()
 
     Box(Modifier.fillMaxSize().background(AppTheme.colors.background)) {
@@ -69,12 +71,12 @@ fun CenterApplicationScreen(
                             "Institution" to receipt.institution,
                             "Master trainer" to receipt.masterTrainer,
                             "Status" to receipt.status
-                        ),
+                        ) + listOfNotNull(receipt.submittedAt?.let { "Submitted on" to prettyDate(it) }),
                         note = "Once approved by the administration, login credentials will be emailed to the registered address. Please do not submit duplicate applications.",
                         primaryText = "Back to fellowship",
                         onPrimary = { navController.popBackStack() },
-                        secondaryText = "View accredited centres",
-                        onSecondary = { navController.navigate(Screen.TrainingCentresScreen.route) }
+                        secondaryText = "Start a new application",
+                        onSecondary = vm::startNewApplication
                     )
                 }
             }
@@ -142,6 +144,17 @@ private fun CenterWizard(vm: CenterApplicationViewModel, state: CenterApplicatio
                     Text("TRAINING CENTRE ACCREDITATION", style = AppTheme.typography.overline)
                     Text(program.name, style = AppTheme.typography.headlineSmall.copy(color = AppTheme.colors.heading))
                     if (program.shortName.isNotBlank()) Text(program.shortName, style = AppTheme.typography.labelMedium.copy(color = AppTheme.colors.primary))
+                }
+            }
+            item(key = "mode") {
+                if (state.closed) {
+                    InlineNote(
+                        "Applications are not open currently. You can review the form steps. Nothing will be submitted.",
+                        tone = NoteTone.Warning,
+                        title = "Preview only"
+                    )
+                } else {
+                    Text("Your progress is automatically saved on this device, so you can continue later.", style = AppTheme.typography.bodySmall)
                 }
             }
             item(key = "steps") {
@@ -256,7 +269,8 @@ private fun CenterWizard(vm: CenterApplicationViewModel, state: CenterApplicatio
             onBack = vm::back,
             onNext = vm::next,
             loading = state.submitting,
-            submitText = "Submit application"
+            enabled = !(state.closed && state.stepIndex == CENTER_STEPS.lastIndex),
+            submitText = if (state.closed) "Submission closed" else "Submit application"
         )
     }
 }
