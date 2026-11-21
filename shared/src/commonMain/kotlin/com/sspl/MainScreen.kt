@@ -2,6 +2,7 @@ package com.sspl
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -11,11 +12,15 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.sspl.core.repositories.NotificationRepository
 import com.sspl.navigation.BottomBarTab
+import com.sspl.navigation.DeepLink
+import com.sspl.navigation.DeepLinkBus
 import com.sspl.navigation.MainScaffold
 import com.sspl.navigation.Route
 import com.sspl.session.UserSession
 import com.sspl.ui.settings.deleteaccount.DeleteAccountScreen
 import com.sspl.ui.userdetails.ProfileScreen
+import com.sspl.ui.portal.openMembershipApplication
+import com.sspl.ui.portal.openMembershipPlans
 import org.koin.compose.koinInject
 
 @Composable
@@ -31,13 +36,31 @@ fun MainScreen(onParentGraph: () -> Unit) {
     val currentScreen = screenByRoute(currentRouteStr) ?: Screen.HomeScreen
     val canNavigateBack = navController.previousBackStackEntry != null
 
+    // Deep links (sspl://events/{id}, https://ssplahore.com/verify-certificate/{serial}, …) queued by the host.
+    val pendingLink by DeepLinkBus.pending.collectAsState()
+    LaunchedEffect(pendingLink, backStackEntry != null) {
+        val link = pendingLink ?: return@LaunchedEffect
+        if (backStackEntry == null) return@LaunchedEffect // NavHost graph not set yet
+        when (link) {
+            is DeepLink.EventDetail -> {
+                navController.currentBackStackEntry?.savedStateHandle?.set("eventId", link.eventId)
+                navController.navigate(Screen.EventDetailScreen.route)
+            }
+            is DeepLink.VerifyCertificate -> {
+                navController.currentBackStackEntry?.savedStateHandle?.set("certSerial", link.serial)
+                navController.navigate(Screen.VerifyCertificateScreen.route)
+            }
+        }
+        DeepLinkBus.consume(link)
+    }
+
     val currentTab = when (currentScreen) {
         Screen.HomeScreen -> BottomBarTab.HOME
         Screen.ScientificProgramsScreen, Screen.WorkshopsScreen, Screen.EventsListScreen, Screen.ConferencesScreen -> BottomBarTab.EVENTS
         Screen.FellowshipHubScreen, Screen.TrainingCentresScreen, Screen.FellowshipGuidelinesScreen,
         Screen.ApplyAsFellowScreen, Screen.ApplyAsTrainingCentreScreen, Screen.FellowDashboardScreen,
         Screen.TrainerDashboardScreen, Screen.FellowshipFeedbackScreen -> BottomBarTab.FELLOWSHIP
-        Screen.PortalOverviewScreen, Screen.MembershipScreen, Screen.MembershipPlansScreen,
+        Screen.PortalOverviewScreen, Screen.MembershipScreen, Screen.MembershipPlansScreen, Screen.MembershipApplicationScreen,
         Screen.MyRegistrationsScreen, Screen.EventPortalScreen, Screen.AbstractSubmissionScreen,
         Screen.MySubmissionsScreen, Screen.PresentationsScreen, Screen.MyCertificatesScreen,
         Screen.ProfileScreen, Screen.UserDetailsScreen, Screen.EditProfile -> BottomBarTab.MY_PORTAL
@@ -72,6 +95,7 @@ fun MainScreen(onParentGraph: () -> Unit) {
         Screen.PortalOverviewScreen -> Route.PortalOverview
         Screen.MembershipScreen -> Route.Membership
         Screen.MembershipPlansScreen -> Route.MembershipPlans
+        Screen.MembershipApplicationScreen -> Route.MembershipApplication()
         Screen.EventPortalScreen -> Route.EventPortal()
         Screen.AbstractSubmissionScreen -> Route.SubmitAbstract()
         Screen.MySubmissionsScreen -> Route.MySubmissions
@@ -129,6 +153,7 @@ fun MainScreen(onParentGraph: () -> Unit) {
         Screen.PortalOverviewScreen -> "Member Desk"
         Screen.MembershipScreen -> "Membership"
         Screen.MembershipPlansScreen -> "Membership Plans"
+        Screen.MembershipApplicationScreen -> "Membership Application"
         Screen.EventPortalScreen -> "Event Portal"
         Screen.AbstractSubmissionScreen -> "Submit Abstract"
         Screen.MySubmissionsScreen -> "My Submissions"
@@ -181,6 +206,13 @@ fun MainScreen(onParentGraph: () -> Unit) {
             }
         },
         onNavigate = { route ->
+            if (route is Route.MembershipApplication) {
+                // Web: no selected plan → /membership-plans.
+                val planId = route.planId
+                if (planId != null) navController.openMembershipApplication(planId, isAlreadyMember = false)
+                else navController.openMembershipPlans(isAlreadyMember = false)
+                return@MainScaffold
+            }
             val targetScreen = when (route) {
                 is Route.Home -> Screen.HomeScreen
                 is Route.About -> Screen.AboutScreen
@@ -210,7 +242,6 @@ fun MainScreen(onParentGraph: () -> Unit) {
                 is Route.PortalOverview -> Screen.PortalOverviewScreen
                 is Route.Membership -> Screen.MembershipScreen
                 is Route.MembershipPlans -> Screen.MembershipPlansScreen
-                is Route.MembershipApplication -> Screen.MembershipPlansScreen
                 is Route.EventPortal -> Screen.EventPortalScreen
                 is Route.SubmitAbstract -> Screen.AbstractSubmissionScreen
                 is Route.MySubmissions -> Screen.MySubmissionsScreen

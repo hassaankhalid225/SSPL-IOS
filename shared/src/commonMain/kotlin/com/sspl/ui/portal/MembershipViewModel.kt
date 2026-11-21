@@ -37,18 +37,32 @@ const val POSTGRAD_MEMBERSHIP_NOTICE =
     "A recognized postgraduate qualification in Surgery, verifiable on the official PM&DC website through the applicant's PM&DC registration number, is mandatory for SSPL membership."
 
 /** Port of web `isValidPhoneNumber` (≥10 local digits after the country code / trunk 0). */
-fun isValidPhone(value: String, minLocalDigits: Int = 10): Boolean {
-    val compact = value.trim().replace(" ", "")
-    if (compact.isEmpty()) return false
+fun isValidPhone(value: String, minLocalDigits: Int = 10): Boolean =
+    phoneLocalDigits(value).length >= minLocalDigits
+
+/** Web `COUNTRY_CODES` dial codes, longest first (as `parsePhoneNumber` sorts them). */
+private val WEB_DIAL_CODES = listOf(
+    "+92", "+1", "+44", "+91", "+971", "+966", "+974", "+965", "+968", "+973", "+20", "+90", "+86", "+81",
+    "+82", "+49", "+33", "+39", "+34", "+61", "+64", "+55", "+27", "+234", "+254", "+880", "+94", "+977",
+    "+98", "+964"
+).sortedByDescending { it.length }
+
+/** Port of web `parsePhoneNumber(...).local`. */
+private fun phoneLocalDigits(value: String): String {
+    val compact = value.trim().filterNot { it.isWhitespace() }
+    if (compact.isEmpty()) return ""
+    if (compact.startsWith("+")) {
+        WEB_DIAL_CODES.firstOrNull { compact.startsWith(it) }?.let { code ->
+            return compact.drop(code.length).filter { it.isDigit() }
+        }
+    }
     val digits = compact.filter { it.isDigit() }
-    val local = when {
-        compact.startsWith("+92") -> digits.drop(2)
-        compact.startsWith("+") -> digits.drop(if (digits.length > 11) digits.length - 10 else 1)
+    return when {
         digits.startsWith("92") && digits.length >= 12 -> digits.drop(2).trimStart('0')
+        Regex("^03\\d{9}$").matches(digits) -> digits.drop(1)
         digits.startsWith("0") -> digits.drop(1)
         else -> digits
     }
-    return local.length >= minLocalDigits
 }
 
 /** Port of web `validateYearValue`. Returns an error or null. */

@@ -71,6 +71,10 @@ import com.sspl.designsystem.components.StatTile
 import com.sspl.designsystem.components.StatusBadge
 import com.sspl.designsystem.theme.AppTheme
 import com.sspl.utils.DisplayDates
+import com.sspl.platform.shared.UrlOpener
+import org.koin.compose.koinInject
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 private data class PortalAction(val icon: ImageVector, val label: String, val route: String)
 
@@ -85,10 +89,22 @@ fun PortalOverviewScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val shell = LocalShellActions.current
+    val urlOpener: UrlOpener = koinInject()
     val user = state.user
 
     if (shell.isGuest && user?.isGuest() != false) {
         PortalGuestGate(onSignIn = shell.onAvatar, modifier = Modifier.fillMaxSize())
+        return
+    }
+
+    // Web DashboardLayout: trainer-only accounts (FELLOWSHIP_TRAINER, no active plan, not a fellow)
+    // are sent to the trainer portal instead of the member dashboard.
+    if (RoleUtils.isTrainerOnly(user)) {
+        TrainerOnlyGate(
+            onOpenPortal = { urlOpener.openUrl(viewModel.trainerPortalUrl()) },
+            onOpenTrainerDesk = { navController.openPortal(Screen.TrainerDashboardScreen.route) },
+            onBrowsePlans = { navController.openPortal(Screen.MembershipPlansScreen.route) }
+        )
         return
     }
 
@@ -243,6 +259,45 @@ fun PortalOverviewScreen(
                 )
             }
         }
+    }
+}
+
+/** Trainer-only account: the member desk doesn't apply; point to the Training Center Portal. */
+@Composable
+private fun TrainerOnlyGate(onOpenPortal: () -> Unit, onOpenTrainerDesk: () -> Unit, onBrowsePlans: () -> Unit) {
+    val portalHost = RoleUtils.getAdminPortalBaseUrl().removePrefix("https://").removePrefix("http://")
+    Column(
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        PortalHero(
+            eyebrow = "Fellowship trainer",
+            title = "Training Center Portal",
+            summary = "Your account is a Fellowship Trainer / Training Center account. Your trainer dashboard lives on $portalHost.",
+            icon = SsplIcons.School
+        )
+        RoleDeskCard(
+            eyebrow = "Web portal · $portalHost",
+            title = "Open your Trainer Dashboard",
+            body = "Manage assigned trainees, case approvals, attendance verification, assessments and research.",
+            cta = "Open $portalHost",
+            icon = SsplIcons.OpenInNew,
+            onClick = onOpenPortal
+        )
+        NavTile(
+            icon = SsplIcons.School,
+            title = "Trainer desk in the app",
+            subtitle = "Quick view of your trainees and pending approvals",
+            onClick = onOpenTrainerDesk,
+            modifier = Modifier.fillMaxWidth()
+        )
+        NavTile(
+            icon = SsplIcons.CardMembership,
+            title = "Also a surgeon member?",
+            subtitle = "Apply for SSPL membership to unlock the member desk",
+            onClick = onBrowsePlans,
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 

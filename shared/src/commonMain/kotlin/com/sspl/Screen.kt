@@ -74,6 +74,7 @@ import com.sspl.ui.userdetails.UserDetailsScreen
 import com.sspl.ui.portal.PortalOverviewScreen
 import com.sspl.ui.portal.MembershipScreen
 import com.sspl.ui.portal.MembershipPlansScreen
+import com.sspl.ui.portal.MembershipApplicationScreen
 import com.sspl.ui.portal.EventPortalScreen
 import com.sspl.ui.portal.AbstractSubmissionScreen
 import com.sspl.ui.portal.MySubmissionsScreen
@@ -249,6 +250,7 @@ sealed class Screen(
     data object PortalOverviewScreen : Screen(route = "PortalOverviewScreen")
     data object MembershipScreen : Screen(route = "MembershipScreen")
     data object MembershipPlansScreen : Screen(route = "MembershipPlansScreen")
+    data object MembershipApplicationScreen : Screen(route = "MembershipApplicationScreen")
     data object EventPortalScreen : Screen(route = "EventPortalScreen")
     data object AbstractSubmissionScreen : Screen(route = "AbstractSubmissionScreen")
     data object MySubmissionsScreen : Screen(route = "MySubmissionsScreen")
@@ -354,6 +356,7 @@ fun otherScreens(): List<NavItem> = listOf(
     NavItem(screen = Screen.PortalOverviewScreen, component = { PortalOverviewScreen(navController = it) }),
     NavItem(screen = Screen.MembershipScreen, component = { MembershipScreen(navController = it) }),
     NavItem(screen = Screen.MembershipPlansScreen, component = { MembershipPlansScreen(navController = it) }),
+    NavItem(screen = Screen.MembershipApplicationScreen, component = { MembershipApplicationScreen(navController = it) }),
     NavItem(screen = Screen.EventPortalScreen, component = { EventPortalScreen(navController = it) }),
     NavItem(screen = Screen.AbstractSubmissionScreen, component = { AbstractSubmissionScreen(navController = it) }),
     NavItem(screen = Screen.MySubmissionsScreen, component = { MySubmissionsScreen(navController = it) }),

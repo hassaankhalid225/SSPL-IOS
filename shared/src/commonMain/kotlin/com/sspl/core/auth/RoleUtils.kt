@@ -2,6 +2,7 @@ package com.sspl.core.auth
 
 import com.sspl.core.models.User
 import com.sspl.utils.BASE_URL
+import io.ktor.http.encodeURLParameter
 
 object RoleUtils {
 
@@ -88,6 +89,15 @@ object RoleUtils {
         return if (user.isGuest()) "Guest user" else "Registered user"
     }
 
+    /**
+     * Web `DashboardLayout` isTrainerOnly: a Fellowship Trainer / Center account with no active
+     * member plan and no Fellow role. The web redirects these users to the trainer portal.
+     */
+    fun isTrainerOnly(user: User?): Boolean =
+        hasUserRole(user, "FELLOWSHIP_TRAINER") &&
+            !hasActiveMembershipPlan(user) &&
+            !hasUserRole(user, "FELLOWSHIP_FELLOW")
+
     fun getAdminPortalBaseUrl(): String {
         return "https://admin.ssplahore.com"
     }
@@ -95,7 +105,8 @@ object RoleUtils {
     fun getTrainerPortalRedirectUrl(token: String?): String {
         val base = getAdminPortalBaseUrl()
         return if (!token.isNullOrBlank()) {
-            "$base/fellowship#sso=$token"
+            // Web: `#sso=${encodeURIComponent(token)}`
+            "$base/fellowship#sso=${token.encodeURLParameter()}"
         } else {
             "$base/fellowship"
         }

@@ -54,8 +54,13 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="backendssplportal.switch2itech.cloud" android:pathPrefix="/events" />
-                <data android:scheme="https" android:host="backendssplportal.switch2itech.cloud" android:pathPrefix="/verify-certificate" />
+                <!-- Public website routes (web App.jsx: /events/:eventId, /verify-certificate[/:serial], /certificate/verify/:serial) -->
+                <data android:scheme="https" />
+                <data android:host="ssplahore.com" />
+                <data android:host="www.ssplahore.com" />
+                <data android:pathPrefix="/events/" />
+                <data android:pathPrefix="/verify-certificate" />
+                <data android:pathPrefix="/certificate/verify" />
             </intent-filter>
         </activity>
         

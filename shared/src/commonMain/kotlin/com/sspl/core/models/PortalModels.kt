@@ -144,3 +144,56 @@ data class GenerateCertificateResponse(
     val downloadUrl: String? = null
 )
 
+
+/**
+ * The signed-in user as needed by the membership application (web `MembershipApplicationPage`).
+ * Read from GET /auth/me; [rawProfile] / [rawAccount] keep every saved field so the PUT can merge
+ * them exactly like the web (`{ ...existingProfile, ...formFields }`).
+ */
+data class MembershipApplicant(
+    val id: Long,
+    val firstName: String,
+    val lastName: String,
+    val email: String,
+    val accountPhone: String,
+    val orgId: Long,
+    val prefix: String?,
+    val gender: String?,
+    val cnic: String?,
+    val membershipStatus: String?,
+    val pendingUpgrade: Boolean,
+    val profilePicture: String?,
+    val rawProfile: kotlinx.serialization.json.JsonObject,
+    val rawAccount: kotlinx.serialization.json.JsonObject?,
+    // Pre-fill (web `hydrateMembershipFormFromUser` / `hydrateEducationFromProfile`)
+    val title: String,
+    val pmdcNumber: String,
+    val hospital: String,
+    val address: String,
+    val whatsapp: String,
+    val education: Map<String, String>
+)
+
+/** Form values sent by PUT /external/register/{userId}. Profile keys are the web's keys. */
+data class MembershipApplicationForm(
+    val planId: Long,
+    val title: String,
+    val pmdcNumber: String,
+    val hospital: String,
+    val address: String,
+    val accountPhone: String,
+    val whatsapp: String,
+    /** `mbbs_institute`, `mbbs_passing_year`, `fcps_*`, `frcs_*`, `ms_*` (web `buildEducationProfile`). */
+    val education: Map<String, String>,
+    val isAlreadyMember: Boolean,
+    val expiresAt: String? = null
+)
+
+/** Parsed response of PUT /external/register/{userId}. */
+data class MembershipApplicationResult(
+    val success: Boolean,
+    val paymentRequired: Boolean,
+    val paymentUrl: String?,
+    val transactionId: String?,
+    val message: String?
+)

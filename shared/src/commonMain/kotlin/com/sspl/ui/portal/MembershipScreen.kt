@@ -179,15 +179,16 @@ private fun MembershipContent(
                 ) {
                     Text("Life, Ordinary, Associate or Student plans.", style = AppTheme.typography.bodySmall)
                     Spacer(Modifier.height(12.dp))
-                    PrimaryButton("View membership plans", onClick = { go(Screen.MembershipPlansScreen.route) })
+                    PrimaryButton("View membership plans", onClick = { navController.openMembershipPlans(isAlreadyMember = false) })
                 }
             }
             item(key = "already") {
                 NavTile(
                     icon = SsplIcons.HowToReg,
                     title = "Already a member?",
-                    subtitle = "Contact the SSPL office to link your existing membership",
-                    onClick = { go(Screen.ContactUsScreen.route) },
+                    subtitle = "Complete your profile here — no payment required",
+                    // Web: navigate("/membership-plans", { state: { isAlreadyMember: true } })
+                    onClick = { navController.openMembershipPlans(isAlreadyMember = true) },
                     modifier = Modifier.fillMaxWidth()
                 )
             }

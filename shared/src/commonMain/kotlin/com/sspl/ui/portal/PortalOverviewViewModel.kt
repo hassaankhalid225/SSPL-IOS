@@ -2,6 +2,7 @@ package com.sspl.ui.portal
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sspl.core.auth.RoleUtils
 import com.sspl.core.models.User
 import com.sspl.core.models.UserMembershipDetails
 import com.sspl.core.repositories.PortalRegistration
@@ -48,6 +49,9 @@ class PortalOverviewViewModel(
     }
 
     fun refresh() = load(initial = false)
+
+    /** Web `getTrainerPortalRedirectUrl()` (SSO token in the fragment, URL-encoded). */
+    fun trainerPortalUrl(): String = RoleUtils.getTrainerPortalRedirectUrl(userSession.token)
 
     private fun load(initial: Boolean) {
         job?.cancel()

@@ -19,6 +19,7 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.sspl.App
 import com.sspl.android.pusher.PusherManager
 import com.sspl.core.repositories.NotificationRepository
+import com.sspl.navigation.DeepLinkBus
 import com.sspl.core.usecases.UpdateDeviceTokenUseCase
 import com.sspl.session.UserSession
 import kotlinx.coroutines.launch
@@ -66,6 +67,9 @@ class MainActivity : ComponentActivity() {
         // Initialize Pusher
         setupPusher()
         
+        // Deep link that launched the app (not re-handled on configuration change).
+        if (savedInstanceState == null) handleDeepLink(intent)
+
         setContent {
             App()
         }
@@ -204,6 +208,15 @@ class MainActivity : ComponentActivity() {
         Log.d("MainActivity", "onNewIntent called with intent: $intent")
         // Handle notification when app is already running
         handleNotificationIntent(intent)
+        handleDeepLink(intent)
+    }
+
+    /** Forwards sspl:// and https://ssplahore.com links to shared navigation (see DeepLinkBus). */
+    private fun handleDeepLink(intent: Intent?) {
+        if (intent?.action != Intent.ACTION_VIEW) return
+        val uri = intent.data?.toString() ?: return
+        val handled = DeepLinkBus.handle(uri)
+        Log.d("MainActivity", "Deep link received (handled=$handled)")
     }
     
     private fun setupPusher() {

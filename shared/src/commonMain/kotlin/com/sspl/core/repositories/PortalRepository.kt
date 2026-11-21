@@ -3,6 +3,9 @@ package com.sspl.core.repositories
 import com.sspl.core.models.AbstractSubmission
 import com.sspl.core.models.GenerateCertificateRequest
 import com.sspl.core.models.GenerateCertificateResponse
+import com.sspl.core.models.MembershipApplicant
+import com.sspl.core.models.MembershipApplicationForm
+import com.sspl.core.models.MembershipApplicationResult
 import com.sspl.core.models.MembershipPlan
 import com.sspl.core.models.Presentation
 import com.sspl.core.models.User
@@ -15,6 +18,7 @@ import io.ktor.client.request.forms.formData
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
@@ -29,6 +33,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
@@ -281,6 +286,158 @@ class PortalRepository(private val httpClient: HttpClient) {
         candidates.firstNotNullOfOrNull { it.str("paymentUrl") ?: it.str("payment_url") }
     }.getOrNull()
 
+    /**
+     * GET /auth/me → everything the membership application needs (web `getUserProfile` +
+     * `hydrateMembershipFormFromUser` / `hydrateEducationFromProfile`).
+     */
+    suspend fun getMembershipApplicant(): Result<MembershipApplicant> = runCatching {
+        val text = httpClient.get("$BASE_URL/auth/me").textOrThrow("Failed to load your profile")
+        withContext(Dispatchers.Default) {
+            val root = json.parseToJsonElement(text) as? JsonObject ?: JsonObject(emptyMap())
+            val u = root.obj("user") ?: root.obj("data")?.let { it.obj("user") ?: it } ?: root
+            val id = u.long("id") ?: throw PortalApiException("User ID not found. Please login again.")
+            val profile = u.obj("profile") ?: JsonObject(emptyMap())
+            val account = u.obj("account")
+            val eduKeys = listOf(
+                "mbbs_institute", "mbbs_passing_year", "fcps_institute", "fcps_passing_year",
+                "frcs_institute", "frcs_passing_year", "ms_institute", "ms_passing_year"
+            )
+            MembershipApplicant(
+                id = id,
+                firstName = u.str("first_name").orEmpty(),
+                lastName = u.str("last_name").orEmpty(),
+                email = account?.str("email") ?: u.str("email").orEmpty(),
+                accountPhone = account?.str("phone") ?: u.str("phone").orEmpty(),
+                orgId = u.long("org_id")?.takeIf { it > 0 } ?: 1L,
+                prefix = u.str("prefix"),
+                gender = u.str("gender"),
+                cnic = u.str("cnic"),
+                membershipStatus = u.str("membership_status"),
+                pendingUpgrade = u.bool("pending_upgrade") || u.obj("pending_upgrade") != null,
+                profilePicture = u.str("profile_picture"),
+                rawProfile = profile,
+                rawAccount = account,
+                title = profile.str("title") ?: "Dr",
+                pmdcNumber = profile.str("pmdc_number").orEmpty(),
+                hospital = profile.str("hospital") ?: profile.str("institute").orEmpty(),
+                address = profile.str("address").orEmpty(),
+                whatsapp = profile.obj("contact")?.str("whatsapp").orEmpty(),
+                education = eduKeys.associateWith { k -> profile.str(k).orEmpty() }
+            )
+        }
+    }
+
+    /**
+     * PUT /external/register/{userId} — web `applyForMembership`.
+     * JSON body normally; multipart (`profile[...]`, `account[...]`, `profile_picture`) when a new
+     * photo is attached. Built by hand because the shared Json has encodeDefaults = false.
+     */
+    suspend fun applyForMembership(
+        applicant: MembershipApplicant,
+        form: MembershipApplicationForm,
+        photo: PortalUpload?
+    ): Result<MembershipApplicationResult> = runCatching {
+        // web cleanObject: drop null / undefined / "" values from the saved profile.
+        val existingProfile = applicant.rawProfile.filterValues { v ->
+            v !is JsonNull && !(v is JsonPrimitive && v.isString && v.content.isEmpty())
+        }
+        val newFields = buildMap {
+            put("title", form.title)
+            put("pmdc_number", form.pmdcNumber.trim())
+            put("hospital", form.hospital.trim())
+            put("address", form.address.trim())
+            putAll(form.education)
+        }.filterValues { it.isNotBlank() }
+        val whatsapp = form.whatsapp.trim().takeIf { it.isNotEmpty() }
+        val phone = form.accountPhone.trim().ifBlank { applicant.accountPhone }
+        val url = "$BASE_URL/external/register/${applicant.id}"
+
+        val response = if (photo != null) {
+            httpClient.put(url) {
+                setBody(MultiPartFormDataContent(formData {
+                    append("first_name", applicant.firstName)
+                    append("last_name", applicant.lastName)
+                    append("account[email]", applicant.email)
+                    append("account[phone]", phone)
+                    append("plan_id", form.planId.toString())
+                    append("org_id", applicant.orgId.toString())
+                    form.expiresAt?.takeIf { it.isNotBlank() }?.let { append("expires_at", it) }
+                    applicant.prefix?.let { append("prefix", it) }
+                    applicant.gender?.let { append("gender", it) }
+                    applicant.cnic?.let { append("cnic", it) }
+                    if (form.isAlreadyMember) append("is_already_member", "true")
+
+                    val existingContact = existingProfile["contact"] as? JsonObject
+                    if (whatsapp != null || existingContact != null) {
+                        val contact = linkedMapOf<String, String>()
+                        if (applicant.email.isNotBlank()) contact["email"] = applicant.email
+                        if (applicant.accountPhone.isNotBlank()) contact["phone"] = applicant.accountPhone
+                        existingContact?.forEach { (k, v) ->
+                            (v as? JsonPrimitive)?.contentOrNull?.takeIf { it.isNotBlank() }?.let { contact[k] = it }
+                        }
+                        if (whatsapp != null) contact["whatsapp"] = whatsapp
+                        contact.forEach { (k, v) -> append("profile[contact][$k]", v) }
+                    }
+                    // Merged profile scalars (nested objects such as `contact` are handled above).
+                    val merged = linkedMapOf<String, String>()
+                    existingProfile.forEach { (k, v) ->
+                        if (k != "contact" && v is JsonPrimitive) merged[k] = v.content
+                    }
+                    merged.putAll(newFields)
+                    merged.forEach { (k, v) -> append("profile[$k]", v) }
+
+                    append("profile_picture", photo.bytes, fileHeaders(photo))
+                }))
+            }
+        } else {
+            val body = buildJsonObject {
+                put("first_name", applicant.firstName)
+                put("last_name", applicant.lastName)
+                put("account", buildJsonObject {
+                    val acc = applicant.rawAccount
+                    if (acc != null) {
+                        acc.forEach { (k, v) -> if (k != "password" && k != "phone") put(k, v) }
+                    } else {
+                        put("email", applicant.email)
+                    }
+                    put("phone", phone)
+                })
+                put("plan_id", form.planId)
+                put("org_id", applicant.orgId)
+                form.expiresAt?.takeIf { it.isNotBlank() }?.let { put("expires_at", it) }
+                applicant.prefix?.let { put("prefix", it) }
+                applicant.gender?.let { put("gender", it) }
+                applicant.cnic?.let { put("cnic", it) }
+                put("is_already_member", form.isAlreadyMember)
+                put("profile", buildJsonObject {
+                    existingProfile.forEach { (k, v) -> put(k, v) }
+                    newFields.forEach { (k, v) -> put(k, v) }
+                    if (whatsapp != null) {
+                        put("contact", buildJsonObject {
+                            if (applicant.email.isNotBlank()) put("email", applicant.email)
+                            if (applicant.accountPhone.isNotBlank()) put("phone", applicant.accountPhone)
+                            put("whatsapp", whatsapp)
+                        })
+                    }
+                })
+            }
+            httpClient.put(url) {
+                contentType(ContentType.Application.Json)
+                setBody(body)
+            }
+        }
+        val text = response.textOrThrow("Membership application failed")
+        val o = runCatching { json.parseToJsonElement(text) as? JsonObject }.getOrNull() ?: JsonObject(emptyMap())
+        val payment = o.obj("payment") ?: o.obj("data")?.obj("payment")
+        MembershipApplicationResult(
+            success = (o["success"] as? JsonPrimitive)?.booleanOrNull ?: true,
+            paymentRequired = payment?.bool("required") ?: false,
+            paymentUrl = payment?.let { it.str("paymentUrl") ?: it.str("payment_url") },
+            transactionId = payment?.let { it.str("transactionId") ?: it.str("transaction_id") },
+            message = o.str("message")
+        )
+    }
+
     // ------------------------------------------------------------------------------------
     // Abstracts
     // ------------------------------------------------------------------------------------
@@ -449,7 +606,24 @@ class PortalRepository(private val httpClient: HttpClient) {
                 contentType(ContentType.Application.Json)
                 setBody(GenerateCertificateRequest(sessionId, personId, conferenceId))
             }.textOrThrow("Failed to generate certificate")
-            json.decodeFromString<GenerateCertificateResponse>(text)
+            // Web CertificateDownload reads `certificate.fileUrl || url || downloadUrl` (camelCase);
+            // read both spellings so the file URL is never lost.
+            val o = json.parseToJsonElement(text) as? JsonObject ?: JsonObject(emptyMap())
+            val cert = o.obj("certificate")
+            GenerateCertificateResponse(
+                success = (o["success"] as? JsonPrimitive)?.booleanOrNull ?: true,
+                message = o.str("message"),
+                certificate = cert?.let {
+                    UserCertificate(
+                        id = it.long("id"),
+                        serialNumber = it.str("serialNumber") ?: it.str("serial_number"),
+                        fileUrl = it.str("fileUrl") ?: it.str("file_url"),
+                        downloadUrl = it.str("downloadUrl") ?: it.str("download_url")
+                    )
+                },
+                url = o.str("url"),
+                downloadUrl = o.str("downloadUrl")
+            )
         }
 
     // ------------------------------------------------------------------------------------

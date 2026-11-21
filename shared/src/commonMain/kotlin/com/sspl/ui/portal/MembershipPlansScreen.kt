@@ -33,6 +33,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,7 +46,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.sspl.Screen
 import com.sspl.core.models.MembershipPlan
-import com.sspl.designsystem.components.BlockingLoader
 import com.sspl.designsystem.components.EmptyState
 import com.sspl.designsystem.components.LoadState
 import com.sspl.designsystem.components.LoadStateSwitch
@@ -56,11 +56,11 @@ import com.sspl.designsystem.components.SkeletonVariant
 import com.sspl.designsystem.components.SsplRefreshBox
 import com.sspl.designsystem.components.StickyCtaBar
 import com.sspl.designsystem.theme.AppTheme
-import com.sspl.ui.components.PaymentWebView
 
 /**
  * D3: Membership plans (web `/membership-plans`). Comparable plan cards, single selection,
- * sticky CTA → POST /membership/register → payment (flow unchanged).
+ * sticky CTA → membership application form (web `handleSelectPlan`). In "already a member" mode
+ * (web `state.isAlreadyMember`) pricing is hidden and the application skips payment.
  */
 @Composable
 fun MembershipPlansScreen(
@@ -69,16 +69,9 @@ fun MembershipPlansScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val shell = LocalShellActions.current
-
-    state.paymentUrl?.let { url ->
-        PaymentWebView(
-            url = url,
-            onPaymentSuccess = { viewModel.onPaymentFinished(true) },
-            onPaymentFailed = { viewModel.onPaymentFinished(false) },
-            onClose = { viewModel.onPaymentFinished(false) }
-        )
+    val isAlreadyMember = remember {
+        navController.previousBackStackEntry?.savedStateHandle?.get<Boolean>(ARG_IS_ALREADY_MEMBER) ?: false
     }
-    if (state.isApplying) BlockingLoader("Preparing your application…")
 
     Column(Modifier.fillMaxSize()) {
         SsplRefreshBox(
@@ -110,8 +103,10 @@ fun MembershipPlansScreen(
                     item(key = "hero") {
                         PortalHero(
                             eyebrow = "Membership",
-                            title = "Join the professional community",
-                            summary = "Choose the membership that fits your practice and gain access to events, directory listing and society resources.",
+                            title = if (isAlreadyMember) "Confirm your membership plan" else "Join the professional community",
+                            summary = if (isAlreadyMember)
+                                "Select the plan that matches your existing membership so we can complete your society profile."
+                            else "Choose the membership that fits your practice and gain access to events, directory listing and society resources.",
                             icon = SsplIcons.CardMembership,
                             stats = listOf("${plans.size}" to "Plans available")
                         )
@@ -122,9 +117,9 @@ fun MembershipPlansScreen(
                         }
                     }
                     items(plans, key = { it.id }) { plan ->
-                        PlanCard(plan, selected = plan.id == state.selectedPlanId, onSelect = { viewModel.select(plan.id) })
+                        PlanCard(plan, selected = plan.id == state.selectedPlanId, hidePricing = isAlreadyMember, onSelect = { viewModel.select(plan.id) })
                     }
-                    item(key = "secure") {
+                    if (!isAlreadyMember) item(key = "secure") {
                         Row(
                             Modifier.fillMaxWidth().padding(top = 4.dp),
                             verticalAlignment = Alignment.CenterVertically,
@@ -151,19 +146,20 @@ fun MembershipPlansScreen(
         val selected = state.selectedPlan
         if (state.plans is LoadState.Ready && selected != null) {
             StickyCtaBar(
-                primaryText = if (shell.isGuest) "Sign in to apply" else if (selected.displayFee > 0) "Continue to pay" else "Apply now",
-                onPrimaryClick = { if (shell.isGuest) shell.onAvatar() else viewModel.apply() },
-                priceText = formatRupees(selected.displayFee),
-                priceSubtext = selected.name,
-                loading = state.isApplying,
-                enabled = !state.isApplying
+                primaryText = if (shell.isGuest) "Sign in to apply" else "Continue with this plan",
+                onPrimaryClick = {
+                    if (shell.isGuest) shell.onAvatar()
+                    else navController.openMembershipApplication(selected.id, isAlreadyMember)
+                },
+                priceText = if (isAlreadyMember) null else formatRupees(selected.displayFee),
+                priceSubtext = if (isAlreadyMember) null else selected.name
             )
         }
     }
 }
 
 @Composable
-private fun PlanCard(plan: MembershipPlan, selected: Boolean, onSelect: () -> Unit) {
+private fun PlanCard(plan: MembershipPlan, selected: Boolean, hidePricing: Boolean, onSelect: () -> Unit) {
     val c = AppTheme.colors
     val borderColor by animateColorAsState(if (selected) c.primary else c.border.copy(alpha = 0.7f), label = "planBorder")
     Column(
@@ -198,8 +194,8 @@ private fun PlanCard(plan: MembershipPlan, selected: Boolean, onSelect: () -> Un
                 modifier = Modifier.size(24.dp)
             )
         }
-        Spacer(Modifier.height(10.dp))
-        Row(verticalAlignment = Alignment.Bottom) {
+        if (!hidePricing) Spacer(Modifier.height(10.dp))
+        if (!hidePricing) Row(verticalAlignment = Alignment.Bottom) {
             Text(formatRupees(plan.displayFee), style = AppTheme.typography.number.copy(color = c.primary))
             if (plan.displayFee > 0 && !plan.type.equals("LIFE", true) && plan.type != null) {
                 Spacer(Modifier.width(4.dp))
