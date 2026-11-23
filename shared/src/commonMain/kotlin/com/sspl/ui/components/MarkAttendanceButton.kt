@@ -144,73 +144,6 @@ fun MarkAttendanceButton(
 
     var locationState by remember { mutableStateOf(LocationState()) }
 
-    LaunchedEffect(false) {
-        if (locationState.isPermissionGranted) {
-            if (gpsChecker.hasGps()) {
-                scaffoldState.showSnackbar("Device Location Is On")
-
-
-                isGettingLocation = true
-                when (val result = geoLocation.current(Priority.HighAccuracy)) {
-                    is GeolocatorResult.Error -> {
-                        println(result.message)
-                        scaffoldState.showSnackbar(result.message)
-                        isGettingLocation = false
-                    }
-
-                    is GeolocatorResult.Success -> {
-                        locationState = locationState.copy(
-                            latitude = result.data.coordinates.latitude.toString(),
-                            longitude = result.data.coordinates.longitude.toString()
-                        )
-
-                        val isWithinRadius = isWithinRadius(
-                            apiLatitude = apiCoordinates.latitude,
-                            apiLongitude = apiCoordinates.longitude,
-                            currentLatitude = result.data.coordinates.latitude,
-                            currentLongitude = result.data.coordinates.longitude,
-                            radiusInMeters = radiusInMeters
-                        )
-
-
-                        if (isWithinRadius) {
-                            scaffoldState.showSnackbar("You are within the allowed radius.")
-                            onMarkAttendance(result.data.coordinates.latitude, result.data.coordinates.longitude)
-                            println("You are within the allowed radius.")
-                        } else {
-                            showCameraDialog = true
-                            println("You are not within the allowed radius.")
-                            scaffoldState.showSnackbar("You are outside the allowed radius")
-                        }
-                        isGettingLocation = false
-
-                    }
-
-                }
-            } else {
-                val snackbarResult = scaffoldState.showSnackbar(
-                    message = "Device Location Off",
-                    actionLabel = "Enable",
-                    duration = SnackbarDuration.Indefinite,
-                    withDismissAction = true
-                )
-                when (snackbarResult) {
-                    SnackbarResult.ActionPerformed -> {
-                        gpsChecker.requestEnableLocationServices()
-                        locationState = locationState.copy(isPermissionGranted = false)
-
-                    }
-
-                    SnackbarResult.Dismissed -> {
-                        locationState = locationState.copy(isPermissionGranted = false)
-
-                    }
-                }
-            }
-
-        }
-    }
-
     if (locationState.isPermissionDeniedForever) {
         PermissionDeniedDialog(onDismiss = {
             locationState = locationState.copy(isPermissionDeniedForever = false)
@@ -251,33 +184,16 @@ fun MarkAttendanceButton(
                                             }
 
                                             is GeolocatorResult.Success -> {
+                                                val lat = result.data.coordinates.latitude
+                                                val lng = result.data.coordinates.longitude
                                                 locationState = locationState.copy(
-                                                    latitude = result.data.coordinates.latitude.toString(),
-                                                    longitude = result.data.coordinates.longitude.toString()
+                                                    latitude = lat.toString(),
+                                                    longitude = lng.toString()
                                                 ).also {
                                                     isGettingLocation = false
-                                                    println(result.data.coordinates.toString() + "result.data.coordinates")
                                                 }
-
-                                                val isWithinRadius = isWithinRadius(
-                                                    apiLatitude = apiCoordinates.latitude,
-                                                    apiLongitude = apiCoordinates.longitude,
-                                                    currentLatitude = result.data.coordinates.latitude,
-                                                    currentLongitude = result.data.coordinates.longitude,
-                                                    radiusInMeters = radiusInMeters
-                                                )
-
-
-                                                if (isWithinRadius) {
-                                                    scaffoldState.showSnackbar("You are within the allowed radius.")
-                                                    onMarkAttendance(result.data.coordinates.latitude, result.data.coordinates.longitude)
-                                                    println("You are within the allowed radius.")
-                                                } else {
-                                                    showCameraDialog = true
-                                                    println("You are not within the allowed radius.")
-                                                    scaffoldState.showSnackbar("You are outside the allowed radius")
-                                                }
-
+                                                // Send device GPS coordinates to backend for verification
+                                                onMarkAttendance(lat, lng)
                                             }
 
                                         }

@@ -72,6 +72,7 @@ import com.sspl.designsystem.components.IconTile
 import com.sspl.designsystem.components.ListRowCard
 import com.sspl.designsystem.components.LocalShellActions
 import com.sspl.designsystem.components.OutlineButton
+import com.sspl.designsystem.components.PrimaryButton
 import com.sspl.designsystem.components.SectionHeader
 import com.sspl.designsystem.components.SegmentedTabs
 import com.sspl.designsystem.components.SkeletonDetail
@@ -203,7 +204,7 @@ fun EventDetailScreen(
                                 title = if (pending) "Registration submitted" else "You're registered",
                                 subtitle = listOfNotNull(
                                     roleName?.let { "Role: $it" },
-                                    "Sessions, attendance, feedback and certificates are in the Event Portal once confirmed."
+                                    if (pending) "Awaiting approval or payment confirmation." else "Attendance, feedback & certificates are in the schedule."
                                 ).joinToString(" · "),
                                 leading = {
                                     if (pending) IconTile(SsplIcons.HourglassTop, tint = AppTheme.colors.warning, background = AppTheme.colors.warningContainer)
@@ -214,8 +215,35 @@ fun EventDetailScreen(
                                     else if (pending) StatusBadge(status, variant = BadgeVariant.WARNING)
                                     else StatusBadge(status)
                                 },
-                                onClick = { navController.navigate(Screen.EventPortalScreen.route) { launchSingleTop = true } },
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                                onClick = {
+                                    val scheduleIdx = tabs.indexOf(DetailTab.SCHEDULE)
+                                    if (scheduleIdx >= 0) tabIndex = scheduleIdx
+                                    else navController.navigate(Screen.EventPortalScreen.route) { launchSingleTop = true }
+                                },
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                                footer = if (!pending && r?.isConfirmed == true) {
+                                    {
+                                        Spacer(Modifier.height(8.dp))
+                                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                            PrimaryButton(
+                                                text = "Sessions & attendance",
+                                                icon = SsplIcons.HowToReg,
+                                                onClick = {
+                                                    val scheduleIdx = tabs.indexOf(DetailTab.SCHEDULE)
+                                                    if (scheduleIdx >= 0) tabIndex = scheduleIdx
+                                                    else navController.navigate(Screen.EventPortalScreen.route) { launchSingleTop = true }
+                                                },
+                                                modifier = Modifier.weight(1.3f)
+                                            )
+                                            OutlineButton(
+                                                text = "Entry pass",
+                                                icon = SsplIcons.QrCode,
+                                                onClick = { navController.navigate(Screen.MyRegistrationsScreen.route) { launchSingleTop = true } },
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                        }
+                                    }
+                                } else null
                             )
                         }
                     } else if (reg != null && !reg.canRegister) {
@@ -408,6 +436,8 @@ fun EventDetailScreen(
                                 onClick = if (s.isBreak) null else {
                                     {
                                         navController.currentBackStackEntry?.savedStateHandle?.set("data", Json.encodeToString(s))
+                                        navController.currentBackStackEntry?.savedStateHandle?.set("conferenceId", event.effectiveId)
+                                        navController.currentBackStackEntry?.savedStateHandle?.set("isRegistered", isRegistered)
                                         navController.navigate(Screen.SessionDetailScreen.route) { launchSingleTop = true }
                                     }
                                 },

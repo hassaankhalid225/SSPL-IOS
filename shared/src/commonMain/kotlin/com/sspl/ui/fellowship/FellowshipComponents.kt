@@ -3,9 +3,17 @@ package com.sspl.ui.fellowship
 import com.sspl.designsystem.icons.SsplIcons
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +42,9 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -51,6 +62,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.sspl.designsystem.components.GlassPill
 import com.sspl.designsystem.components.GradientHeroCard
@@ -285,7 +297,7 @@ internal fun OptionRow(text: String, checked: Boolean, radio: Boolean, enabled: 
     }
 }
 
-/** Dropdown select field. [options] are (value, label). */
+/** Custom searchable dropdown select field. [options] are (value, label). */
 @Composable
 internal fun SelectField(
     label: String,
@@ -300,43 +312,169 @@ internal fun SelectField(
     allowClear: Boolean = false,
     enabled: Boolean = true
 ) {
-    var open by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
     val colors = AppTheme.colors
     val shape = AppTheme.shapes.button
     val current = options.firstOrNull { it.first == selected }?.second
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+
+    val filteredOptions = remember(searchQuery, options) {
+        if (searchQuery.isBlank()) options
+        else options.filter { it.second.contains(searchQuery, ignoreCase = true) }
+    }
+
+    Column(modifier.animateContentSize(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         FieldLabel(label, required, null, error)
-        Box {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 52.dp)
-                    .clip(shape)
-                    .background(colors.surface)
-                    .border(1.dp, if (error != null) colors.error else colors.border, shape)
-                    .clickable(enabled = enabled) { open = true }
-                    .padding(horizontal = 14.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    current ?: placeholder,
-                    style = AppTheme.typography.bodyLarge.copy(color = if (current != null) colors.heading else colors.muted),
-                    modifier = Modifier.weight(1f)
+        
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 52.dp)
+                .clip(shape)
+                .background(colors.surface)
+                .border(
+                    width = if (expanded) 1.5.dp else 1.dp,
+                    color = if (error != null) colors.error else if (expanded) colors.primary else colors.border,
+                    shape = shape
                 )
-                Icon(SsplIcons.ArrowDropDown, contentDescription = "Open options", tint = colors.muted)
-            }
-            DropdownMenu(expanded = open, onDismissRequest = { open = false }, containerColor = colors.surfaceElevated) {
-                if (allowClear) {
-                    DropdownMenuItem(text = { Text(placeholder, style = AppTheme.typography.bodyMedium.copy(color = colors.muted)) }, onClick = { onSelect(""); open = false })
+                .clickable(enabled = enabled) {
+                    expanded = !expanded
+                    if (!expanded) searchQuery = ""
                 }
-                options.forEach { (value, text) ->
-                    DropdownMenuItem(
-                        text = { Text(text, style = AppTheme.typography.bodyMedium.copy(color = colors.heading)) },
-                        onClick = { onSelect(value); open = false }
-                    )
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                current ?: placeholder,
+                style = AppTheme.typography.bodyLarge.copy(color = if (current != null) colors.heading else colors.muted),
+                modifier = Modifier.weight(1f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Icon(
+                if (expanded) SsplIcons.ExpandLess else SsplIcons.ArrowDropDown,
+                contentDescription = if (expanded) "Close options" else "Open options",
+                tint = if (expanded) colors.primary else colors.muted
+            )
+        }
+
+        AnimatedVisibility(
+            visible = expanded,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp),
+                color = colors.surfaceElevated,
+                tonalElevation = 2.dp,
+                shadowElevation = 4.dp,
+                border = BorderStroke(1.dp, colors.border)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                ) {
+                    if (options.size > 5) {
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            placeholder = { Text("Search...", style = AppTheme.typography.bodySmall.copy(color = colors.muted)) },
+                            leadingIcon = { Icon(SsplIcons.Search, contentDescription = null, tint = colors.muted, modifier = Modifier.size(16.dp)) },
+                            trailingIcon = if (searchQuery.isNotEmpty()) {
+                                {
+                                    IconButton(onClick = { searchQuery = "" }, modifier = Modifier.size(24.dp)) {
+                                        Icon(SsplIcons.Close, contentDescription = "Clear search", tint = colors.muted, modifier = Modifier.size(14.dp))
+                                    }
+                                }
+                            } else null,
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = colors.surface,
+                                unfocusedContainerColor = colors.surface,
+                                focusedBorderColor = colors.primary,
+                                unfocusedBorderColor = colors.border
+                            ),
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 6.dp)
+                        )
+                    }
+
+                    Box(modifier = Modifier.heightIn(max = 240.dp)) {
+                        LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                            if (allowClear) {
+                                item {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .clickable {
+                                                onSelect("")
+                                                expanded = false
+                                                searchQuery = ""
+                                            }
+                                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            placeholder,
+                                            style = AppTheme.typography.bodyMedium.copy(color = colors.muted),
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        if (selected.isNullOrBlank()) {
+                                            Icon(SsplIcons.Check, contentDescription = null, tint = colors.primary, modifier = Modifier.size(16.dp))
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (filteredOptions.isEmpty()) {
+                                item {
+                                    Text(
+                                        "No options found",
+                                        style = AppTheme.typography.bodySmall.copy(color = colors.muted),
+                                        modifier = Modifier.padding(12.dp)
+                                    )
+                                }
+                            } else {
+                                items(filteredOptions, key = { it.first }) { (value, text) ->
+                                    val isSel = value == selected
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(if (isSel) colors.primaryContainer.copy(alpha = 0.5f) else Color.Transparent)
+                                            .clickable {
+                                                onSelect(value)
+                                                expanded = false
+                                                searchQuery = ""
+                                            }
+                                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text,
+                                            style = AppTheme.typography.bodyMedium.copy(
+                                                color = if (isSel) colors.primary else colors.heading,
+                                                fontWeight = if (isSel) FontWeight.SemiBold else FontWeight.Normal
+                                            ),
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        if (isSel) {
+                                            Icon(SsplIcons.Check, contentDescription = null, tint = colors.primary, modifier = Modifier.size(16.dp))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
+
         if (help != null && error == null) Text(help, style = AppTheme.typography.bodySmall)
         FieldError(error)
     }

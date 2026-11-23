@@ -76,12 +76,12 @@ private fun ButtonFrame(
                 enabled = enabled && !busy,
                 onClick = onClick
             )
-            .padding(horizontal = 18.dp, vertical = 12.dp),
+            .padding(horizontal = 12.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+            horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
             content = content
         )
     }
@@ -101,7 +101,7 @@ private fun RowScope.ButtonContent(
         if (icon != null) Icon(icon, null, tint = contentColor, modifier = Modifier.size(18.dp))
         Text(
             text = text,
-            style = AppTheme.typography.bodyLarge.copy(color = contentColor, fontWeight = FontWeight.SemiBold),
+            style = AppTheme.typography.bodyMedium.copy(color = contentColor, fontWeight = FontWeight.SemiBold),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )

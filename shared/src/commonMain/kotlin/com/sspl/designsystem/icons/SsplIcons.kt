@@ -124,6 +124,8 @@ object SsplIcons {
     val ExpandLess: ImageVector by lazy { lucideIcon("chevron-up", listOf("m18 15-6-6-6 6")) }
     /** lucide: chevron-down */
     val ExpandMore: ImageVector by lazy { lucideIcon("chevron-down", listOf("m6 9 6 6 6-6")) }
+    /** lucide: facebook */
+    val Facebook: ImageVector by lazy { lucideIcon("facebook", listOf("M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z")) }
     /** lucide: clipboard-check */
     val FactCheck: ImageVector by lazy { lucideIcon("clipboard-check", listOf("M9 2h6a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-6a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1Z", "M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2", "m9 14 2 2 4-4")) }
     /** lucide: heart */
@@ -164,6 +166,8 @@ object SsplIcons {
     val Info: ImageVector by lazy { lucideIcon("info", listOf("M2 12a10 10 0 1 0 20 0a10 10 0 1 0 -20 0", "M12 16v-4", "M12 8h.01")) }
     /** lucide: file */
     val InsertDriveFile: ImageVector by lazy { lucideIcon("file", listOf("M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z", "M14 2v4a2 2 0 0 0 2 2h4")) }
+    /** lucide: instagram */
+    val Instagram: ImageVector by lazy { lucideIcon("instagram", listOf("M7.5 2h9A5.5 5.5 0 0 1 22 7.5v9a5.5 5.5 0 0 1-5.5 5.5h-9A5.5 5.5 0 0 1 2 16.5v-9A5.5 5.5 0 0 1 7.5 2z", "M12 8a4 4 0 1 0 4 4 4 4 0 0 0-4-4z", "M17.5 6.5h.01")) }
     /** lucide: package */
     val Inventory: ImageVector by lazy { lucideIcon("package", listOf("M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z", "M12 22V12", "m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7", "m7.5 4.27 9 5.15")) }
     /** lucide: chevron-down */
@@ -308,4 +312,7 @@ object SsplIcons {
     val Work: ImageVector by lazy { lucideIcon("briefcase", listOf("M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16", "M4 6h16a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2Z")) }
     /** lucide: award */
     val WorkspacePremium: ImageVector by lazy { lucideIcon("award", listOf("m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526", "M6 8a6 6 0 1 0 12 0a6 6 0 1 0 -12 0")) }
+    /** lucide: youtube */
+    val Youtube: ImageVector by lazy { lucideIcon("youtube", listOf("M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17", "m10 15 5-3-5-3v6Z")) }
+    val YouTube: ImageVector get() = Youtube
 }

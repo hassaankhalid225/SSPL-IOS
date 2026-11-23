@@ -143,13 +143,11 @@ fun HomeScreen(
     }
 
     val quickActions = listOf(
-        QuickAction(SsplIcons.Event, "Events") { open(Screen.ScientificProgramsScreen.route) },
         QuickAction(SsplIcons.CalendarMonth, "Conferences") { open(Screen.ConferencesScreen.route) },
         QuickAction(SsplIcons.School, "Workshops") { open(Screen.WorkshopsScreen.route) },
         QuickAction(SsplIcons.WorkspacePremium, "Fellowship") { open(Screen.FellowshipHubScreen.route) },
         QuickAction(SsplIcons.Assignment, "My events", requiresAuth = true) { gated { open(Screen.MyRegistrationsScreen.route) } },
         QuickAction(SsplIcons.Badge, "Certificates", requiresAuth = true) { gated { open(Screen.MyCertificatesScreen.route) } },
-        QuickAction(SsplIcons.Verified, "Verify") { open(Screen.VerifyCertificateScreen.route) },
         QuickAction(SsplIcons.Download, "Downloads") { open(Screen.DownloadsScreen.route) }
     )
 
@@ -198,7 +196,7 @@ fun HomeScreen(
                 Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                     SectionHeader(title = "Quick access")
                     Spacer(Modifier.height(6.dp))
-                    quickActions.chunked(4).forEachIndexed { rowIndex, row ->
+                    quickActions.chunked(3).forEachIndexed { rowIndex, row ->
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -206,7 +204,7 @@ fun HomeScreen(
                             row.forEachIndexed { colIndex, qa ->
                                 QuickActionTile(
                                     // Staggered draw-on wave across the grid.
-                                    animationDelayMillis = (rowIndex * 4 + colIndex) * 70,
+                                    animationDelayMillis = (rowIndex * 3 + colIndex) * 70,
                                     icon = qa.icon,
                                     label = qa.label,
                                     onClick = qa.go,
@@ -645,11 +643,21 @@ private fun FellowshipImpactCard(stats: FellowshipStats?, onClick: () -> Unit, m
         // Entry stays visible even when every counter is 0 (new programme).
         if (stats != null) {
             Spacer(Modifier.height(16.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                HeroStat("${stats.activeFellows}", "Active fellows", Modifier.weight(1f))
-                HeroStat("${stats.graduatedFellows}", "Completed", Modifier.weight(1f))
-                HeroStat("${stats.trainingCenters}", "Centres", Modifier.weight(1f))
-                if (stats.totalCasesLogged > 0) HeroStat("${stats.totalCasesLogged}", "Procedures", Modifier.weight(1f))
+            val statList = buildList {
+                add("${stats.activeFellows}" to "Active fellows")
+                add("${stats.graduatedFellows}" to "Completed")
+                add("${stats.trainingCenters}" to "Centres")
+                if (stats.totalCasesLogged > 0) add("${stats.totalCasesLogged}" to "Procedures")
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                statList.chunked(2).forEach { row ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                        row.forEach { (value, label) ->
+                            HeroStat(value, label, Modifier.weight(1f))
+                        }
+                        if (row.size == 1) Spacer(Modifier.weight(1f))
+                    }
+                }
             }
         }
     }

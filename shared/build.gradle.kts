@@ -35,6 +35,7 @@ kotlin {
         it.binaries.framework {
             baseName = "shared"
             isStatic = true
+            binaryOption("bundleId", "com.sspl.shared")
         }
     }
     sourceSets {

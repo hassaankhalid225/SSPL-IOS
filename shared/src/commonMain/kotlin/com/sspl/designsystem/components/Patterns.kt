@@ -50,6 +50,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.sspl.designsystem.theme.AppTheme
 
 /* ==========================================================================================
@@ -204,13 +205,13 @@ fun QuickActionTile(
             .pressClick(RoundedCornerShape(18.dp), onClick)
             .background(colors.surface)
             .border(1.dp, colors.border.copy(alpha = 0.7f), RoundedCornerShape(18.dp))
-            .padding(horizontal = 8.dp, vertical = 12.dp),
+            .padding(horizontal = 4.dp, vertical = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box {
             IconTile(
                 icon, tint = if (locked) colors.muted else tint,
-                background = if (locked) colors.boxColor else tileBackground, size = 44.dp,
+                background = if (locked) colors.boxColor else tileBackground, size = 40.dp,
                 animate = true, animationDelayMillis = animationDelayMillis
             )
             if (locked) {
@@ -222,18 +223,24 @@ fun QuickActionTile(
                 )
             }
         }
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(6.dp))
         Text(
             text = label,
-            style = AppTheme.typography.labelMedium.copy(color = colors.heading, fontWeight = FontWeight.SemiBold),
-            maxLines = 2,
+            style = AppTheme.typography.labelMedium.copy(
+                color = colors.heading,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 11.5.sp,
+                letterSpacing = (-0.2).sp
+            ),
+            maxLines = 1,
+            softWrap = false,
             overflow = TextOverflow.Ellipsis,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
         if (caption != null) {
             Text(
                 text = caption,
-                style = AppTheme.typography.labelSmall,
+                style = AppTheme.typography.labelSmall.copy(fontSize = 10.sp),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -259,28 +266,37 @@ fun NavTile(
             .pressClick(RoundedCornerShape(18.dp), onClick)
             .background(colors.surface)
             .border(1.dp, colors.border.copy(alpha = 0.7f), RoundedCornerShape(18.dp))
-            .padding(8.dp),
+            .padding(horizontal = 8.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconTile(
-            icon, tint = tint, background = tileBackground, size = 40.dp, iconSize = 19.dp,
+            icon, tint = tint, background = tileBackground, size = 36.dp, iconSize = 17.dp, corner = 11.dp,
             animate = true, animationDelayMillis = animationDelayMillis
         )
-        Spacer(Modifier.width(10.dp))
+        Spacer(Modifier.width(8.dp))
         Column(Modifier.weight(1f)) {
             Text(
                 text = title,
-                style = AppTheme.typography.titleSmall.copy(fontSize = AppTheme.typography.bodyMedium.fontSize),
-                maxLines = 1,
+                style = AppTheme.typography.titleSmall.copy(
+                    fontSize = 12.5.sp,
+                    lineHeight = 15.sp,
+                    fontWeight = FontWeight.SemiBold
+                ),
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
             if (subtitle != null) {
-                Text(subtitle, style = AppTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(
+                    subtitle,
+                    style = AppTheme.typography.labelSmall.copy(fontSize = 10.5.sp, lineHeight = 13.sp),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
         Icon(
             SsplIcons.KeyboardArrowRight, contentDescription = null,
-            tint = colors.muted, modifier = Modifier.size(18.dp)
+            tint = colors.muted, modifier = Modifier.size(16.dp)
         )
     }
 }

@@ -365,6 +365,12 @@ private fun OfficialContactCard(loading: Boolean, contact: ContactInfo, openUrl:
             Spacer(Modifier.height(10.dp))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 SOCIAL_LINKS.forEach { s ->
+                    val icon = when (s.label.trim().lowercase()) {
+                        "facebook" -> SsplIcons.Facebook
+                        "instagram" -> SsplIcons.Instagram
+                        "youtube" -> SsplIcons.Youtube
+                        else -> SsplIcons.Public
+                    }
                     Row(
                         Modifier
                             .clip(AppTheme.shapes.chip)
@@ -374,7 +380,7 @@ private fun OfficialContactCard(loading: Boolean, contact: ContactInfo, openUrl:
                             .padding(horizontal = 14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(SsplIcons.Public, contentDescription = null, tint = AppTheme.colors.onPrimaryContainer, modifier = Modifier.padding(end = 6.dp).width(16.dp))
+                        Icon(icon, contentDescription = s.label, tint = AppTheme.colors.onPrimaryContainer, modifier = Modifier.padding(end = 6.dp).width(16.dp))
                         Text(s.label, style = AppTheme.typography.labelMedium.copy(color = AppTheme.colors.onPrimaryContainer, fontWeight = FontWeight.SemiBold))
                     }
                 }

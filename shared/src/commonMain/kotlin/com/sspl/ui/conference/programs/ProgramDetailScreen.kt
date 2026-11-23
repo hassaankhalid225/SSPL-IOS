@@ -55,6 +55,8 @@ fun ProgramDetailScreen(
         allowFeedback = true,
         onSessionClick = { session ->
             navController.currentBackStackEntry?.savedStateHandle?.set("data", Json.encodeToString(session))
+            navController.currentBackStackEntry?.savedStateHandle?.set("conferenceId", conference.id)
+            navController.currentBackStackEntry?.savedStateHandle?.set("isRegistered", true)
             navController.navigate(Screen.SessionDetailScreen.route) { launchSingleTop = true }
         },
         onFeedback = { session ->

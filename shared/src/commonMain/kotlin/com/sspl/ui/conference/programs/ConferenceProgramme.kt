@@ -292,7 +292,7 @@ private fun ProgrammeList(
 
 /** Attendance · feedback · certificate controls for one session (web SessionActionButtons + CertificateDownload). */
 @Composable
-private fun SessionActions(
+internal fun SessionActions(
     session: Session,
     ui: SessionActionUi,
     isRegistered: Boolean,

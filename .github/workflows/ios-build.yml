@@ -21,6 +21,8 @@ jobs:
     name: Build iOS (Device IPA & Simulator)
     runs-on: macos-latest
     timeout-minutes: 60
+    env:
+      GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx7g -Dkotlin.daemon.jvm.options=-Xmx7g -Dkotlin.native.jvmArgs=-Xmx7g"
 
     steps:
       - name: Checkout Code

@@ -247,17 +247,26 @@ private fun HubHero(stats: LoadState<FellowshipStats>) {
     ) {
         Spacer(Modifier.height(16.dp))
         when (stats) {
-            is LoadState.Loading -> Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                repeat(4) { SkeletonBox(Modifier.weight(1f).height(38.dp)) }
+            is LoadState.Loading -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    repeat(2) { SkeletonBox(Modifier.weight(1f).height(38.dp)) }
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    repeat(2) { SkeletonBox(Modifier.weight(1f).height(38.dp)) }
+                }
             }
             // Web DynamicCounter order + labels; failures fall back to the web's base counts.
             else -> {
                 val d = (stats as? LoadState.Ready)?.data ?: FellowshipStats.WebDefaults
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    HeroStat("${d.graduatedFellows}+", "Completed", Modifier.weight(1f))
-                    HeroStat("${d.activeFellows}", "Currently enrolled", Modifier.weight(1f))
-                    HeroStat("${d.totalFellows}+", "Total fellows", Modifier.weight(1f))
-                    HeroStat("${d.trainingCenters}", "Accredited centres", Modifier.weight(1f))
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        HeroStat("${d.graduatedFellows}+", "Completed", Modifier.weight(1f))
+                        HeroStat("${d.activeFellows}", "Currently enrolled", Modifier.weight(1f))
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        HeroStat("${d.totalFellows}+", "Total fellows", Modifier.weight(1f))
+                        HeroStat("${d.trainingCenters}", "Accredited centres", Modifier.weight(1f))
+                    }
                 }
             }
         }
