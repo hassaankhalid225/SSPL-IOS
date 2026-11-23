@@ -1,0 +1,118 @@
+name: iOS Build
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-ios:
+    name: Build iOS (Device IPA & Simulator)
+    runs-on: macos-14
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Configure Android SDK and Local Properties
+        run: |
+          chmod +x gradlew
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+
+      - name: Resolve Swift Package Dependencies
+        run: |
+          cd iosApp
+          xcodebuild -resolvePackageDependencies -project iosApp.xcodeproj -scheme iosApp
+
+      - name: Build iOS App for Generic Device
+        run: |
+          cd iosApp
+          xcodebuild build \
+            -project iosApp.xcodeproj \
+            -scheme iosApp \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGN_ENTITLEMENTS="" \
+            CODE_SIGNING_INJECT_BASE_ENTITLEMENTS=NO \
+            ENABLE_USER_SCRIPT_SANDBOXING=NO \
+            -derivedDataPath ./build-device
+
+      - name: Package Unsigned IPA
+        run: |
+          mkdir -p build-ipa/Payload
+          APP_PATH=$(find iosApp/build-device/Build/Products/Release-iphoneos -name "*.app" -type d | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            echo "Error: .app bundle not found in build-device!"
+            exit 1
+          fi
+          echo "Found compiled app at: $APP_PATH"
+          cp -R "$APP_PATH" build-ipa/Payload/
+          cd build-ipa
+          zip -r SSPL-Unsigned.ipa Payload
+          cd ..
+
+      - name: Upload iOS Device IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SSPL-iOS-Unsigned-IPA
+          path: build-ipa/SSPL-Unsigned.ipa
+          retention-days: 14
+
+      - name: Build iOS App for Simulator
+        if: success()
+        run: |
+          cd iosApp
+          xcodebuild build \
+            -project iosApp.xcodeproj \
+            -scheme iosApp \
+            -configuration Release \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            ENABLE_USER_SCRIPT_SANDBOXING=NO \
+            -derivedDataPath ./build-sim
+
+      - name: Package Simulator App
+        if: success()
+        run: |
+          SIM_APP_PATH=$(find iosApp/build-sim/Build/Products/Release-iphonesimulator -name "*.app" -type d | head -n 1)
+          if [ -n "$SIM_APP_PATH" ]; then
+            echo "Found Simulator app at: $SIM_APP_PATH"
+            mkdir -p build-sim-zip
+            cd "$(dirname "$SIM_APP_PATH")"
+            zip -r "$GITHUB_WORKSPACE/build-sim-zip/SSPL-Simulator.app.zip" "$(basename "$SIM_APP_PATH")"
+            cd "$GITHUB_WORKSPACE"
+          fi
+
+      - name: Upload iOS Simulator Artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SSPL-iOS-Simulator-App
+          path: build-sim-zip/SSPL-Simulator.app.zip
+          retention-days: 14
