@@ -39,7 +39,7 @@ import kotlin.io.encoding.ExperimentalEncodingApi
  */
 object ImageSources {
     private const val MAX_ENTRIES = 24
-    private val cache = LinkedHashMap<Int, ByteArray>(MAX_ENTRIES, 0.75f, true)
+    private val cache = LinkedHashMap<Int, ByteArray>()
 
     fun isDataUri(src: String?) = src?.startsWith("data:") == true
 
