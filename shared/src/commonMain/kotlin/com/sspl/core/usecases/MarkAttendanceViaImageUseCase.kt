@@ -6,6 +6,7 @@ import com.sspl.core.models.AttendanceResponse
 import com.sspl.core.models.ConferenceDetail
 import com.sspl.core.repositories.ConferenceRepository
 import io.ktor.client.call.body
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -17,20 +18,24 @@ class MarkAttendanceViaImageUseCase(private val conferenceRepository: Conference
     ): Flow<ApiStates<AttendanceResponse>> = flow {
         emit(ApiStates.Loading)
         try {
-            println(conferenceId.toString() + "is the id ")
             val response =
                 conferenceRepository.markAttendanceViaImage(conferenceId, sessionId, image)
 
             if (response.status.isSuccess()) {
-                val result = response.body<AttendanceResponse>()
-                println("The result is $result")
+                val result = runCatching { response.body<AttendanceResponse>() }
+                    .getOrElse { AttendanceResponse(status = "PENDING", createdAt = "", updatedAt = "") }
                 emit(ApiStates.Success(result))
             } else {
-                println("new result is " + response.body())
-                val errorResponse = response.body<ApiError>()
-                println("The result is $errorResponse")
+                val errorText = runCatching { response.bodyAsText() }.getOrDefault("")
+                val errorResponse = runCatching { response.body<ApiError>() }
+                    .getOrElse { ApiError(message = errorText.ifBlank { "Failed to upload selfie." }) }
 
-                emit(ApiStates.Failure(error = errorResponse))
+                val msg = (errorResponse.message ?: errorText).lowercase()
+                if (msg.contains("already marked") || msg.contains("already attended") || msg.contains("already recorded")) {
+                    emit(ApiStates.Success(AttendanceResponse(status = "ACCEPTED", createdAt = "", updatedAt = "")))
+                } else {
+                    emit(ApiStates.Failure(error = errorResponse))
+                }
             }
         } catch (e: Exception) {
             if (e is kotlinx.coroutines.CancellationException) throw e // keep flow cancellation transparent

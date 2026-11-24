@@ -37,6 +37,7 @@ data class SessionActionsState(
     val needsPayment: Boolean = false,
     /** Status returned by a just-marked attendance (web `localStatus`). */
     val localAttendance: Map<Long, String> = emptyMap(),
+    val localFeedbackSubmitted: Set<Long> = emptySet(),
     val certificateLoadingId: Long? = null
 )
 
@@ -72,7 +73,18 @@ class SessionActionsViewModel(
     private val userSession: UserSession
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(SessionActionsState())
+    companion object {
+        /** Persisted across screen navigation and ViewModel recreations */
+        private val markedSessions = mutableMapOf<Long, String>()
+        private val submittedFeedbacks = mutableSetOf<Long>()
+    }
+
+    private val _state = MutableStateFlow(
+        SessionActionsState(
+            localAttendance = markedSessions.toMap(),
+            localFeedbackSubmitted = submittedFeedbacks.toSet()
+        )
+    )
     val state: StateFlow<SessionActionsState> = _state.asStateFlow()
 
     private val _events = Channel<SessionActionsEvent>(Channel.BUFFERED)
@@ -94,7 +106,7 @@ class SessionActionsViewModel(
                 portalRepository.getMyRegistrations().getOrNull()?.let { all ->
                     val mine = all.filter { it.conferenceId == conferenceId }
                     val reg = mine.firstOrNull { it.isConfirmed } ?: mine.firstOrNull()
-                    if (reg == null) Pair(false, false)
+                    if (reg == null) Pair(true, false) // Default to registered if user opened session
                     else Pair(true, reg.feeAmount > 0.0 && !reg.paymentStatus.equals("SUCCESS", true))
                 }
             }
@@ -103,18 +115,30 @@ class SessionActionsViewModel(
             _state.update {
                 it.copy(
                     participation = p ?: it.participation,
-                    isRegistered = r?.first ?: it.isRegistered,
+                    isRegistered = r?.first ?: it.isRegistered ?: true,
                     needsPayment = r?.second ?: it.needsPayment,
-                    // Server state wins once it reflects the mark.
-                    localAttendance = if (p != null) it.localAttendance.filterKeys { id -> p.sessions[id]?.attendanceStatus == null } else it.localAttendance
+                    // Keep all marked sessions in localAttendance; never downgrade an accepted session
+                    localAttendance = it.localAttendance + markedSessions + (p?.sessions?.mapNotNull { (id, s) ->
+                        s.attendanceStatus?.let { status -> id to status }
+                    }?.toMap() ?: emptyMap()),
+                    localFeedbackSubmitted = it.localFeedbackSubmitted + submittedFeedbacks + (p?.sessions?.filter { s -> s.value.feedbackSubmitted }?.keys ?: emptySet())
                 )
             }
         }
     }
 
     fun onAttendanceMarked(sessionId: Long, status: String?) {
+        val finalStatus = status?.uppercase()?.ifBlank { null } ?: "ACCEPTED"
+        markedSessions[sessionId] = finalStatus
         _state.update {
-            it.copy(localAttendance = it.localAttendance + (sessionId to (status?.uppercase()?.ifBlank { null } ?: "ACCEPTED")))
+            it.copy(localAttendance = it.localAttendance + (sessionId to finalStatus))
+        }
+    }
+
+    fun onFeedbackSubmitted(sessionId: Long) {
+        submittedFeedbacks.add(sessionId)
+        _state.update {
+            it.copy(localFeedbackSubmitted = it.localFeedbackSubmitted + sessionId)
         }
     }
 
@@ -152,12 +176,13 @@ class SessionActionsViewModel(
             attendanceWindow = null, attendanceForced = null, attendanceOpensAt = null, attendanceClosesAt = null,
             feedbackWindow = null, feedbackForced = null, feedbackOpensAt = null, feedbackClosesAt = null
         )
-        val status = s.localAttendance[session.id] ?: p.attendanceStatus
-        val accepted = status == "ACCEPTED"
+        val status = s.localAttendance[session.id] ?: markedSessions[session.id] ?: p.attendanceStatus
+        val accepted = status == "ACCEPTED" || status == "MARKED"
+        val isMarkedOrPending = accepted || status == "PENDING"
         val aw = SessionWindows.attendance(p, now)
         val fw = SessionWindows.feedback(p, now)
-        val feedbackSubmitted = p.feedbackSubmitted
-        val showFeedback = accepted || status == "PENDING"
+        val feedbackSubmitted = p.feedbackSubmitted || s.localFeedbackSubmitted.contains(session.id) || submittedFeedbacks.contains(session.id)
+        val showFeedback = isMarkedOrPending
 
         val attendanceSubtext = when {
             accepted -> "Marked"
@@ -173,8 +198,7 @@ class SessionActionsViewModel(
             feedbackSubmitted -> "Submitted"
             !showFeedback -> "Available after attendance"
             fw.forced == false -> "Deactivated by admin"
-            fw.isActive -> "Active · Required for certification"
-            else -> "Feedback will be activated 24 hours after the session is completed."
+            else -> "Active · Required for certification"
         }
 
         // CertificateDownload: conference-level feedback also counts (ConferenceView passes it in).
@@ -182,7 +206,7 @@ class SessionActionsViewModel(
         val feedbackDone = feedbackSubmitted || conf?.feedbackSubmitted == true
         val access = conf?.certificateAccess
         val accessAllowed = access?.allowed == true || (access == null && accepted && feedbackDone)
-        val unlocked = conf?.hasCertificate == true || accessAllowed
+        val unlocked = conf?.hasCertificate == true || accessAllowed || (accepted && feedbackDone)
         val locked = access?.reason ?: when {
             !accepted -> "Step 1: Mark attendance and wait for acceptance."
             !feedbackDone -> "Step 2: Submit session feedback to unlock your certificate."
@@ -195,9 +219,10 @@ class SessionActionsViewModel(
             feedbackSubmitted = feedbackSubmitted,
             attendanceSubtext = attendanceSubtext,
             feedbackSubtext = feedbackSubtext,
-            attendanceActive = aw.isActive && !accepted && status != "PENDING",
+            attendanceActive = !accepted && status != "PENDING" && (aw.isActive || aw.forced != false),
             showFeedbackControls = showFeedback,
-            feedbackActive = showFeedback && fw.isActive && !feedbackSubmitted,
+            // As soon as attendance is marked, feedback is immediately active unless admin turned it off or already submitted!
+            feedbackActive = showFeedback && (fw.forced != false) && !feedbackSubmitted,
             certificateUnlocked = unlocked,
             certificateLockedMessage = locked,
             certificateStatusLabel = if (access?.status == "AVAILABLE") "Available for download" else access?.status

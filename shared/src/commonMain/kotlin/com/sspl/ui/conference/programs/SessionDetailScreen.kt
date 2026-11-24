@@ -90,8 +90,19 @@ fun SessionDetailScreen(
         AttendanceDialog(onDismiss = attendanceViewModel::onDismissDialogs)
     }
 
-    LaunchedEffect(conferenceId, shell.isGuest) {
-        if (!shell.isGuest && conferenceId > 0) actionsViewModel.load(conferenceId)
+    val effectiveConfId = remember(conferenceId, session.id) { if (conferenceId > 0) conferenceId else session.id }
+
+    val feedbackSessionId = navController.currentBackStackEntry?.savedStateHandle?.get<Long>("feedbackSubmittedSessionId")
+    LaunchedEffect(feedbackSessionId) {
+        if (feedbackSessionId != null && feedbackSessionId == session.id) {
+            actionsViewModel.onFeedbackSubmitted(session.id)
+            if (effectiveConfId > 0) actionsViewModel.load(effectiveConfId)
+            navController.currentBackStackEntry?.savedStateHandle?.remove<Long>("feedbackSubmittedSessionId")
+        }
+    }
+
+    LaunchedEffect(effectiveConfId, shell.isGuest) {
+        if (!shell.isGuest && effectiveConfId > 0) actionsViewModel.load(effectiveConfId)
     }
 
     LaunchedEffect(Unit) {
@@ -100,9 +111,9 @@ fun SessionDetailScreen(
                 is ApiStates.Failure -> status.error.message.takeIf { it.isNotBlank() }?.let { snackbar.showSnackbar(it) }
                 ApiStates.Loading -> snackbar.showSnackbar("Marking attendance…")
                 is ApiStates.Success -> {
-                    if (conferenceId > 0) {
-                        actionsViewModel.onAttendanceMarked(session.id, status.data?.status)
-                        actionsViewModel.load(conferenceId)
+                    actionsViewModel.onAttendanceMarked(session.id, status.data?.status)
+                    if (effectiveConfId > 0) {
+                        actionsViewModel.load(effectiveConfId)
                     }
                     snackbar.showSnackbar("Attendance marked successfully")
                 }
@@ -117,9 +128,9 @@ fun SessionDetailScreen(
                 is ApiStates.Failure -> status.error.message.takeIf { it.isNotBlank() }?.let { snackbar.showSnackbar(it) }
                 ApiStates.Loading -> snackbar.showSnackbar("Uploading selfie…")
                 is ApiStates.Success -> {
-                    if (conferenceId > 0) {
-                        actionsViewModel.onAttendanceMarked(session.id, status.data?.status ?: "PENDING")
-                        actionsViewModel.load(conferenceId)
+                    actionsViewModel.onAttendanceMarked(session.id, status.data?.status ?: "PENDING")
+                    if (effectiveConfId > 0) {
+                        actionsViewModel.load(effectiveConfId)
                     }
                     snackbar.showSnackbar("Selfie uploaded for attendance approval")
                 }
@@ -167,7 +178,7 @@ fun SessionDetailScreen(
             }
 
             // Attendance · Feedback · Certificate Flow
-            if (!session.isBreak && !shell.isGuest && conferenceId > 0) {
+            if (!session.isBreak && !shell.isGuest) {
                 item(key = "actions") {
                     SsplCard {
                         Text("SESSION ACTIONS", style = AppTheme.typography.overline)
@@ -179,21 +190,21 @@ fun SessionDetailScreen(
                             needsPayment = actions.needsPayment,
                             allowFeedback = true,
                             certificateLoading = actions.certificateLoadingId == session.id,
-                            showCertificate = actions.participation != null,
+                            showCertificate = true,
                             snackbar = snackbar,
                             onFeedback = {
-                                navController.currentBackStackEntry?.savedStateHandle?.set("conferenceID", conferenceId)
+                                navController.currentBackStackEntry?.savedStateHandle?.set("conferenceID", effectiveConfId)
                                 navController.currentBackStackEntry?.savedStateHandle?.set("sessionID", session.id)
                                 navController.navigate(Screen.FeedbackScreen.route) { launchSingleTop = true }
                             },
                             onMarkAttendance = { lat, lng ->
-                                attendanceViewModel.markAttendanceViaLocation(conferenceId = conferenceId, sessionId = session.id, lat = lat, lng = lng)
+                                attendanceViewModel.markAttendanceViaLocation(conferenceId = effectiveConfId, sessionId = session.id, lat = lat, lng = lng)
                             },
                             onMarkAttendanceByImage = { img ->
-                                attendanceViewModel.markAttendanceViaImage(conferenceId = conferenceId, sessionId = session.id, image = img)
+                                attendanceViewModel.markAttendanceViaImage(conferenceId = effectiveConfId, sessionId = session.id, image = img)
                             },
                             onCertificate = {
-                                actionsViewModel.getCertificate(conferenceId, session.id)
+                                actionsViewModel.getCertificate(effectiveConfId, session.id)
                             }
                         )
                     }

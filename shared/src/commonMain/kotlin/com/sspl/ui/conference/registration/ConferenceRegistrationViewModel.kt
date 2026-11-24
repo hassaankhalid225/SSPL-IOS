@@ -129,7 +129,7 @@ class ConferenceRegistrationViewModel(
             }
             
             val userId = user.id
-            // Web parity: a valid account email is required (no placeholder), msisdn via toPkMsisdn.
+            // Web parity: valid account email required (no placeholder fallback), msisdn via toPkMsisdn.
             val email = user.account?.email?.trim().orEmpty()
             if (!PaymentContact.isValidEmail(email)) {
                 _uiState.value = currentState.copy(
@@ -154,7 +154,7 @@ class ConferenceRegistrationViewModel(
                 userId = userId,
                 conferenceRegistrationId = regId
             )
-            
+
             _uiState.value = currentState.copy(isLoading = true)
             initiatePaymentUseCase(request).collectLatest { state ->
                 when(state) {

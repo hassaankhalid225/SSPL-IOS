@@ -274,7 +274,7 @@ private fun ProgrammeList(
                                     needsPayment = actions.needsPayment,
                                     allowFeedback = allowFeedback,
                                     certificateLoading = actions.certificateLoadingId == s.id,
-                                    showCertificate = actions.participation != null,
+                                    showCertificate = true,
                                     snackbar = snackbar,
                                     onFeedback = { onFeedback(s) },
                                     onMarkAttendance = { lat, lng -> onMarkAttendance(s, lat, lng) },

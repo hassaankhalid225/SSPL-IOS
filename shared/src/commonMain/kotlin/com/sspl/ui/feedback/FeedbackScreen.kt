@@ -100,6 +100,10 @@ fun FeedbackScreen(navController: NavController, viewModel: FeedbackViewModel = 
                 is ApiStates.Failure -> snackbar.showSnackbar(status.error.message ?: "Feedback couldn't be sent. Try again.")
                 is ApiStates.Success -> {
                     snackbar.showSnackbar(status.data?.message?.takeIf { it.isNotBlank() } ?: "Thanks for your feedback!")
+                    sessionID?.let { sid ->
+                        navController.previousBackStackEntry?.savedStateHandle?.set("feedbackSubmittedSessionId", sid)
+                    }
+                    navController.previousBackStackEntry?.savedStateHandle?.set("feedbackSubmitted", true)
                     navController.popBackStack()
                 }
                 else -> Unit
