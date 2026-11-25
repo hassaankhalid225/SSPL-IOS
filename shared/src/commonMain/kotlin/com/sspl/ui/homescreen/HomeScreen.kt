@@ -165,30 +165,34 @@ fun HomeScreen(
                 val banners = state.banners
                 val hasBanners = banners is LoadState.Ready && banners.data.isNotEmpty()
                 val bannersLoading = banners is LoadState.Loading
+                val bottomSpace = if (hasBanners || bannersLoading) {
+                    if (shell.isGuest) 165.dp else 125.dp
+                } else {
+                    24.dp
+                }
                 Box {
-                    HomeHero(bottomSpace = if (hasBanners || bannersLoading) 92.dp else 24.dp)
+                    HomeHero(bottomSpace = bottomSpace)
                     Column(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .offset(y = if (hasBanners || bannersLoading) 0.dp else 0.dp)
+                        modifier = Modifier.align(Alignment.BottomCenter)
                     ) {
                         when {
                             bannersLoading -> SkeletonBox(
                                 Modifier
                                     .padding(horizontal = 20.dp)
                                     .fillMaxWidth()
+                                    .heightIn(max = 165.dp)
                                     .aspectRatio(16f / 7f)
-                                    .offset(y = 72.dp),
+                                    .offset(y = 68.dp),
                                 AppTheme.shapes.banner
                             )
                             hasBanners -> BannerCarousel(
                                 banners = (banners as LoadState.Ready).data,
-                                modifier = Modifier.offset(y = 72.dp)
+                                modifier = Modifier.offset(y = 68.dp)
                             )
                         }
                     }
                 }
-                if (hasBanners || bannersLoading) Spacer(Modifier.height(84.dp)) else Spacer(Modifier.height(8.dp))
+                if (hasBanners || bannersLoading) Spacer(Modifier.height(78.dp)) else Spacer(Modifier.height(8.dp))
             }
 
             // ---- Quick actions ---------------------------------------------------------
@@ -449,7 +453,9 @@ private fun HomeHero(bottomSpace: androidx.compose.ui.unit.Dp) {
             )
             Text(
                 text = "Society of Surgeons of Pakistan · Lahore",
-                style = AppTheme.typography.bodyMedium.copy(color = Color.White.copy(alpha = 0.72f))
+                style = AppTheme.typography.bodyMedium.copy(color = Color.White.copy(alpha = 0.72f)),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             if (shell.isGuest) {
                 Spacer(Modifier.height(14.dp))

@@ -8,6 +8,7 @@ import com.sspl.core.models.PublicEventItem
 import com.sspl.core.models.SiteSettingsResponse
 import com.sspl.core.models.SocietyNewsItem
 import com.sspl.utils.BASE_URL
+import com.sspl.utils.DateTimeUtils
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
@@ -87,28 +88,51 @@ class PublicRepository(private val httpClient: HttpClient) {
 
     // ------------------------------------------------------------------ news
 
+    // In-memory cache for news announcements
+    private var newsCache: List<SocietyNewsItem>? = null
+    private var newsLastFetchedMs: Long = 0L
+    private val newsTtlMs = 15 * 60 * 1000L
+
     /** GET /society-news — active + visible items, newest first (same as web). */
-    suspend fun fetchSocietyNews(): Result<List<SocietyNewsItem>> = runCatchingApi {
-        val text = httpClient.get("$BASE_URL/society-news").textOrThrow("Failed to load announcements.")
-        withContext(Dispatchers.Default) {
-            val parsed = json.parseToJsonElement(text)
-            val list: JsonArray? = when {
-                parsed is JsonArray -> parsed
-                parsed is JsonObject && parsed["data"] is JsonObject -> {
-                    val data = parsed["data"]!!.jsonObject
-                    (data["notifications"] ?: data["news"]) as? JsonArray
-                }
-                parsed is JsonObject && parsed["notifications"] is JsonArray -> parsed["notifications"]!!.jsonArray
-                else -> null
-            }
-            val items: List<SocietyNewsItem> = list?.let { json.decodeFromJsonElement(it) } ?: emptyList()
-            items.filter { it.isActive && it.isVisible }.sortedByDescending { it.createdAt ?: "" }
+    suspend fun fetchSocietyNews(forceRefresh: Boolean = false): Result<List<SocietyNewsItem>> {
+        val now = DateTimeUtils.timeInMilliNow()
+        if (!forceRefresh && newsCache != null && (now - newsLastFetchedMs < newsTtlMs)) {
+            return Result.success(newsCache!!)
         }
+        val result = runCatchingApi {
+            val text = httpClient.get("$BASE_URL/society-news").textOrThrow("Failed to load announcements.")
+            withContext(Dispatchers.Default) {
+                val parsed = json.parseToJsonElement(text)
+                val list: JsonArray? = when {
+                    parsed is JsonArray -> parsed
+                    parsed is JsonObject && parsed["data"] is JsonObject -> {
+                        val data = parsed["data"]!!.jsonObject
+                        (data["notifications"] ?: data["news"]) as? JsonArray
+                    }
+                    parsed is JsonObject && parsed["notifications"] is JsonArray -> parsed["notifications"]!!.jsonArray
+                    else -> null
+                }
+                val items: List<SocietyNewsItem> = list?.let { json.decodeFromJsonElement(it) } ?: emptyList()
+                items.filter { it.isActive && it.isVisible }.sortedByDescending { it.createdAt ?: "" }
+            }
+        }
+        if (result.isSuccess) {
+            newsCache = result.getOrNull()
+            newsLastFetchedMs = now
+        }
+        return result
     }
 
     /** Flow wrapper kept for Home (emits an empty list on failure; Home hides the section). */
-    fun getSocietyNews(): Flow<List<SocietyNewsItem>> = flow {
-        emit(fetchSocietyNews().getOrDefault(emptyList()))
+    fun getSocietyNews(forceRefresh: Boolean = false): Flow<List<SocietyNewsItem>> = flow {
+        // Emit cached immediately if present (zero wait)
+        newsCache?.let { emit(it) }
+        val res = fetchSocietyNews(forceRefresh)
+        if (res.isSuccess) {
+            emit(res.getOrDefault(emptyList()))
+        } else if (newsCache == null) {
+            emit(emptyList())
+        }
     }
 
     // ------------------------------------------------------------------ events

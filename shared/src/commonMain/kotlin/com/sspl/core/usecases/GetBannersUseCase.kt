@@ -2,6 +2,7 @@ package com.sspl.core.usecases
 
 import com.sspl.core.ApiStates
 import com.sspl.core.models.ApiError
+import com.sspl.core.models.Banner
 import com.sspl.core.models.BannersResponse
 import com.sspl.core.repositories.BannerRepository
 import kotlinx.coroutines.flow.Flow
@@ -10,10 +11,12 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
 class GetBannersUseCase(private val bannerRepository: BannerRepository) {
-    
-    operator fun invoke(): Flow<ApiStates<BannersResponse>> = flow {
+
+    fun cachedBanners(): List<Banner>? = bannerRepository.cachedBanners()
+
+    operator fun invoke(force: Boolean = false): Flow<ApiStates<BannersResponse>> = flow {
         emit(ApiStates.Loading)
-        bannerRepository.getBanners()
+        bannerRepository.getBanners(forceRefresh = force)
             .map { 
                 ApiStates.Success(it)  
             }

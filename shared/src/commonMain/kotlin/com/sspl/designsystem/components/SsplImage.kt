@@ -72,6 +72,29 @@ object ImageSources {
 }
 
 /**
+ * In-memory set of image URLs successfully loaded during the app process.
+ * Used so that images don't re-shimmer or flash on every recomposition or scroll pass.
+ */
+object LoadedImageTracker {
+    private const val MAX_URLS = 300
+    private val loadedUrls = LinkedHashSet<String>()
+
+    fun markLoaded(url: String?) {
+        if (url.isNullOrBlank()) return
+        if (loadedUrls.size >= MAX_URLS) {
+            val first = loadedUrls.firstOrNull()
+            if (first != null) loadedUrls.remove(first)
+        }
+        loadedUrls.add(url)
+    }
+
+    fun isLoaded(url: String?): Boolean {
+        if (url.isNullOrBlank()) return false
+        return loadedUrls.contains(url)
+    }
+}
+
+/**
  * The one image component screens should use.
  * Shows a skeleton while loading and a branded fallback if there's no image or it fails.
  */
@@ -85,10 +108,22 @@ fun SsplImage(
     fallbackIconSize: Dp = 28.dp,
     fallbackBackground: Color? = null
 ) {
-    val model by produceState<Any?>(initialValue = ImageSources.resolveUrl(source), source) {
-        value = if (ImageSources.isDataUri(source)) ImageSources.decodeDataUri(source!!) else ImageSources.resolveUrl(source)
+    val resolvedUrl = remember(source) { ImageSources.resolveUrl(source) }
+    val model by produceState<Any?>(initialValue = resolvedUrl, source) {
+        value = if (ImageSources.isDataUri(source)) ImageSources.decodeDataUri(source!!) else resolvedUrl
     }
-    var state by remember(source) { mutableStateOf(if (source.isNullOrBlank()) 2 else 0) } // 0 loading, 1 ok, 2 failed
+    val initiallyReady = remember(source) {
+        !source.isNullOrBlank() && (LoadedImageTracker.isLoaded(source) || (resolvedUrl != null && LoadedImageTracker.isLoaded(resolvedUrl)))
+    }
+    var state by remember(source) {
+        mutableStateOf(
+            when {
+                source.isNullOrBlank() -> 2 // failed / empty
+                initiallyReady -> 1 // already loaded in session! Instant paint.
+                else -> 0 // loading
+            }
+        )
+    }
 
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         if (model != null && state != 2) {
@@ -97,8 +132,14 @@ fun SsplImage(
                 contentDescription = contentDescription,
                 contentScale = contentScale,
                 modifier = Modifier.fillMaxSize(),
-                onSuccess = { state = 1 },
-                onError = { state = 2 }
+                onSuccess = {
+                    state = 1
+                    source?.let { LoadedImageTracker.markLoaded(it) }
+                    resolvedUrl?.let { LoadedImageTracker.markLoaded(it) }
+                },
+                onError = {
+                    state = 2
+                }
             )
         }
         if (state == 0) {

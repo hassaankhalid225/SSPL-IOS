@@ -52,6 +52,12 @@ class HomeScreenViewModel(
 
     init {
         // Instant paint from cache when returning to Home.
+        getBannersUseCase.cachedBanners()?.let { cached ->
+            val list = cached.filter { it.isActive && (it.type == "SLIDER" || it.type == null) }
+            if (list.isNotEmpty()) {
+                _state.update { it.copy(banners = LoadState.Ready(list)) }
+            }
+        }
         eventRepository.cachedEvents(active = true)?.let { cached ->
             _state.update { it.copy(events = LoadState.Ready(pickHomeEvents(cached))) }
         }
@@ -67,7 +73,7 @@ class HomeScreenViewModel(
     }
 
     fun loadHomeData(force: Boolean = false) {
-        fetchBanners()
+        fetchBanners(force)
         fetchEvents(force)
         fetchNews()
         fetchStats()
@@ -79,9 +85,9 @@ class HomeScreenViewModel(
         fetchEvents(force = true)
     }
 
-    private fun fetchBanners() {
+    private fun fetchBanners(force: Boolean = false) {
         viewModelScope.launch {
-            getBannersUseCase().collect { s ->
+            getBannersUseCase(force).collect { s ->
                 when (s) {
                     is ApiStates.Success -> {
                         // Behaviour frozen: SLIDER or untyped, active only. Carousel caps at 3.
@@ -89,7 +95,11 @@ class HomeScreenViewModel(
                             .filter { it.isActive && (it.type == "SLIDER" || it.type == null) }
                         _state.update { it.copy(banners = LoadState.Ready(list)) }
                     }
-                    is ApiStates.Failure -> _state.update { it.copy(banners = LoadState.Ready(emptyList())) }
+                    is ApiStates.Failure -> {
+                        if (_state.value.banners !is LoadState.Ready) {
+                            _state.update { it.copy(banners = LoadState.Ready(emptyList())) }
+                        }
+                    }
                     else -> Unit
                 }
             }
